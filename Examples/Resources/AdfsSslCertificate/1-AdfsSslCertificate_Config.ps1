@@ -24,6 +24,14 @@
 
 Configuration AdfsSslCertificate_Config
 {
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [System.Management.Automation.PSCredential]
+        $Credential
+    )
+
     Import-DscResource -ModuleName AdfsDsc
 
     Node localhost
@@ -31,8 +39,8 @@ Configuration AdfsSslCertificate_Config
         AdfsSslCertificate SslCertificate
         {
             CertificateType  = 'Https-Binding'
-            Thumbprint       = ''
-            RemoteCredential = ''
+            Thumbprint       = 'cb779e674ae6921682d01d055a4315c786160a7b'
+            RemoteCredential = $Credential
         }
     }
 }

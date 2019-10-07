@@ -30,8 +30,8 @@ Configuration AdfsCertificate_Config
     {
         AdfsCertificate Certificates
         {
-            CertificateType = ''
-            Thumbprint      = ''
+            CertificateType = 'Token-Signing'
+            Thumbprint      = 'cb779e674ae6921682d01d055a4315c786160a7b'
         }
     }
 }
