@@ -57,7 +57,6 @@ Configuration AdfsWebApiApplication_Config
             IssuanceAuthorizationRules           = ''
             DelegationAuthorizationRules         = ''
             ImpersonationAuthorizationRules      = ''
-            IssuanceTransformRules               = ''
             AdditionalAuthenticationRules        = ''
             NotBeforeSkew                        = 5
             TokenLifetime                        = 90

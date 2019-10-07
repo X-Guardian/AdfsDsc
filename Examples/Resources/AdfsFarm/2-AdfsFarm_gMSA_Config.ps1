@@ -1,6 +1,6 @@
 <#PSScriptInfo
 .VERSION 1.0.0
-.GUID 3b6861e5-d3c9-48a7-bebe-88c61442c69c
+.GUID e5ff26fc-ec8f-45b4-babc-532a39074e83
 .AUTHOR Microsoft Corporation
 .COMPANYNAME Microsoft Corporation
 .COPYRIGHT (c) Microsoft Corporation. All rights reserved.
@@ -22,19 +22,14 @@
         This configuration will ...
 #>
 
-Configuration AdfsFarmwithServiceAccount_Config
+Configuration AdfsFarm_gMSA_Config
 {
     Param
     (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCredential]
-        $AdfsCred,
-
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [System.Management.Automation.PSCredential]
-        $DomainCred
+        $DomainAdminCredential
     )
 
     Import-DscResource -ModuleName AdfsDsc
@@ -46,14 +41,13 @@ Configuration AdfsFarmwithServiceAccount_Config
             Name = 'ADFS-Federation'
         }
 
-        AdfsFarm Fabrikam
+        AdfsFarm Contoso
         {
-            FederationServiceName        = 'sts.fabrikam.com'
-            FederationServiceDisplayName = 'Fabrikam ADFS Service'
-            CertificateThumbprint        = '933D8ACDD49CEF529EB159504C4095575E3496BB'
-            SQLConnectionString          = 'Data Source=SQL01;Integrated Security=True'
-            ServiceAccountCredential     = $AdfsCred
-            Credential                   = $DomainCred
+            FederationServiceName         = 'sts.contoso.com'
+            FederationServiceDisplayName  = 'Contoso ADFS Service'
+            CertificateThumbprint         = '933D8ACDD49CEF529EB159504C4095575E3496BB'
+            GroupServiceAccountIdentifier = 'contoso\adfs-gmsa$'
+            Credential                    = $DomainAdminCredential
         }
     }
 }

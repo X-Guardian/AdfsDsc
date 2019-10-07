@@ -22,14 +22,14 @@
         This configuration will ...
 #>
 
-Configuration AdfsFarmWithGroupManagedServiceAccount_Config
+Configuration AdfsFarm_gMSA_Config
 {
     Param
     (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCredential]
-        $DomainCred
+        $DomainAdminCredential
     )
 
     Import-DscResource -ModuleName AdfsDsc
@@ -46,9 +46,9 @@ Configuration AdfsFarmWithGroupManagedServiceAccount_Config
             FederationServiceName         = 'sts.contoso.com'
             FederationServiceDisplayName  = 'Contoso ADFS Service'
             CertificateThumbprint         = '933D8ACDD49CEF529EB159504C4095575E3496BB'
-            SQLConnectionString           = 'Data Source=SQL01;Integrated Security=True'
             GroupServiceAccountIdentifier = 'contoso\adfs-gmsa$'
-            Credential                    = $DomainCred
+            SQLConnectionString           = 'Data Source=SQL01;Integrated Security=True'
+            Credential                    = $DomainAdminCredential
         }
     }
 }

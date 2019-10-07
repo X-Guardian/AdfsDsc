@@ -22,14 +22,14 @@
         This configuration will ...
 #>
 
-Configuration AdfsFarmNode_Config
+Configuration AdfsFarmNode_gMSA_Config
 {
     param
     (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCredential]
-        $ServiceAccountCredential
+        $DomainAdminCredential
     )
 
     Import-DscResource -ModuleName AdfsDsc
@@ -38,15 +38,16 @@ Configuration AdfsFarmNode_Config
     {
         WindowsFeature InstallAdfs
         {
-            Name   = 'ADFS-Federation'
+            Name = 'ADFS-Federation'
         }
 
         AdfsFarmNode ADFS02
         {
-            FederationServiceName    = 'sts.contoso.com'
-            CertificateThumbprint    = '2C6A6926F05544C68B45EB75CD228D861320B46C'
-            ServiceAccountCredential = $ServiceAccountCredential
-            PrimaryComputerName      = 'ADFS01'
+            FederationServiceName         = 'sts.contoso.com'
+            CertificateThumbprint         = '933D8ACDD49CEF529EB159504C4095575E3496BB'
+            GroupServiceAccountIdentifier = 'contoso\adfs-gmsa$'
+            Credential                    = $DomainAdminCredential
+            PrimaryComputerName           = 'ADFS01'
         }
     }
 }
