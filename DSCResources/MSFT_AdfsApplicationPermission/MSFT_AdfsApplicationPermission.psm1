@@ -180,6 +180,13 @@ function Set-TargetResource
                 $SetParameters.add($property.ParameterName, $property.Expected)
             }
 
+            if ($ServerRoleIdentifier -ne $targetResource.ServerRoleIdentifier)
+            {
+                Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f `
+                        $ClientRoleIdentifier, $ServerRoleIdentifier, 'ServerRoleIdentifier', `
+                    ($ServerRoleIdentifier -join ', '))
+            }
+
             Set-AdfsApplicationPermission `
                 -TargetClientRoleIdentifier $ClientRoleIdentifier `
                 -TargetServerRoleIdentifier $ServerRoleIdentifier `
