@@ -29,7 +29,12 @@ Configuration AdfsFarmNode_ServiceAccount_Config
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCredential]
-        $ServiceAccountCredential
+        $ServiceAccountCredential,
+
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [System.Management.Automation.PSCredential]
+        $DomainAdminCredential
     )
 
     Import-DscResource -ModuleName AdfsDsc
@@ -46,6 +51,7 @@ Configuration AdfsFarmNode_ServiceAccount_Config
             FederationServiceName    = 'sts.contoso.com'
             CertificateThumbprint    = '933D8ACDD49CEF529EB159504C4095575E3496BB'
             ServiceAccountCredential = $ServiceAccountCredential
+            Credential               = $DomainAdminCredential
             PrimaryComputerName      = 'ADFS01'
         }
     }

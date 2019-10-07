@@ -29,12 +29,12 @@ Configuration AdfsFarm_ServiceAccount_Config
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCredential]
-        $AdfsCred,
+        $ServiceAccountCredential,
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCredential]
-        $DomainCred
+        $DomainAdminCredential
     )
 
     Import-DscResource -ModuleName AdfsDsc
@@ -52,8 +52,8 @@ Configuration AdfsFarm_ServiceAccount_Config
             FederationServiceDisplayName = 'Fabrikam ADFS Service'
             CertificateThumbprint        = '933D8ACDD49CEF529EB159504C4095575E3496BB'
             SQLConnectionString          = 'Data Source=SQL01;Integrated Security=True'
-            ServiceAccountCredential     = $AdfsCred
-            Credential                   = $DomainCred
+            ServiceAccountCredential     = $ServiceAccountCredential
+            Credential                   = $DomainAdminCredential
         }
     }
 }

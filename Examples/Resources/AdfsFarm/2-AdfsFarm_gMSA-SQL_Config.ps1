@@ -22,7 +22,7 @@
         This configuration will ...
 #>
 
-Configuration AdfsFarm_gMSA_Config
+Configuration AdfsFarm_gMSA-SQL_Config
 {
     Param
     (

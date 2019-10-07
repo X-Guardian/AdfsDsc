@@ -51,7 +51,7 @@ Configuration AdfsWebApiApplication_Config
             Identifier                           = 'e7bfb303-c5f6-4028-a360-b6293d41338c'
             Description                          = 'App1 Web Api'
             AccessControlPolicyName              = 'Permit everyone'
-            IssuanceTransformRules               = $ADEmailAddressTransformRule
+            IssuanceTransformRules               = $LdapClaimsTransformRule, $EmitGroupClaimsTransformRule
             AllowedAuthenticationClassReferences = ''
             ClaimsProviderName                   = ''
             IssuanceAuthorizationRules           = ''
