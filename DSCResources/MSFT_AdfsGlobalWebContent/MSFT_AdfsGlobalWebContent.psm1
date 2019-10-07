@@ -307,7 +307,7 @@ function Set-TargetResource
 
     $propertiesNotInDesiredState = (
         Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $Parameters | `
-            Where-Object -Property InDesiredState -eq $false)
+                Where-Object -Property InDesiredState -eq $false)
 
     $SetParameters = @{ }
     foreach ($property in $propertiesNotInDesiredState)
@@ -318,10 +318,12 @@ function Set-TargetResource
         $SetParameters.add($property.ParameterName, $property.Expected)
     }
 
-    try {
+    try
+    {
         Set-AdfsGlobalWebContent -Locale $Locale @SetParameters
     }
-    catch {
+    catch
+    {
         $errorMessage = $script:localizedData.SettingResourceError -f $FederationServiceName, $Locale
         New-InvalidOperationException -Message $errorMessage -Error $_
     }
@@ -442,7 +444,7 @@ function Test-TargetResource
 
     $propertiesNotInDesiredState = (
         Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $Parameters | `
-            Where-Object -Property InDesiredState -eq $false)
+                Where-Object -Property InDesiredState -eq $false)
 
     if ($propertiesNotInDesiredState)
     {
