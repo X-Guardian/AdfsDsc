@@ -145,12 +145,12 @@ try
                     Assert-MockCalled -CommandName Get-AdfsConfigurationStatus -Exactly -Times 1
                     Assert-MockCalled -CommandName Get-CimInstance `
                         -ParameterFilter {
-                            $ClassName -eq 'Win32_Service' -and `
+                        $ClassName -eq 'Win32_Service' -and `
                             $Filter -eq "Name='$script:AdfsServiceName'" } `
                         -Exactly -Times 1
                     Assert-MockCalled -CommandName Get-CimInstance `
                         -ParameterFilter {
-                            $Namespace -eq 'root/ADFS' -and `
+                        $Namespace -eq 'root/ADFS' -and `
                             $ClassName -eq 'SecurityTokenService' } `
                         -Exactly -Times 1
                     Assert-MockCalled -CommandName Get-CimInstance `
@@ -314,6 +314,20 @@ try
                     Assert-MockCalled -CommandName Install-AdfsFarm `
                         -ParameterFilter { $FederationServiceName -eq $mockGsaResource.FederationServiceName } `
                         -Exactly -Times 1
+                }
+
+                Context 'When Install-AdfsFarm throws System.IO.FileNotFoundException' {
+                    Mock Install-AdfsFarm -MockWith { throw -New-Object System.IO.FileNotFoundException }
+
+                    It 'Should not throw' {
+                        { Set-TargetResource @setTargetResourceParameters } | Should -Not -Throw
+                    }
+
+                    It 'Should call the expected mocks' {
+                        Assert-MockCalled -CommandName Install-AdfsFarm `
+                            -ParameterFilter { $FederationServiceName -eq $mockGsaResource.FederationServiceName } `
+                            -Exactly -Times 1
+                    }
                 }
 
                 Context 'When Install-AdfsFarm throws an exception' {
