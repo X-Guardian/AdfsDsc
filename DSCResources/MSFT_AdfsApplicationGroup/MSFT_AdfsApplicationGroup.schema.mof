@@ -1,0 +1,7 @@
+[ClassVersion("1.0.0.0"), FriendlyName("AdfsApplicationGroup")]
+class MSFT_AdfsApplicationGroup : OMI_BaseResource
+{
+    [Key, Description("Specifies a name for the application group.")] String Name;
+    [Write, Description("Specifies a description for the application group.")] String Description;
+    [Write, Description("Specifies whether the Application Group should be present or absent. Default value is 'Present'."), ValueMap{"Present","Absent"}, Values{"Present","Absent"}] String Ensure;
+};

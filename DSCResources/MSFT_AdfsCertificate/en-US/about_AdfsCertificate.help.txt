@@ -1,0 +1,17 @@
+.NAME
+    AdfsCertificate
+
+.DESCRIPTION
+    The AdfsCertificate Dsc resource manages certificate that AD FS uses to sign, decrypt, or secure
+    communications.
+
+.PARAMETER CertificateType
+    Key - String
+    Allowed values: Service-Communications, Token-Decrypting, Token-Signing
+    Specifies the certificate type (that is, how the Federation Service uses the certificate).
+
+.PARAMETER Thumbprint
+    Required - String
+    Specifies the thumbprint of the certificate to use.
+
+

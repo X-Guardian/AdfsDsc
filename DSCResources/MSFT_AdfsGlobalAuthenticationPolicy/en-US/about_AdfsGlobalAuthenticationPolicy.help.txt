@@ -1,0 +1,84 @@
+.NAME
+    AdfsGlobalAuthenticationPolicy
+
+.DESCRIPTION
+    The AdfsGlobalAuthenticationPolicy DSC resource manages the global authentication policy, which includes the
+    providers currently allowed as additional providers in the AdditionalAuthenticationProvider property.
+
+.PARAMETER FederationServiceName
+    Key - String
+    Specifies the DNS name of the federation service.
+
+.PARAMETER AdditionalAuthenticationProvider
+    Write - String
+    Specifies an array of names of external authentication providers to add to the global policy.
+
+.PARAMETER AllowAdditionalAuthenticationAsPrimary
+    Write - Boolean
+    Specifying this parameter configures an external authentication provider for second stage authentication in the
+    global policy.
+
+.PARAMETER ClientAuthenticationMethods
+    Write - String
+    Allowed values: ClientSecretPostAuthentication, ClientSecretBasicAuthentication,
+                    PrivateKeyJWTBearerAuthentication, WindowsIntegratedAuthentication, None
+                    
+    Specifying this parameter configures an external authentication provider, for second stage authentication, in
+    the global policy
+
+.PARAMETER EnablePaginatedAuthenticationPages
+    Write - Boolean
+    Enable the paginated authentication sign-in experience. This is only supported on Windows Server 2019 and
+    above.
+
+.PARAMETER DeviceAuthenticationEnabled
+    Write - Boolean
+    Specifies whether device authentication is enabled for the global policy.
+
+.PARAMETER DeviceAuthenticationMethod
+    Write - String
+    Allowed values: All, ClientTLS, SignedToken
+    Specifying this parameter configures an external authentication provider, for second stage authentication, in
+    the global policy.
+
+.PARAMETER PrimaryExtranetAuthenticationProvider
+    Write - String
+    Specifies an array of names of authentication providers for the primary extranet to add to the global policy.
+
+.PARAMETER PrimaryIntranetAuthenticationProvider
+    Write - String
+    Specifies an array of names of authentication providers for the primary intranet to add to the global policy.
+
+.PARAMETER WindowsIntegratedFallbackEnabled
+    Write - Boolean
+    Specifies whether fallback to Integrated Windows Authentication is enabled on the intranet.
+
+.EXAMPLE 1
+
+This configuration will ...
+
+Configuration AdfsGlobalAuthenticationPolicy_Config
+{
+    param()
+
+    Import-DscResource -ModuleName AdfsDsc
+
+    Node localhost
+    {
+        AdfsGlobalAuthenticationPolicy ContosoGlobalAuthenticationPolicy
+        {
+            FederationServiceName                  = 'sts.contoso.com'
+            AdditionalAuthenticationProvider       = ''
+            AllowAdditionalAuthenticationAsPrimary = $true
+            ClientAuthenticationMethods            = 'ClientSecretPostAuthentication'
+            EnablePaginatedAuthenticationPages     = $true
+            DeviceAuthenticationEnabled            = $true
+            DeviceAuthenticationMethod             = 'All'
+            PrimaryExtranetAuthenticationProvider  = 'FormsAuthentication'
+            PrimaryIntranetAuthenticationProvider  = 'WindowsAuthentication', 'FormsAuthentication', 'MicrosoftPassportAuthentication'
+            WindowsIntegratedFallbackEnabled       = $true
+        }
+    }
+}
+
+

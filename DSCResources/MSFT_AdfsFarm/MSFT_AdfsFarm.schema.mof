@@ -1,0 +1,13 @@
+[ClassVersion("1.0.0.0"), FriendlyName("AdfsFarm")]
+class MSFT_AdfsFarm : OMI_BaseResource
+{
+    [Key, Description("Specifies the DNS name of the federation service. This value must match the subject name of the specified certificate.")] String FederationServiceName;
+    [Required, Description("Specifies the thumbprint of the certificate to use for HTTPS bindings and service communication for ADFS. This value should match the thumbprint of a valid certificate in the Local Computer certificate store.")] String CertificateThumbprint;
+    [Required, EmbeddedInstance("MSFT_Credential"), Description("Specifies a PSCredential object that must have domain administrator privileges.")] String Credential;
+    [Write, Description("Specifies the display name of the Federation Service.")] String FederationServiceDisplayName;
+    [Write, Description("Specifies the Group Managed Service Account under which the Active Directory Federation Services (AD FS) service runs.")] String GroupServiceAccountIdentifier;
+    [Write, Description("This parameter must be used to remove an existing Active Directory Federation Services (AD FS) configuration database and overwrite it with a new database.")] Boolean OverwriteConfiguration;
+    [Write, EmbeddedInstance("MSFT_Credential"), Description("Specifies the Active Directory account under which the AD FS service runs in the form: <domain name>\\<user name>.")] String ServiceAccountCredential;
+    [Write, Description("Specifies the SQL Server database that will store the AD FS configuration settings. If not specified, the AD FS installer uses the Windows Internal Database to store configuration settings.")] String SQLConnectionString;
+    [Read, Description("The state of the ADFS Farm.")] String Ensure;
+};

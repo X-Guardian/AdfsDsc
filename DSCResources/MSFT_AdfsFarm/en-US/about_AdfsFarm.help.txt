@@ -1,0 +1,128 @@
+.NAME
+    AdfsFarm
+
+.DESCRIPTION
+    The AdfsFarm DSC resource installs an Active Directory Federation Services server farm, and the primary node of
+    the farm. To further manage the configuration of ADFS, the ADFSProperties DSC resource should be used.
+
+    Note: removal of the ADFS server farm using this resource is not supported. Remove the Adfs-Federation role
+    from the server instead.
+
+.PARAMETER FederationServiceName
+    Key - String
+    Specifies the DNS name of the federation service. This value must match the subject name of the specified
+    certificate.
+
+.PARAMETER CertificateThumbprint
+    Required - String
+    Specifies the thumbprint of the certificate to use for HTTPS bindings and service communication for ADFS. This
+    value should match the thumbprint of a valid certificate in the Local Computer certificate store.
+
+.PARAMETER Credential
+    Required - String
+    Specifies a PSCredential object that must have domain administrator privileges.
+
+.PARAMETER FederationServiceDisplayName
+    Write - String
+    Specifies the display name of the Federation Service.
+
+.PARAMETER GroupServiceAccountIdentifier
+    Write - String
+    Specifies the Group Managed Service Account under which the Active Directory Federation Services (AD FS)
+    service runs.
+
+.PARAMETER OverwriteConfiguration
+    Write - Boolean
+    This parameter must be used to remove an existing Active Directory Federation Services (AD FS) configuration
+    database and overwrite it with a new database.
+
+.PARAMETER ServiceAccountCredential
+    Write - String
+    Specifies the Active Directory account under which the AD FS service runs in the form: <domain name>\\<user
+    name>.
+
+.PARAMETER SQLConnectionString
+    Write - String
+    Specifies the SQL Server database that will store the AD FS configuration settings. If not specified, the AD FS
+    installer uses the Windows Internal Database to store configuration settings.
+
+.PARAMETER Ensure
+    Read - String
+    The state of the ADFS Farm.
+
+.EXAMPLE 1
+
+This configuration will ...
+
+Configuration AdfsFarmwithServiceAccount_Config
+{
+    Param
+    (
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [System.Management.Automation.PSCredential]
+        $AdfsCred,
+
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [System.Management.Automation.PSCredential]
+        $DomainCred
+    )
+
+    Import-DscResource -ModuleName AdfsDsc
+
+    Node localhost
+    {
+        WindowsFeature InstallAdfs
+        {
+            Name = 'ADFS-Federation'
+        }
+
+        AdfsFarm Fabrikam
+        {
+            FederationServiceName        = 'sts.fabrikam.com'
+            FederationServiceDisplayName = 'Fabrikam ADFS Service'
+            CertificateThumbprint        = '933D8ACDD49CEF529EB159504C4095575E3496BB'
+            SQLConnectionString          = 'Data Source=SQL01;Integrated Security=True'
+            ServiceAccountCredential     = $AdfsCred
+            Credential                   = $DomainCred
+        }
+    }
+}
+
+.EXAMPLE 2
+
+This configuration will ...
+
+Configuration AdfsFarmWithGroupManagedServiceAccount_Config
+{
+    Param
+    (
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [System.Management.Automation.PSCredential]
+        $DomainCred
+    )
+
+    Import-DscResource -ModuleName AdfsDsc
+
+    Node localhost
+    {
+        WindowsFeature InstallAdfs
+        {
+            Name = 'ADFS-Federation'
+        }
+
+        AdfsFarm Contoso
+        {
+            FederationServiceName         = 'sts.contoso.com'
+            FederationServiceDisplayName  = 'Contoso ADFS Service'
+            CertificateThumbprint         = '933D8ACDD49CEF529EB159504C4095575E3496BB'
+            SQLConnectionString           = 'Data Source=SQL01;Integrated Security=True'
+            GroupServiceAccountIdentifier = 'contoso\adfs-gmsa$'
+            Credential                    = $DomainCred
+        }
+    }
+}
+
+

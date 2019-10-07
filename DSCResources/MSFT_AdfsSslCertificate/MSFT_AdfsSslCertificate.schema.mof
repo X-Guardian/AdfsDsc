@@ -1,0 +1,7 @@
+[ClassVersion("1.0.0.0"), FriendlyName("AdfsSslCertificate")]
+class MSFT_AdfsSslCertificate : OMI_BaseResource
+{
+    [Key, Description("Specifies the certificate type, must be 'Https-Binding'."), ValueMap{"Https-Binding"}, Values{"Https-Binding"}] String CertificateType;
+    [Required, Description("Specifies the thumbprint of the certificate to use.")] String Thumbprint;
+    [Required, EmbeddedInstance("MSFT_Credential"), Description("Specifies the credential to use to connect to WinRM on all the members of the ADFS farm.")] String RemoteCredential;
+};

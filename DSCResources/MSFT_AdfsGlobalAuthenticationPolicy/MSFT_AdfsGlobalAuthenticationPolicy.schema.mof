@@ -1,0 +1,14 @@
+[ClassVersion("1.0.0.0"), FriendlyName("AdfsGlobalAuthenticationPolicy")]
+class MSFT_AdfsGlobalAuthenticationPolicy : OMI_BaseResource
+{
+    [Key, Description("Specifies the DNS name of the federation service.")] String FederationServiceName;
+    [Write, Description("Specifies an array of names of external authentication providers to add to the global policy.")] String AdditionalAuthenticationProvider[];
+    [Write, Description("Specifying this parameter configures an external authentication provider for second stage authentication in the global policy.")] Boolean AllowAdditionalAuthenticationAsPrimary;
+    [Write, Description("Specifying this parameter configures an external authentication provider, for second stage authentication, in the global policy"), ValueMap{"ClientSecretPostAuthentication","ClientSecretBasicAuthentication","PrivateKeyJWTBearerAuthentication","WindowsIntegratedAuthentication","None"}, Values{"ClientSecretPostAuthentication","ClientSecretBasicAuthentication","PrivateKeyJWTBearerAuthentication","WindowsIntegratedAuthentication","None"}] String ClientAuthenticationMethods[];
+    [Write, Description("Enable the paginated authentication sign-in experience. This is only supported on Windows Server 2019 and above.")] Boolean EnablePaginatedAuthenticationPages;
+    [Write, Description("Specifies whether device authentication is enabled for the global policy.")] Boolean DeviceAuthenticationEnabled;
+    [Write, Description("Specifying this parameter configures an external authentication provider, for second stage authentication, in the global policy."), ValueMap{"All","ClientTLS","SignedToken"}, Values{"All","ClientTLS","SignedToken"}] String DeviceAuthenticationMethod;
+    [Write, Description("Specifies an array of names of authentication providers for the primary extranet to add to the global policy.")] String PrimaryExtranetAuthenticationProvider[];
+    [Write, Description("Specifies an array of names of authentication providers for the primary intranet to add to the global policy.")] String PrimaryIntranetAuthenticationProvider[];
+    [Write, Description("Specifies whether fallback to Integrated Windows Authentication is enabled on the intranet.")] Boolean WindowsIntegratedFallbackEnabled;
+};

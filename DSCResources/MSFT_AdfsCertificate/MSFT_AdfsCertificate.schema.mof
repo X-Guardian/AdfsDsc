@@ -1,0 +1,8 @@
+
+[ClassVersion("1.0.0.0"), FriendlyName("AdfsCertificate")]
+class MSFT_AdfsCertificate : OMI_BaseResource
+{
+    [Key, Description("Specifies the certificate type (that is, how the Federation Service uses the certificate)."), ValueMap{"Service-Communications","Token-Decrypting","Token-Signing"}, Values{"Service-Communications","Token-Decrypting","Token-Signing"}] String CertificateType;
+    [Required, Description("Specifies the thumbprint of the certificate to use.")] String Thumbprint;
+};
+

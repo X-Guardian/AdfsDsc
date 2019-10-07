@@ -1,0 +1,11 @@
+[ClassVersion("1.0.0.0"), FriendlyName("AdfsNativeClientApplication")]
+class MSFT_AdfsNativeClientApplication : OMI_BaseResource
+{
+    [Key, Description("Specifies the name for the native client application.")] String Name;
+    [Required, Description("Specifies the identifier for the native client application.")] String Identifier;
+    [Required, Description("Specifies the ID of an application group.")] String ApplicationGroupIdentifier;
+    [Write, Description("Specifies an array of redirection URIs for the OAuth 2.0 client to register with AD FS. The redirection URI is specified by the OAuth 2.0 client when it requests authorization to access a resource in ADFS.")] String RedirectUri[];
+    [Write, Description("Specifies a description for the native client application.")] String Description;
+    [Write, Description("Specifies the logout URI for the OAuth 2.0 client to register with the AD FS. When AD FS initiates a logout it redirects the client's user-agent to this URI by rendering this URI in an iframe. The value of this parameter must be an absolute URI, may include a query component, and must not include a fragment component.")] String LogoutUri;
+    [Write, Description("Specifies whether the ADFS native client application should be present or absent. Default value is 'Present'."), ValueMap{"Present","Absent"}, Values{"Present","Absent"}] String Ensure;
+};

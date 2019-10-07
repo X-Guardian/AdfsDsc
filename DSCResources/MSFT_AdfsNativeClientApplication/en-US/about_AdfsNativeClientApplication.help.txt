@@ -1,0 +1,67 @@
+.NAME
+    AdfsNativeClientApplication
+
+.DESCRIPTION
+    The AdfsNativeClientApplication DSC resource manages Native Client Applications within Active Directory
+    Federation Services. Native Client Applications are a construct that represents a native application that runs
+    on a phone, tablet or PC and needs to authenticate a user with ADFS.
+
+    ## Requirements
+
+    * Target machine must be running ADFS on Windows Server 2016 or above to use this resource.
+
+.PARAMETER Name
+    Key - String
+    Specifies the name for the native client application.
+
+.PARAMETER Identifier
+    Required - String
+    Specifies the identifier for the native client application.
+
+.PARAMETER ApplicationGroupIdentifier
+    Required - String
+    Specifies the ID of an application group.
+
+.PARAMETER RedirectUri
+    Write - String
+    Specifies an array of redirection URIs for the OAuth 2.0 client to register with AD FS. The redirection URI is
+    specified by the OAuth 2.0 client when it requests authorization to access a resource in ADFS.
+
+.PARAMETER Description
+    Write - String
+    Specifies a description for the native client application.
+
+.PARAMETER LogoutUri
+    Write - String
+    Specifies the logout URI for the OAuth 2.0 client to register with the AD FS. When AD FS initiates a logout it
+    redirects the client's user-agent to this URI by rendering this URI in an iframe. The value of this parameter
+    must be an absolute URI, may include a query component, and must not include a fragment component.
+
+.PARAMETER Ensure
+    Write - String
+    Allowed values: Present, Absent
+    Specifies whether the ADFS native client application should be present or absent. Default value is 'Present'.
+
+.EXAMPLE 1
+
+This configuration will ...
+
+Configuration AdfsNativeClientApplication_Config
+{
+    Import-DscResource -ModuleName AdfsDsc
+
+    Node localhost
+    {
+        AdfsNativeClientApplication NativeApp1
+        {
+            Name                       = 'NativeApp1'
+            ApplicationGroupIdentifier = 'AppGroup1'
+            Identifier                 = 'NativeApp1'
+            RedirectUri                = @('https://nativeapp1.contoso.com')
+            Description                = 'App1 Native App'
+            LogoutUri                  = 'https://nativeapp1.contoso.com/logout'
+        }
+    }
+}
+
+

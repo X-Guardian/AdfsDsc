@@ -1,0 +1,53 @@
+.NAME
+    AdfsApplicationPermission
+
+.DESCRIPTION
+    The AdfsApplicationPermission DSC resource manages Application Permissions within Active Directory Federation
+    Services.
+
+    ## Requirements
+
+    * Target machine must be running ADFS on Windows Server 2016 or above to use this resource.
+
+.PARAMETER ClientRoleIdentifier
+    Key - String
+    Specifies a client role identifier.
+
+.PARAMETER ServerRoleIdentifier
+    Key - String
+    Specifies a server role identifier.
+
+.PARAMETER ScopeNames
+    Write - String
+    Specifies an array of scope names.
+
+.PARAMETER Description
+    Write - String
+    Specifies a description for the Application Permission.
+
+.PARAMETER Ensure
+    Write - String
+    Allowed values: Present, Absent
+    Specifies whether the Application Permission should be present or absent. Default value is 'Present'.
+
+.EXAMPLE 1
+
+This configuration will ...
+
+Configuration AdfsApplicationPermission_Config
+{
+    Import-DscResource -ModuleName AdfsDsc
+
+    Node localhost
+    {
+        AdfsApplicationPermission AppPermission1
+        {
+            ClientRoleIdentifier = 'c28bcb5d-ef46-47ed-b520-4f5ac605a082'
+            ServerRoleIdentifier = 'c28bcb5d-ef46-47ed-b520-4f5ac605a082'
+            Description          = "This is the AppPermission1 Description"
+            ScopeNames           = 'openid'
+        }
+    }
+}
+
+

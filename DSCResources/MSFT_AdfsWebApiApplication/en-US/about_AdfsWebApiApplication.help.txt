@@ -1,0 +1,136 @@
+.NAME
+    AdfsWebApiApplication
+
+.DESCRIPTION
+    The AdfsWebApiApplication DSC resource manages Web API Applications within Active Directory Federation
+    Services. Web Api Applications are a construct that represents a web API secured by ADFS.
+
+    ## Requirements
+
+    * Target machine must be running ADFS on Windows Server 2016 or above to use this resource.
+
+.PARAMETER Name
+    Key - String
+    Specifies a name for the Web API application.
+
+.PARAMETER ApplicationGroupIdentifier
+    Required - String
+    Specifies the ID of an application group for the Web API application.
+
+.PARAMETER Identifier
+    Required - String
+    Specifies an identifier for the Web API application.
+
+.PARAMETER Description
+    Write - String
+    Specifies a description for the Web API application.
+
+.PARAMETER Ensure
+    Write - String
+    Allowed values: Present, Absent
+    Specifies whether the Web API application should be present or absent. Default value is 'Present'.
+
+.PARAMETER AllowedAuthenticationClassReferences
+    Write - String
+    Specifies an array of allow authentication class references.
+
+.PARAMETER ClaimsProviderName
+    Write - String
+    Specifies an array of claims provider names that you can configure for a relying party trust for Home Realm
+    Discovery (HRD) scenario.
+
+.PARAMETER IssuanceAuthorizationRules
+    Write - String
+    Specifies the issuance authorization rules.
+
+.PARAMETER DelegationAuthorizationRules
+    Write - String
+    Specifies delegation authorization rules.
+
+.PARAMETER ImpersonationAuthorizationRules
+    Write - String
+    Specifies the impersonation authorization rules.
+
+.PARAMETER IssuanceTransformRules
+    Write - String
+    Specifies the issuance transform rules.
+
+.PARAMETER AdditionalAuthenticationRules
+    Write - String
+    Specifies additional authentication rules.
+
+.PARAMETER AccessControlPolicyName
+    Write - String
+    Specifies the name of an access control policy.
+
+.PARAMETER NotBeforeSkew
+    Write - Sint32
+    Specifies the not before skew value.
+
+.PARAMETER TokenLifetime
+    Write - Sint32
+    Specifies the token lifetime.
+
+.PARAMETER AlwaysRequireAuthentication
+    Write - Boolean
+    Indicates that this Web API application role always requires authentication, even if it previously
+    authenticated credentials for access. Specify this parameter to require users to always supply credentials to
+    access sensitive resources.
+
+.PARAMETER AllowedClientTypes
+    Write - String
+    Allowed values: None, Public, Confidential
+    Specifies allowed client types.
+
+.PARAMETER IssueOAuthRefreshTokensTo
+    Write - String
+    Allowed values: NoDevice, WorkplaceJoinedDevices, AllDevices
+    Specifies the refresh token issuance device types.
+
+.PARAMETER RefreshTokenProtectionEnabled
+    Write - Boolean
+    Indicates whether refresh token protection is enabled.
+
+.PARAMETER RequestMFAFromClaimsProviders
+    Write - Boolean
+    Indicates that the request MFA from claims providers option is used.
+
+.EXAMPLE 1
+
+This configuration will ...
+
+Configuration AdfsWebApiApplication_Config
+{
+    param()
+
+    Import-DscResource -ModuleName AdfsDsc
+
+    Node localhost
+    {
+        AdfsWebApiApplication WebApiApp1
+        {
+            Name                                 = 'AppGroup1 - Web API'
+            ApplicationGroupIdentifier           = 'AppGroup1'
+            Identifier                           = 'e7bfb303-c5f6-4028-a360-b6293d41338c'
+            Description                          = 'App1 Web Api'
+            AccessControlPolicyName              = 'Permit everyone'
+            IssuanceTransformRules               = $ADEmailAddressTransformRule
+            AllowedAuthenticationClassReferences = ''
+            ClaimsProviderName                   = ''
+            IssuanceAuthorizationRules           = ''
+            DelegationAuthorizationRules         = ''
+            ImpersonationAuthorizationRules      = ''
+            IssuanceTransformRules               = ''
+            AdditionalAuthenticationRules        = ''
+            NotBeforeSkew                        = 5
+            TokenLifetime                        = 90
+            AlwaysRequireAuthentication          = $false
+            AllowedClientTypes                   = 'Public'
+            IssueOAuthRefreshTokensTo            = 'AllDevices'
+            RefreshTokenProtectionEnabled        = $true
+            RequestMFAFromClaimsProviders        = $true
+        }
+    }
+}
+
+

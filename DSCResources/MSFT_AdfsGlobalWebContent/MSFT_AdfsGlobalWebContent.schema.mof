@@ -1,0 +1,26 @@
+[ClassVersion("1.0.0.0"), FriendlyName("AdfsGlobalWebContent")]
+class MSFT_AdfsGlobalWebContent : OMI_BaseResource
+{
+    [Key, Description("Specifies the DNS name of the federation service.")] String FederationServiceName;
+    [Key, Description("Specifies a locale. The cmdlet sets global web content for the locale that you specify.")] String Locale;
+    [Write, Description("Specifies the company name. AD FS displays the company name in the sign-in pages when you have not set a logo on the active web theme.")] String CompanyName;
+    [Write, Description("Specifies the help desk link that is shown on the logon pages for AD FS.")] String HelpDeskLink;
+    [Write, Description("Specifies the help desk link text that is shown on the logon pages for AD FS.")] String HelpDeskLinkText;
+    [Write, Description("Specifies the Home link that is shown on the logon pages for AD FS.")] String HomeLink;
+    [Write, Description("Specifies the Home link text that is shown on the logon pages for AD FS.")] String HomeLinkText;
+    [Write, Description("Specifies the text for the home realm discovery description for other organization.")] String HomeRealmDiscoveryOtherOrganizationDescriptionText;
+    [Write, Description("Specifies the text for the home realm discovery page description.")] String HomeRealmDiscoveryPageDescriptionText;
+    [Write, Description("Specifies text for the organizational name description.")] String OrganizationalNameDescriptionText;
+    [Write, Description("Specifies the Privacy policy link that is shown on the logon pages for AD FS.")] String PrivacyLink;
+    [Write, Description("Specifies the Privacy policy link text that is shown on the logon pages for AD FS.")] String PrivacyLinkText;
+    [Write, Description("Specifies the text on the certificate page. Active Directory Federation Services (AD FS) displays the text that you specify when it prompts the user for a certificate.")] String CertificatePageDescriptionText;
+    [Write, Description("Specifies the description to display when a user signs in to applications by using AD FS. When you use Integrated Windows Authentication in the intranet, users do not see this page.")] String SignInPageDescriptionText;
+    [Write, Description("Specifies the description to display when a user signs out of applications.")] String SignOutPageDescriptionText;
+    [Write, Description("Specifies an error message to display when a user encounters any generic errors that occur for a token request. This string can be an HTML fragment.")] String ErrorPageDescriptionText;
+    [Write, Description("Specifies an error message to display for any generic errors that occur for a token request. This string can be an HTML fragment.")] String ErrorPageGenericErrorMessage;
+    [Write, Description("Specifies an error message to display when a user encounters any authorization errors that occur for a token request. This string can be an HTML fragment.")] String ErrorPageAuthorizationErrorMessage;
+    [Write, Description("Specifies an error message to display for any device authentication errors that occur for a token request. Device authentication errors occur when the user presents an expired user@device certificate to AD FS, a certificate is not found in AD DS, or a certificate is disabled in AD DS. This string can be an HTML fragment.")] String ErrorPageDeviceAuthenticationErrorMessage;
+    [Write, Description("Specifies the support email address on the error page.")] String ErrorPageSupportEmail;
+    [Write, Description("Specifies the description to display in the update password page when users change their passwords.")] String UpdatePasswordPageDescriptionText;
+    [Write, Description("Specifies the description to display when an application prompts a user for additional authentication. The sign-in page can also display a description that is provided by the additional authentication provider.")] String SignInPageAdditionalAuthenticationDescriptionText;
+};

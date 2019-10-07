@@ -1,0 +1,10 @@
+[ClassVersion("1.0.0.0"), FriendlyName("AdfsApplicationPermission")]
+class MSFT_AdfsApplicationPermission : OMI_BaseResource
+{
+    [Key, Description("Specifies a client role identifier.")] String ClientRoleIdentifier;
+    [Key, Description("Specifies a server role identifier.")] String ServerRoleIdentifier;
+    [Write, Description("Specifies an array of scope names.")] String ScopeNames[];
+    [Write, Description("Specifies a description for the Application Permission.")] String Description;
+    [Write, Description("Specifies whether the Application Permission should be present or absent. Default value is 'Present'."), ValueMap{"Present","Absent"}, Values{"Present","Absent"}] String Ensure;
+};
+

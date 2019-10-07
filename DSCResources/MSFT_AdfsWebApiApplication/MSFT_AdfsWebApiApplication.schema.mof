@@ -1,0 +1,26 @@
+
+[ClassVersion("1.0.0.0"), FriendlyName("AdfsWebApiApplication")]
+class MSFT_AdfsWebApiApplication : OMI_BaseResource
+{
+    [Key, Description("Specifies a name for the Web API application.")] String Name;
+    [Required, Description("Specifies the ID of an application group for the Web API application.")] String ApplicationGroupIdentifier;
+    [Required, Description("Specifies an identifier for the Web API application.")] String Identifier[];
+    [Write, Description("Specifies a description for the Web API application.")] String Description;
+    [Write, Description("Specifies whether the Web API application should be present or absent. Default value is 'Present'."), ValueMap{"Present","Absent"}, Values{"Present","Absent"}] String Ensure;
+    [Write, Description("Specifies an array of allow authentication class references.")] String AllowedAuthenticationClassReferences[];
+    [Write, Description("Specifies an array of claims provider names that you can configure for a relying party trust for Home Realm Discovery (HRD) scenario.")] String ClaimsProviderName[];
+    [Write, Description("Specifies the issuance authorization rules.")] String IssuanceAuthorizationRules;
+    [Write, Description("Specifies delegation authorization rules.")] String DelegationAuthorizationRules;
+    [Write, Description("Specifies the impersonation authorization rules.")] String ImpersonationAuthorizationRules;
+    [Write, Description("Specifies the issuance transform rules.")] String IssuanceTransformRules;
+    [Write, Description("Specifies additional authentication rules.")] String AdditionalAuthenticationRules;
+    [Write, Description("Specifies the name of an access control policy.")] String AccessControlPolicyName;
+    [Write, Description("Specifies the not before skew value.")] Sint32 NotBeforeSkew;
+    [Write, Description("Specifies the token lifetime.")] Sint32 TokenLifetime;
+    [Write, Description("Indicates that this Web API application role always requires authentication, even if it previously authenticated credentials for access. Specify this parameter to require users to always supply credentials to access sensitive resources.")] Boolean AlwaysRequireAuthentication;
+    [Write, Description("Specifies allowed client types."), ValueMap{"None","Public","Confidential"}, Values{"None","Public","Confidential"}] String AllowedClientTypes;
+    [Write, Description("Specifies the refresh token issuance device types."), ValueMap{"NoDevice","WorkplaceJoinedDevices","AllDevices"}, Values{"NoDevice","WorkplaceJoinedDevices","AllDevices"}] String IssueOAuthRefreshTokensTo;
+    [Write, Description("Indicates whether refresh token protection is enabled.")] Boolean RefreshTokenProtectionEnabled;
+    [Write, Description("Indicates that the request MFA from claims providers option is used.")] Boolean RequestMFAFromClaimsProviders;
+};
+

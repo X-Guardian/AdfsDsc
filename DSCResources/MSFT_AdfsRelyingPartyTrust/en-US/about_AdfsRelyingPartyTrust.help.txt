@@ -1,0 +1,205 @@
+.NAME
+    AdfsRelyingPartyTrust
+
+.DESCRIPTION
+    The AdfsRelyingPartyTrust DSC resource manages the relying party trusts of the Federation Service.
+
+.PARAMETER Name
+    Key - String
+    Specifies the friendly name of this relying party trust.
+
+.PARAMETER AdditionalAuthenticationRules
+    Write - String
+    Specifies the additional authorization rules to require additional authentication based on user, device and
+    location attributes after the completion of the first step of authentication. Note: These rules must only be
+    configured after there is at least one authentication provider enabled for additional authentication.
+
+.PARAMETER AdditionalWSFedEndpoint
+    Write - String
+    Specifies an array of alternate return addresses for the application. This is typically used when the
+    application wants to indicate to AD FS what the return URL should be on successful token generation. AD FS
+    requires that all acceptable URLs are entered as trusted information by the administrator.
+
+.PARAMETER AutoUpdateEnabled
+    Write - Boolean
+    Indicates whether changes to the federation metadata by the MetadataURL parameter apply automatically to the
+    configuration of the trust relationship. If this parameter has a value of True, partner claims, certificates,
+    and endpoints are updated automatically.
+
+.PARAMETER ClaimAccepted
+    Write - String
+    Specifies an array of claims that this relying party accepts.
+
+.PARAMETER ClaimsProviderName
+    Write - String
+    Specifies the name of the claim provider.
+
+.PARAMETER DelegationAuthorizationRules
+    Write - String
+    Specifies the delegation authorization rules for issuing claims to this relying party.
+
+.PARAMETER Enabled
+    Write - Boolean
+    Indicates whether the relying party trust is enabled.
+
+.PARAMETER EnableJWT
+    Write - Boolean
+    Indicates whether the JSON Web Token (JWT) format should be used to issue a token on a WS-Federation request.
+    By default, SAML tokens are issued over WS-Federation.
+
+.PARAMETER EncryptClaims
+    Write - Boolean
+    Indicates whether the claims that are sent to the relying party are encrypted.
+
+.PARAMETER EncryptedNameIdRequired
+    Write - Boolean
+    Indicates whether the relying party requires that the NameID claim be encrypted.
+
+.PARAMETER EncryptionCertificate
+    Write - String
+    Specifies the certificate to be used for encrypting claims that are issued to this relying party. Encrypting
+    claims is optional.
+
+.PARAMETER EncryptionCertificateRevocationCheck
+    Write - String
+    Allowed values: None, CheckEndCert, CheckEndCertCacheOnly, CheckChain, CheckChainCacheOnly,
+                    CheckChainExcludingRoot, CheckChainExcludingRootCacheOnly
+                    
+    Specifies the type of validation that should occur for the encryption certificate it is used for encrypting
+    claims to the relying party.
+
+.PARAMETER Identifier
+    Write - String
+    Specifies the unique identifiers for this relying party trust. No other trust can use an identifier from this
+    list. Uniform Resource Identifiers (URIs) are often used as unique identifiers for a relying party trust, but
+    you can use any string of characters.
+
+.PARAMETER ImpersonationAuthorizationRules
+    Write - String
+    Specifies the impersonation authorization rules for issuing claims to this relying party.
+
+.PARAMETER IssuanceAuthorizationRules
+    Write - String
+    Specifies the issuance authorization rules for issuing claims to this relying party.
+
+.PARAMETER IssuanceTransformRules
+    Write - String
+    Specifies the issuance transform rules for issuing claims to this relying party.
+
+.PARAMETER MetadataUrl
+    Write - String
+    Specifies a URL at which the federation metadata for this relying party trust is available.
+
+.PARAMETER MonitoringEnabled
+    Write - Boolean
+    Indicates whether periodic monitoring of this relying party federation metadata is enabled. The MetadataUrl
+    parameter specifies the URL of the relying party federation metadata.
+
+.PARAMETER NotBeforeSkew
+    Write - Sint32
+    Specifies the skew, as in integer, for the time stamp that marks the beginning of the validity period.
+
+.PARAMETER Notes
+    Write - String
+    Specifies notes for this relying party trust.
+
+.PARAMETER ProtocolProfile
+    Write - String
+    Allowed values: SAML, WsFederation, WsFed-SAML
+    Specifies which protocol profiles the relying party supports.
+
+.PARAMETER RequestSigningCertificate
+    Write - String
+    Specifies an array of certificates to be used to verify the signature on a request from the relying party.
+
+.PARAMETER SamlEndpoint
+    Write - String
+    Specifies an array of Security Assertion Markup Language (SAML) protocol endpoints for this relying party.
+
+.PARAMETER SamlResponseSignature
+    Write - String
+    Allowed values: AssertionOnly, MessageAndAssertion, MessageOnly
+    Specifies the response signature or signatures that the relying party expects.
+
+.PARAMETER SignatureAlgorithm
+    Write - String
+    Allowed values: http://www.w3.org/2000/09/xmldsig#rsa-sha1, http://www.w3.org/2001/04/xmldsig-more#rsa-sha256
+    Specifies the signature algorithm that the relying party uses for signing and verification.
+
+.PARAMETER SignedSamlRequestsRequired
+    Write - Boolean
+    Indicates whether the Federation Service requires signed SAML protocol requests from the relying party. If you
+    specify a value of True, the Federation Service rejects unsigned SAML protocol requests.
+
+.PARAMETER SigningCertificateRevocationCheck
+    Write - String
+    Allowed values: None, CheckEndCert, CheckEndCertCacheOnly, CheckChain, CheckChainCacheOnly,
+                    CheckChainExcludingRoot, CheckChainExcludingRootCacheOnly
+                    
+    Specifies the type of certificate validation that occur when signatures on requests from the relying party are
+    verified.
+
+.PARAMETER TokenLifetime
+    Write - Sint32
+    Specifies the duration, in minutes, for which the claims that are issued to the relying party are valid.
+
+.PARAMETER WSFedEndpoint
+    Write - String
+    Specifies the WS-Federation Passive URL for this relying party.
+
+.PARAMETER Ensure
+    Write - String
+    Allowed values: Present, Absent
+    Specifies whether to remove or add the relying party trust.
+
+.EXAMPLE 1
+
+
+Configuration OwaRelyingPartyTrust_Config
+{
+
+    Import-DscResource -Module AdfsDsc
+
+    Node localhost
+    {
+        AdfsRelyingPartyTrust OwaInternal
+        {
+            Name                       = 'Outlook Web App'
+            Enabled                    = $true
+            Notes                      = 'This is a trust for https://mail.fabrikam.com/owa'
+            WSFedEndpoint              = 'https://mail.fabrikam.com/owa'
+            Identifier                 = 'https://mail.fabrikam.com/owa'
+            IssuanceTransformRules     = $node.IssuanceTransformRules
+            IssuanceAuthorizationRules = $node.IssuanceAuthorizationRules
+        }
+    }
+}
+
+$ConfigData = @{
+    AllNodes = @(
+        @{
+            IssuanceAuthorizationRules = @'
+@RuleTemplate = "AllowAllAuthzRule"
+ => issue(Type = "http://schemas.microsoft.com/authorization/claims/permit", Value = "true");
+'@
+            IssuanceTransformRules     = @'
+@RuleName = "ActiveDirectoryUserSID"
+c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"]
+
+=> issue(store = "Active Directory", types = ("http://schemas.microsoft.com/ws/2008/06/identity/claims/primarysid"), query = ";objectSID;{0}", param = c.Value);
+
+@RuleName = "ActiveDirectoryGroupSID"
+c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"]
+
+=> issue(store = "Active Directory", types = ("http://schemas.microsoft.com/ws/2008/06/identity/claims/groupsid"), query = ";tokenGroups(SID);{0}", param = c.Value);
+
+@RuleName = "ActiveDirectoryUPN"
+c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"]
+
+=> issue(store = "Active Directory", types = ("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn"), query = ";userPrincipalName;{0}", param = c.Value);
+'@
+        }
+    )
+}
+
+
