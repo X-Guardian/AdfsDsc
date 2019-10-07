@@ -102,7 +102,8 @@ function Get-TargetResource
     }
     catch
     {
-        New-InvalidOperationException -Error $_
+        $errorMessage = $script:localizedData.GettingResourceError -f $FederationServiceName
+        New-InvalidOperationException -Message $errorMessage -Error $_
     }
 
     $returnValue = @{
@@ -204,7 +205,16 @@ function Set-TargetResource
                 $FederationServiceName, $property.ParameterName, ($property.Expected -join ', '))
         $SetParameters.add($property.ParameterName, $property.Expected)
     }
-    Set-AdfsGlobalAuthenticationPolicy @SetParameters
+
+    try
+    {
+        Set-AdfsGlobalAuthenticationPolicy @SetParameters
+    }
+    catch
+    {
+        $errorMessage = $script:localizedData.SettingResourceError -f $FederationServiceName
+        New-InvalidOperationException -Message $errorMessage -Error $_
+    }
 }
 
 function Test-TargetResource

@@ -155,7 +155,8 @@ function Get-TargetResource
     }
     catch
     {
-        New-InvalidOperationException -Error $_
+        $errorMessage = $script:localizedData.GettingResourceError -f $FederationServiceName, $Locale
+        New-InvalidOperationException -Message $errorMessage -Error $_
     }
 
     $returnValue = @{
@@ -316,7 +317,14 @@ function Set-TargetResource
                 $FederationServiceName, $Locale, $property.ParameterName, ($property.Expected -join ', '))
         $SetParameters.add($property.ParameterName, $property.Expected)
     }
-    Set-AdfsGlobalWebContent -Locale $Locale @SetParameters
+
+    try {
+        Set-AdfsGlobalWebContent -Locale $Locale @SetParameters
+    }
+    catch {
+        $errorMessage = $script:localizedData.SettingResourceError -f $FederationServiceName, $Locale
+        New-InvalidOperationException -Message $errorMessage -Error $_
+    }
 }
 
 

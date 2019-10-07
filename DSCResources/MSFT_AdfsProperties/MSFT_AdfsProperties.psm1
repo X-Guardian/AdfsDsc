@@ -381,7 +381,8 @@ function Get-TargetResource
     }
     catch
     {
-        New-InvalidOperationException -Error $_
+        $errorMessage = $script:localizedData.GettingResourceError -f $FederationServiceName
+        New-InvalidOperationException -Message $errorMessage -Error $_
     }
 
     $returnValue = @{
@@ -746,7 +747,7 @@ function Set-TargetResource
 
     $propertiesNotInDesiredState = (
         Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters | `
-            Where-Object -Property InDesiredState -eq $false)
+                Where-Object -Property InDesiredState -eq $false)
 
     $SetParameters = New-Object -TypeName System.Collections.Hashtable
     foreach ($property in $propertiesNotInDesiredState)
@@ -756,7 +757,16 @@ function Set-TargetResource
                 $FederationServiceName, $property.ParameterName, ($property.Expected -join ', '))
         $SetParameters.add($property.ParameterName, $property.Expected)
     }
-    Set-AdfsProperties @SetParameters
+
+    try
+    {
+        Set-AdfsProperties @SetParameters
+    }
+    catch
+    {
+        $errorMessage = $script:localizedData.SettingResourceError -f $FederationServiceName
+        New-InvalidOperationException -Message $errorMessage -Error $_
+    }
 }
 
 
@@ -1047,7 +1057,7 @@ function Test-TargetResource
 
     $propertiesNotInDesiredState = (
         Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $Parameters | `
-            Where-Object -Property InDesiredState -eq $false)
+                Where-Object -Property InDesiredState -eq $false)
 
     if ($propertiesNotInDesiredState)
     {

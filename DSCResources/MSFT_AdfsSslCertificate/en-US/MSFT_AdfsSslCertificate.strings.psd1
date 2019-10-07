@@ -5,4 +5,5 @@ ConvertFrom-StringData @'
     ResourceInDesiredStateMessage            = '{0}' is in the desired state. (SSL0003)
     ResourcePropertyNotInDesiredStateMessage = '{0}' Property '{1}' is not in the desired state. (SSL0004)
     GettingResourceError                     = Error getting '{0}'. (SSL0005)
+    SettingResourceError                     = Error setting '{0}'. (SSL0006)
 '@

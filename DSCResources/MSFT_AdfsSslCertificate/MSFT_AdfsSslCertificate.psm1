@@ -82,7 +82,8 @@ function Get-TargetResource
     }
     catch
     {
-        New-InvalidOperationException -Message $script:localizedData.GettingResourceError -Error $_
+        $errorMessage = $script:localizedData.GettingResourceError -f $CertificateType
+        New-InvalidOperationException -Message $errorMessage -Error $_
     }
     $returnValue = @{
         CertificateType = $CertificateType
@@ -143,7 +144,16 @@ function Set-TargetResource
                 $CertificateType, $property.ParameterName, ($property.Expected -join ', '))
         $SetParameters.add($property.ParameterName, $property.Expected)
     }
-    Set-AdfsSslCertificate @SetParameters
+
+    try
+    {
+        Set-AdfsSslCertificate @SetParameters
+    }
+    catch
+    {
+        $errorMessage = $script:localizedData.SettingResourceError -f $CertificateType
+        New-InvalidOperationException -Message $errorMessage -Error $_
+    }
 }
 
 function Test-TargetResource
