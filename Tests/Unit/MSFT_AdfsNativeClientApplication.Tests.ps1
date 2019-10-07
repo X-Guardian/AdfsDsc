@@ -151,14 +151,17 @@ try
             $setTargetResourceParameters = @{
                 Name                       = $mockResource.Name
                 ApplicationGroupIdentifier = $mockResource.ApplicationGroupIdentifier
-                Identifier                 = $mockResource.Identifier
-                RedirectUri                = $mockResource.RedirectUri
-                Description                = $mockResource.Description
-                LogoutUri                  = $mockResource.LogoutUri
+                Identifier                 = $mockChangedResource.Identifier
+                RedirectUri                = $mockChangedResource.RedirectUri
+                Description                = $mockChangedResource.Description
+                LogoutUri                  = $mockChangedResource.LogoutUri
             }
 
             $setTargetResourcePresentParameters = $setTargetResourceParameters.Clone()
             $setTargetResourcePresentParameters.Ensure = 'Present'
+
+            $setTargetResourcePresentAGIChangedParameters = $setTargetResourcePresentParameters.Clone()
+            $setTargetResourcePresentAgiChangedParameters.ApplicationGroupIdentifier = $mockChangedResource.ApplicationGroupIdentifier
 
             $setTargetResourceAbsentParameters = $setTargetResourceParameters.Clone()
             $setTargetResourceAbsentParameters.Ensure = 'Absent'
@@ -171,22 +174,48 @@ try
                 Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourcePresentResult }
 
                 Context 'When the Resource should be Present' {
-                    It 'Should not throw' {
-                        { Set-TargetResource @setTargetResourcePresentParameters } | Should -Not -Throw
+
+                    Context 'When the Application Group Identifier has changed' {
+
+                        It 'Should not throw' {
+                            { Set-TargetResource @setTargetResourcePresentAGIChangedParameters } | Should -Not -Throw
+                        }
+
+                        It 'Should call the expected mocks' {
+                            Assert-MockCalled -CommandName Get-TargetResource `
+                                -ParameterFilter { `
+                                    $ApplicationGroupIdentifier -eq $setTargetResourcePresentAGIChangedParameters.ApplicationGroupIdentifier -and `
+                                    $Name -eq $setTargetResourcePresentAGIChangedParameters.Name -and `
+                                    $Identifier -eq $setTargetResourcePresentAGIChangedParameters.Identifier } `
+                                -Exactly -Times 1
+                            Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 0
+                            Assert-MockCalled -CommandName $ResourceCommand.Remove `
+                                -ParameterFilter { $TargetName -eq $setTargetResourcePresentParameters.Name } `
+                                -Exactly -Times 1
+                            Assert-MockCalled -CommandName $ResourceCommand.Add `
+                                -ParameterFilter { $Name -eq $setTargetResourcePresentAGIChangedParameters.Name } `
+                                -Exactly -Times 1
+                        }
                     }
 
-                    It 'Should call the expected mocks' {
-                        Assert-MockCalled -CommandName Get-TargetResource `
-                            -ParameterFilter { `
-                                $ApplicationGroupIdentifier -eq $setTargetResourcePresentParameters.ApplicationGroupIdentifier -and `
-                                $Name -eq $setTargetResourcePresentParameters.Name -and `
-                                $Identifier -eq $setTargetResourcePresentParameters.Identifier } `
-                            -Exactly -Times 1
-                        Assert-MockCalled -CommandName $ResourceCommand.Set `
-                            -ParameterFilter { $TargetName -eq $setTargetResourcePresentParameters.Name } `
-                            -Exactly -Times 1
-                        Assert-MockCalled -CommandName $ResourceCommand.Add -Exactly -Times 0
-                        Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
+                    Context 'When the Application Group Identifier has not changed' {
+                        It 'Should not throw' {
+                            { Set-TargetResource @setTargetResourcePresentParameters } | Should -Not -Throw
+                        }
+
+                        It 'Should call the expected mocks' {
+                            Assert-MockCalled -CommandName Get-TargetResource `
+                                -ParameterFilter { `
+                                    $ApplicationGroupIdentifier -eq $setTargetResourcePresentParameters.ApplicationGroupIdentifier -and `
+                                    $Name -eq $setTargetResourcePresentParameters.Name -and `
+                                    $Identifier -eq $setTargetResourcePresentParameters.Identifier } `
+                                -Exactly -Times 1
+                            Assert-MockCalled -CommandName $ResourceCommand.Set `
+                                -ParameterFilter { $TargetName -eq $setTargetResourcePresentParameters.Name } `
+                                -Exactly -Times 1
+                            Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
+                            Assert-MockCalled -CommandName $ResourceCommand.Add -Exactly -Times 0
+                        }
                     }
                 }
 
