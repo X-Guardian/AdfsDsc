@@ -170,14 +170,15 @@ function Get-TargetResource
             $groupServiceAccountIdentifier = $null
         }
 
-        try {
+        try
+        {
             $adfsSyncProperties = Get-AdfsSyncProperties
         }
         catch
         {
             New-InvalidOperationException `
-            -Message ($script:localizedData.GettingAdfsSyncPropertiesError -f $FederationServiceName) `
-            -ErrorRecord $_
+                -Message ($script:localizedData.GettingAdfsSyncPropertiesError -f $FederationServiceName) `
+                -ErrorRecord $_
         }
 
         # Get ADFS SQL Connection String
