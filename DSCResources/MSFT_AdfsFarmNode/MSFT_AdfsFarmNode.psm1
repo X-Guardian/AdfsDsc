@@ -126,9 +126,8 @@ function Get-TargetResource
         }
         catch
         {
-            New-InvalidOperationException `
-                -Message ($script:localizedData.GettingAdfsSslCertificateError -f $FederationServiceName) `
-                -ErrorRecord $_
+            $errorMessage = $script:localizedData.GettingAdfsSslCertificateError -f $FederationServiceName
+            New-InvalidOperationException -Message $errorMessage -ErrorRecord $_
 
         }
 
@@ -139,8 +138,8 @@ function Get-TargetResource
         }
         else
         {
-            New-InvalidOperationException `
-                -Message ($script:localizedData.GettingAdfsSslCertificateError -f $FederationServiceName)
+            $errorMessage = $script:localizedData.GettingAdfsSslCertificateError -f $FederationServiceName
+            New-InvalidOperationException -Message $errorMessage
         }
 
         # Get ADFS service StartName (log on as) property
@@ -154,8 +153,8 @@ function Get-TargetResource
         }
         else
         {
-            New-InvalidOperationException `
-                -Message ($script:localizedData.GettingAdfsServiceError -f $FederationServiceName)
+            $errorMessage = $script:localizedData.GettingAdfsServiceError -f $FederationServiceName
+            New-InvalidOperationException -Message $errorMessage
         }
 
         # Test if service account is a group managed service account
@@ -176,9 +175,8 @@ function Get-TargetResource
         }
         catch
         {
-            New-InvalidOperationException `
-                -Message ($script:localizedData.GettingAdfsSyncPropertiesError -f $FederationServiceName) `
-                -ErrorRecord $_
+            $errorMessage = $script:localizedData.GettingAdfsSyncPropertiesError -f $FederationServiceName
+            New-InvalidOperationException -Message $errorMessage -ErrorRecord $_
         }
 
         # Get ADFS SQL Connection String
@@ -189,9 +187,8 @@ function Get-TargetResource
         }
         catch
         {
-            New-InvalidOperationException `
-                -Message ($script:localizedData.GettingAdfsSecurityTokenServiceError -f $FederationServiceName) `
-                -ErrorRecord $_
+            $errorMessage = $script:localizedData.GettingAdfsSecurityTokenServiceError -f $FederationServiceName
+            New-InvalidOperationException -Message $errorMessage -ErrorRecord $_
         }
 
         $sqlConnectionString = $adfsSecurityTokenService.ConfigurationDatabaseConnectionString
@@ -295,18 +292,16 @@ function Set-TargetResource
     if ($PSBoundParameters.ContainsKey('ServiceAccountCredential') -and
         $PSBoundParameters.ContainsKey('GroupServiceAccountIdentifier'))
     {
-        New-InvalidArgumentException `
-            -Message ($script:localizedData.ResourceDuplicateCredentialError -f $FederationServiceName) `
-            -ArgumentName 'ServiceAccountCredential'
+        $errorMessage = $script:localizedData.ResourceDuplicateCredentialError -f $FederationServiceName
+        New-InvalidArgumentException -Message $errorMessage -ArgumentName 'ServiceAccountCredential'
     }
 
     # Check whether no credential parameters have been specified
     if (-not $PSBoundParameters.ContainsKey('ServiceAccountCredential') -and
         -not $PSBoundParameters.ContainsKey('GroupServiceAccountIdentifier'))
     {
-        New-InvalidArgumentException `
-            -Message ($script:localizedData.ResourceMissingCredentialError -f $FederationServiceName) `
-            -ArgumentName 'ServiceAccountCredential'
+        $errorMessage = $script:localizedData.ResourceMissingCredentialError -f $FederationServiceName
+        New-InvalidArgumentException -Message $errorMessage -ArgumentName 'ServiceAccountCredential'
     }
 
     $GetTargetResourceParms = @{
@@ -329,40 +324,18 @@ function Set-TargetResource
             }
             catch [System.IO.FileNotFoundException]
             {
-                write-Verbose -Message "FullyQualifiedErrorId: $($_.FullyQualifiedErrorId)"
-                Write-verbose -Message "Exception: $($_.Exception.Message)"
-                Write-Verbose -Message "Exception Type: $($_.Exception.GetType().FullName)"
-
-                if ($_.FullyQualifiedErrorId -eq $script:AdfsAddFarmNodeFileNotFoundErrorId)
-                {
-                    Write-Verbose -Message ($script:localizedData.MissingAdfsAssembliesMessage)
-                    # Set DSC Reboot required flag
-                    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "",
-                        Justification = 'Set LCM DSCMachineStatus to indicate reboot required')]
-                    $global:DSCMachineStatus = 1
-                    return
-                }
-                else
-                {
-                    New-InvalidOperationException `
-                        -Message ($script:localizedData.InstallationError -f $FederationServiceName) `
-                        -ErrorRecord $_
-                }
+                Write-Verbose -Message ($script:localizedData.MissingAdfsAssembliesMessage)
+                # Set DSC Reboot required flag
+                [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "",
+                    Justification = 'Set LCM DSCMachineStatus to indicate reboot required')]
+                $global:DSCMachineStatus = 1
+                return
             }
             catch
             {
-                write-Verbose -Message "FullyQualifiedErrorId: $($_.FullyQualifiedErrorId)"
-                Write-verbose -Message "Exception: $($_.Exception.Message)"
-                Write-Verbose -Message "Exception Type: $($_.Exception.GetType().FullName)"
-
-                New-InvalidOperationException `
-                    -Message ($script:localizedData.InstallationError -f $FederationServiceName) `
-                    -ErrorRecord $_
+                $errorMessage = $script:localizedData.InstallationError -f $FederationServiceName
+                New-InvalidOperationException -Message $errorMessage -ErrorRecord $_
             }
-
-            write-Verbose -Message "Result.Message: $($Result.Message)"
-            write-Verbose -Message "Result.Context: $($Result.Context)"
-            write-Verbose -Message "Result.Status: $($Result.Status)"
 
             if ($Result.Status -eq 'Success')
             {
@@ -393,7 +366,15 @@ function Set-TargetResource
             Write-Verbose -Message ($script:localizedData.RemovingResourceMessage -f `
                     $FederationServiceName)
 
-            Remove-AdfsFarmNode @parameters
+            try
+            {
+                Remove-AdfsFarmNode @parameters
+            }
+            catch
+            {
+                $errorMessage = $script:localizedData.RemovalError -f $FederationServiceName
+                New-InvalidOperationException -Message $errorMessage -ErrorRecord $_
+            }
         }
         else
         {
