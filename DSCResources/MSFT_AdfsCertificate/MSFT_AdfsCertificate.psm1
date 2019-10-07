@@ -45,7 +45,7 @@ function Get-TargetResource
     param
     (
         [Parameter(Mandatory = $true)]
-        [ValidateSet('Service-Communications', 'Token-Decrypting', 'Token-Signing', 'Https-Binding')]
+        [ValidateSet('Service-Communications', 'Token-Decrypting', 'Token-Signing')]
         [System.String]
         $CertificateType,
 
