@@ -133,7 +133,7 @@ try
         Describe "$Global:DSCResourceName\Set-TargetResource" -Tag 'Set' {
             $setTargetResourceParameters = @{
                 Name        = $mockResource.Name
-                Description = $mockResource.Description
+                Description = $mockChangedResource.Description
             }
 
             $setTargetResourcePresentParameters = $setTargetResourceParameters.Clone()

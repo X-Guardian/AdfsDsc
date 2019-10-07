@@ -86,6 +86,15 @@ try
                 Assert-MockCalled -CommandName Assert-AdfsService -Exactly -Times 1
                 Assert-MockCalled -CommandName $ResourceCommand.Get
             }
+
+            Context 'When Get-AdfsSslCertificate throws an exception' {
+                Mock -CommandName Get-AdfsSslCertificate -MockWith { Throw 'Error' }
+
+                It 'Should throw the correct exception' {
+                    { Get-TargetResource @getTargetResourceParameters } | Should -Throw ( `
+                            $script:localizedData.GettingResourceError -f $getTargetResourceParameters.CertificateType )
+                }
+            }
         }
 
         Describe "$Global:DSCResourceName\Set-TargetResource" -Tag 'Set' {
@@ -110,6 +119,15 @@ try
                         $Thumbprint -eq $setTargetResourceParameters.Thumbprint } `
                     -Exactly -Times 1
                 Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 1
+            }
+
+            Context 'When Set-AdfsSslCertificate throws an exception' {
+                Mock -CommandName Set-AdfsSslCertificate -MockWith { Throw 'Error' }
+
+                It 'Should throw the correct exception' {
+                    { Set-TargetResource @setTargetResourceParameters } | Should -Throw ( `
+                            $script:localizedData.SettingResourceError -f $setTargetResourceParameters.CertificateType )
+                }
             }
         }
 

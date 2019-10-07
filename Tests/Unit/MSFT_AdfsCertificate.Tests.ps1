@@ -44,7 +44,7 @@ try
         }
 
         Describe "$Global:DSCResourceName\Get-TargetResource" -Tag 'Get' {
-            $mockGetTargetResourceParameters = @{
+            $getTargetResourceParameters = @{
                 CertificateType = $mockResource.CertificateType
                 ThumbPrint      = $mockResource.Thumbprint
             }
@@ -60,7 +60,7 @@ try
 
             Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
 
-            $result = Get-TargetResource @MockGetTargetResourceParameters
+            $result = Get-TargetResource @getTargetResourceParameters
 
             foreach ($property in $mockGetTargetResourceResult.Keys)
             {
@@ -75,6 +75,15 @@ try
                     -Exactly -Times 1
                 Assert-MockCalled -CommandName "Assert-$($Global:PSModuleName)Service" -Exactly -Times 1
                 Assert-MockCalled -CommandName $ResourceCommand.Get
+            }
+
+            Context 'When Get-AdfsCertificate throws an exception' {
+                Mock -CommandName Get-AdfsCertificate -MockWith { Throw 'Error' }
+
+                It 'Should throw the correct exception' {
+                    { Get-TargetResource @getTargetResourceParameters } | Should -Throw ( `
+                            $script:localizedData.GettingResourceError -f $getTargetResourceParameters.CertificateType )
+                }
             }
         }
 
@@ -101,6 +110,15 @@ try
                 Assert-MockCalled -CommandName $ResourceCommand.Set `
                     -ParameterFilter { $CertificateType -eq $setTargetResourceParameters.CertificateType } `
                     -Exactly -Times 1
+            }
+
+            Context 'When Set-AdfsCertificate throws an exception' {
+                Mock -CommandName Set-AdfsCertificate -MockWith { Throw 'Error' }
+
+                It 'Should throw the correct exception' {
+                    { Set-TargetResource @setTargetResourceParameters } | Should -Throw ( `
+                            $script:localizedData.SettingResourceError -f $setTargetResourceParameters.CertificateType )
+                }
             }
         }
 

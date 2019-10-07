@@ -212,27 +212,30 @@ try
             $setTargetResourceParameters = @{
                 Name                                 = $mockResource.Name
                 ApplicationGroupIdentifier           = $mockResource.ApplicationGroupIdentifier
-                Identifier                           = $mockResource.Identifier
-                Description                          = $mockResource.Description
-                AccessControlPolicyName              = $mockResource.AccessControlPolicyName
-                AllowedAuthenticationClassReferences = $mockResource.AllowedAuthenticationClassReferences
-                ClaimsProviderName                   = $mockResource.ClaimsProviderName
-                IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
-                DelegationAuthorizationRules         = $mockResource.DelegationAuthorizationRules
-                ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
-                IssuanceTransformRules               = $mockResource.IssuanceTransformRules
-                AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
-                NotBeforeSkew                        = $mockResource.NotBeforeSkew
-                TokenLifetime                        = $mockResource.TokenLifetime
-                AlwaysRequireAuthentication          = $mockResource.AlwaysRequireAuthentication
-                AllowedClientTypes                   = $mockResource.AllowedClientTypes
-                IssueOAuthRefreshTokensTo            = $mockResource.IssueOAuthRefreshTokensTo
-                RefreshTokenProtectionEnabled        = $mockResource.RefreshTokenProtectionEnabled
-                RequestMFAFromClaimsProviders        = $mockResource.RequestMFAFromClaimsProviders
+                Identifier                           = $mockChangedResource.Identifier
+                Description                          = $mockChangedResource.Description
+                AccessControlPolicyName              = $mockChangedResource.AccessControlPolicyName
+                AllowedAuthenticationClassReferences = $mockChangedResource.AllowedAuthenticationClassReferences
+                ClaimsProviderName                   = $mockChangedResource.ClaimsProviderName
+                IssuanceAuthorizationRules           = $mockChangedResource.IssuanceAuthorizationRules
+                DelegationAuthorizationRules         = $mockChangedResource.DelegationAuthorizationRules
+                ImpersonationAuthorizationRules      = $mockChangedResource.ImpersonationAuthorizationRules
+                IssuanceTransformRules               = $mockChangedResource.IssuanceTransformRules
+                AdditionalAuthenticationRules        = $mockChangedResource.AdditionalAuthenticationRules
+                NotBeforeSkew                        = $mockChangedResource.NotBeforeSkew
+                TokenLifetime                        = $mockChangedResource.TokenLifetime
+                AlwaysRequireAuthentication          = $mockChangedResource.AlwaysRequireAuthentication
+                AllowedClientTypes                   = $mockChangedResource.AllowedClientTypes
+                IssueOAuthRefreshTokensTo            = $mockChangedResource.IssueOAuthRefreshTokensTo
+                RefreshTokenProtectionEnabled        = $mockChangedResource.RefreshTokenProtectionEnabled
+                RequestMFAFromClaimsProviders        = $mockChangedResource.RequestMFAFromClaimsProviders
             }
 
             $setTargetResourcePresentParameters = $setTargetResourceParameters.Clone()
             $setTargetResourcePresentParameters.Ensure = 'Present'
+
+            $setTargetResourcePresentAGIChangedParameters = $setTargetResourcePresentParameters.Clone()
+            $setTargetResourcePresentAgiChangedParameters.ApplicationGroupIdentifier = $mockChangedResource.ApplicationGroupIdentifier
 
             $setTargetResourceAbsentParameters = $setTargetResourceParameters.Clone()
             $setTargetResourceAbsentParameters.Ensure = 'Absent'
@@ -245,17 +248,43 @@ try
                 Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourcePresentResult }
 
                 Context 'When the Resource should be Present' {
-                    It 'Should not throw' {
-                        { Set-TargetResource @setTargetResourcePresentParameters } | Should -Not -Throw
+
+                    Context 'When the Application Group Identifier has changed' {
+
+                        It 'Should not throw' {
+                            { Set-TargetResource @setTargetResourcePresentAGIChangedParameters } | Should -Not -Throw
+                        }
+
+                        It 'Should call the expected mocks' {
+                            Assert-MockCalled -CommandName Get-TargetResource `
+                                -ParameterFilter { `
+                                    $ApplicationGroupIdentifier -eq $setTargetResourcePresentAGIChangedParameters.ApplicationGroupIdentifier -and `
+                                    $Name -eq $setTargetResourcePresentAGIChangedParameters.Name -and `
+                                    $Identifier -eq $setTargetResourcePresentAGIChangedParameters.Identifier } `
+                                -Exactly -Times 1
+                            Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 0
+                            Assert-MockCalled -CommandName $ResourceCommand.Remove `
+                                -ParameterFilter { $TargetName -eq $setTargetResourcePresentParameters.Name } `
+                                -Exactly -Times 1
+                            Assert-MockCalled -CommandName $ResourceCommand.Add `
+                                -ParameterFilter { $Name -eq $setTargetResourcePresentAGIChangedParameters.Name } `
+                                -Exactly -Times 1
+                        }
                     }
 
-                    It 'Should call the expected mocks' {
-                        Assert-MockCalled -CommandName Get-TargetResource `
-                            -ParameterFilter { $Name -eq $setTargetResourcePresentParameters.Name } `
-                            -Exactly -Times 1
-                        Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 1
-                        Assert-MockCalled -CommandName $ResourceCommand.Add -Exactly -Times 0
-                        Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
+                    Context 'When the Application Group Identifier has not changed' {
+                        It 'Should not throw' {
+                            { Set-TargetResource @setTargetResourcePresentParameters } | Should -Not -Throw
+                        }
+
+                        It 'Should call the expected mocks' {
+                            Assert-MockCalled -CommandName Get-TargetResource `
+                                -ParameterFilter { $Name -eq $setTargetResourcePresentParameters.Name } `
+                                -Exactly -Times 1
+                            Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 1
+                            Assert-MockCalled -CommandName $ResourceCommand.Add -Exactly -Times 0
+                            Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
+                        }
                     }
                 }
 

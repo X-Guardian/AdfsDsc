@@ -105,20 +105,29 @@ try
                 Assert-MockCalled -CommandName Assert-AdfsService -Exactly -Times 1
                 Assert-MockCalled -CommandName $ResourceCommand.Get -Exactly -Times 1
             }
+
+            Context 'When Get-AdfsGlobalAuthenticationPolicy throws an exception' {
+                Mock -CommandName Get-AdfsGlobalAuthenticationPolicy -MockWith { Throw 'Error' }
+
+                It 'Should throw the correct exception' {
+                    { Get-TargetResource @getTargetResourceParameters } | Should -Throw ( `
+                            $script:localizedData.GettingResourceError -f $getTargetResourceParameters.FederationServiceName )
+                }
+            }
         }
 
         Describe "$Global:DSCResourceName\Set-TargetResource" -Tag 'Set' {
             $setTargetResourceParameters = @{
                 FederationServiceName                  = $mockResource.FederationServiceName
-                AdditionalAuthenticationProvider       = $mockResource.AdditionalAuthenticationProvider
-                AllowAdditionalAuthenticationAsPrimary = $mockResource.AllowAdditionalAuthenticationAsPrimary
-                ClientAuthenticationMethods            = $mockResource.ClientAuthenticationMethods
-                EnablePaginatedAuthenticationPages     = $mockResource.EnablePaginatedAuthenticationPages
-                DeviceAuthenticationEnabled            = $mockResource.DeviceAuthenticationEnabled
-                DeviceAuthenticationMethod             = $mockResource.DeviceAuthenticationMethod
-                PrimaryExtranetAuthenticationProvider  = $mockResource.PrimaryExtranetAuthenticationProvider
-                PrimaryIntranetAuthenticationProvider  = $mockResource.PrimaryIntranetAuthenticationProvider
-                WindowsIntegratedFallbackEnabled       = $mockResource.WindowsIntegratedFallbackEnabled
+                AdditionalAuthenticationProvider       = $mockChangedResource.AdditionalAuthenticationProvider
+                AllowAdditionalAuthenticationAsPrimary = $mockChangedResource.AllowAdditionalAuthenticationAsPrimary
+                ClientAuthenticationMethods            = $mockChangedResource.ClientAuthenticationMethods
+                EnablePaginatedAuthenticationPages     = $mockChangedResource.EnablePaginatedAuthenticationPages
+                DeviceAuthenticationEnabled            = $mockChangedResource.DeviceAuthenticationEnabled
+                DeviceAuthenticationMethod             = $mockChangedResource.DeviceAuthenticationMethod
+                PrimaryExtranetAuthenticationProvider  = $mockChangedResource.PrimaryExtranetAuthenticationProvider
+                PrimaryIntranetAuthenticationProvider  = $mockChangedResource.PrimaryIntranetAuthenticationProvider
+                WindowsIntegratedFallbackEnabled       = $mockChangedResource.WindowsIntegratedFallbackEnabled
             }
 
             Mock -CommandName $ResourceCommand.Set
@@ -134,6 +143,15 @@ try
                     -ParameterFilter { $FederationServiceName -eq $setTargetResourceParameters.FederationServiceName } `
                     -Exactly -Times 1
                 Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 1
+            }
+
+            Context 'When Set-AdfsGlobalAuthenticationPolicy throws an exception' {
+                Mock -CommandName Set-AdfsGlobalAuthenticationPolicy -MockWith { Throw 'Error' }
+
+                It 'Should throw the correct exception' {
+                    { Set-TargetResource @setTargetResourceParameters } | Should -Throw ( `
+                            $script:localizedData.SettingResourceError -f $setTargetResourceParameters.FederationServiceName )
+                }
             }
         }
 

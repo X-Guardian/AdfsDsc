@@ -152,6 +152,16 @@ try
                 Assert-MockCalled -CommandName "Assert-$($Global:PSModuleName)Service" -Exactly -Times 1
                 Assert-MockCalled -CommandName $ResourceCommand.Get -Exactly -Times 1
             }
+
+            Context 'When Get-AdfsGlobalWebContent throws an exception' {
+                Mock -CommandName Get-AdfsGlobalWebContent -MockWith { Throw 'Error' }
+
+                It 'Should throw the correct exception' {
+                    { Get-TargetResource @getTargetResourceParameters } | Should -Throw ( `
+                            $script:localizedData.GettingResourceError -f `
+                                $getTargetResourceParameters.FederationServiceName, $getTargetResourceParameters.Locale )
+                }
+            }
         }
 
         Describe "$Global:DSCResourceName\Set-TargetResource" -Tag 'Set' {
@@ -193,6 +203,16 @@ try
                     -ParameterFilter { $FederationServiceName -eq $setTargetResourceParameters.FederationServiceName } `
                     -Exactly -Times 1
                 Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 1
+            }
+
+            Context 'When Set-AdfsGlobalWebContent throws an exception' {
+                Mock -CommandName Set-AdfsGlobalWebContent -MockWith { Throw 'Error' }
+
+                It 'Should throw the correct exception' {
+                    { Set-TargetResource @setTargetResourceParameters } | Should -Throw ( `
+                            $script:localizedData.SettingResourceError -f `
+                                $setTargetResourceParameters.FederationServiceName, $setTargetResourceParameters.Locale )
+                }
             }
         }
 

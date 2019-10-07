@@ -158,7 +158,7 @@ try
                 Context 'When Get-AdfsSslCertificate throws an exception' {
                     Mock Get-AdfsSslCertificate -MockWith { throw $mockExceptionErrorMessage }
 
-                    It 'Should throw the correct error' {
+                    It 'Should throw the correct exception' {
                         { Get-TargetResource @getTargetResourceParameters } | Should -Throw ( `
                                 $script:localizedData.GettingAdfsSslCertificateError -f `
                                 $mockGsaResource.FederationServiceName)
@@ -168,7 +168,7 @@ try
                 Context 'When Get-AdfsSslCertificate returns an empty result' {
                     Mock Get-AdfsSslCertificate
 
-                    It 'Should throw the correct error' {
+                    It 'Should throw the correct exception' {
                         { Get-TargetResource @getTargetResourceParameters } | Should -Throw ( `
                                 $script:localizedData.GettingAdfsSslCertificateError -f `
                                 $mockGsaResource.FederationServiceName)
@@ -179,7 +179,7 @@ try
                     Mock -CommandName Get-CimInstance `
                         -ParameterFilter { $ClassName -eq 'Win32_Service' }
 
-                    It 'Should throw the correct error' {
+                    It 'Should throw the correct exception' {
                         { Get-TargetResource @getTargetResourceParameters } | Should -Throw ( `
                                 $script:localizedData.GettingAdfsServiceError -f `
                                 $mockGsaResource.FederationServiceName)
@@ -199,24 +199,24 @@ try
                     }
                 }
 
-                Context 'When Get-CimInstance -ClassName SecurityTokenService throws an error' {
+                Context 'When Get-CimInstance -ClassName SecurityTokenService throws an exception' {
                     Mock -CommandName Get-CimInstance `
                         -ParameterFilter { `
                             $Namespace -eq 'root/ADFS' -and `
                             $ClassName -eq 'SecurityTokenService' } `
                         -MockWith { throw $mockExceptionErrorMessage }
 
-                    It 'Should throw the correct error' {
+                    It 'Should throw the correct exception' {
                         { Get-TargetResource @getTargetResourceParameters } | Should -Throw ( `
                                 $script:localizedData.GettingAdfsSecurityTokenServiceError -f `
                                 $mockGsaResource.FederationServiceName)
                     }
                 }
 
-                Context 'When Get-AdfsSyncProperties throws an error' {
+                Context 'When Get-AdfsSyncProperties throws an exception' {
                     Mock Get-AdfsSyncProperties -MockWith { throw $mockExceptionErrorMessage }
 
-                    It 'Should throw the correct error' {
+                    It 'Should throw the correct exception' {
                         { Get-TargetResource @getTargetResourceParameters } | Should -Throw ( `
                                 $script:localizedData.GettingAdfsSyncPropertiesError -f `
                                 $mockGsaResource.FederationServiceName)
@@ -275,7 +275,7 @@ try
                 $setTargetResourceBothCredentialParameters.Add('ServiceAccountCredential', $mockCredential)
 
                 It 'Should throw the correct error' {
-                    { Set-TargetResource @setTargetResourceBothCredentialParameters -Verbose } | `
+                    { Set-TargetResource @setTargetResourceBothCredentialParameters } | `
                             Should -Throw ($script:localizedData.ResourceDuplicateCredentialError -f `
                                 $mockGsaResource.FederationServiceName)
                 }

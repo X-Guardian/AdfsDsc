@@ -143,9 +143,9 @@ try
         Describe "$Global:DSCResourceName\Set-TargetResource" -Tag 'Set' {
             $setTargetResourceParameters = @{
                 ClientRoleIdentifier = $mockResource.ClientRoleIdentifier
-                ServerRoleIdentifier = $mockResource.ServerRoleIdentifier
-                Description          = $mockResource.Description
-                ScopeNames           = $mockResource.ScopeNames
+                ServerRoleIdentifier = $mockChangedResource.ServerRoleIdentifier
+                Description          = $mockChangedResource.Description
+                ScopeNames           = $mockChangedResource.ScopeNames
             }
 
             $setTargetResourcePresentParameters = $setTargetResourceParameters.Clone()
