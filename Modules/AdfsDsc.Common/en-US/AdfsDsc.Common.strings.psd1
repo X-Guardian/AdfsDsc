@@ -12,7 +12,7 @@ ConvertFrom-StringData @'
     ResourceNotImplementedError            = {0} {1} not implemented.
     NotDomainMemberError                   = The computer must be an Active Directory domain member to use this resource.
     UnexpectedServiceAccountCategoryError  = Unexpected object type of {0} for service account {1}.
-    GetAdfsServiceError                    = Error while getting ADFS Service status {0}.
+    GetAdfsServiceError                    = Error while getting ADFS Service status.
     AdfsServiceNotRunningError             = The ADFS Service is not running.
     ServiceAccountNotFoundError            = Service account {0} not found.
     ConfigurationStatusNotFoundError       = The ADFS configuration status registry entry does not exist.
