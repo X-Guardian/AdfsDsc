@@ -273,13 +273,19 @@ try
             $setTargetResourceAbsentParameters = $setTargetResourceParameters.Clone()
             $setTargetResourceAbsentParameters.Ensure = 'Absent'
 
-            $mockInstallAdfsFarmNodeResult = @{
+            $mockAddAdfsFarmNodeSuccessResult = @{
                 Message = 'The configuration completed successfully.'
                 Context = 'DeploymentSucceeded'
                 Status  = 'Success'
             }
 
-            Mock -CommandName Add-AdfsFarmNode -MockWith { $mockInstallAdfsFarmNodeResult }
+            $mockAddAdfsFarmNodeErrorResult = @{
+                Message = 'The configuration did not complete successfully.'
+                Context = 'DeploymentTask'
+                Status  = 'Error'
+            }
+
+            Mock -CommandName Add-AdfsFarmNode -MockWith { $mockAddAdfsFarmNodeSuccessResult }
             Mock -CommandName Remove-AdfsFarmNode
 
             Context 'When both credential parameters have been specified' {
@@ -325,13 +331,37 @@ try
                         Assert-MockCalled -CommandName Remove-AdfsFarmNode -Exactly -Times 0
                     }
 
-                    Context 'When Install-AdfsFarm throws an exception' {
+                    Context 'When Add-AdfsFarmNode throws System.IO.FileNotFoundException' {
+                        Mock Add-AdfsFarmNode -MockWith { throw New-Object System.IO.FileNotFoundException }
+
+                        It 'Should not throw' {
+                            { Set-TargetResource @setTargetResourceParameters } | Should -Not -Throw
+                        }
+
+                        It 'Should call the expected mocks' {
+                            Assert-MockCalled -CommandName Add-AdfsFarmNode `
+                                -ParameterFilter { `
+                                    $CertificateThumbprint -eq $setTargetResourcePresentParameters.CertificateThumbprint } `
+                                -Exactly -Times 1
+                        }
+                    }
+
+                    Context 'When Add-AdfsFarmNode throws an exception' {
                         Mock Add-AdfsFarmNode -MockWith { throw $mockExceptionErrorMessage }
 
                         It 'Should throw the correct error' {
                             { Set-TargetResource @setTargetResourcePresentParameters } | Should -Throw `
                             ($script:localizedData.InstallationError -f `
                                     $setTargetResourcePresentParameters.FederationServiceName)
+                        }
+                    }
+
+                    Context 'When Add-AdfsFarmNode returns a result with a status of "Error"' {
+                        Mock Add-AdfsFarmNode -MockWith { $mockAddAdfsFarmNodeErrorResult }
+
+                        It 'Should throw the correct error' {
+                            { Set-TargetResource @setTargetResourceParameters } | Should -Throw `
+                                $mockAddAdfsFarmNodeErrorResult.Message
                         }
                     }
                 }
@@ -357,12 +387,20 @@ try
                     It 'Should call the expected mocks' {
                         Assert-MockCalled -CommandName Remove-AdfsFarmNode -Exactly -Times 1
                         Assert-MockCalled -CommandName Add-AdfsFarmNode -Exactly -Times 0
-
                     }
                 }
 
                 Context 'When the ADFS Service is not installed' {
+                    Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
 
+                    It 'Should not throw' {
+                        { Set-TargetResource @setTargetResourceAbsentParameters } | Should -Not -Throw
+                    }
+
+                    It 'Should call the expected mocks' {
+                        Assert-MockCalled -CommandName Remove-AdfsFarmNode -Exactly -Times 0
+                        Assert-MockCalled -CommandName Add-AdfsFarmNode -Exactly -Times 0
+                    }
                 }
             }
         }

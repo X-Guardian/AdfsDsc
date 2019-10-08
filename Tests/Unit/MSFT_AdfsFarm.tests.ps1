@@ -318,7 +318,7 @@ try
 
                 It 'Should call the expected mocks' {
                     Assert-MockCalled -CommandName Install-AdfsFarm `
-                        -ParameterFilter { $FederationServiceName -eq $mockGsaResource.FederationServiceName } `
+                        -ParameterFilter { $FederationServiceName -eq $setTargetResourceParameters.FederationServiceName } `
                         -Exactly -Times 1
                 }
 
@@ -331,7 +331,7 @@ try
 
                     It 'Should call the expected mocks' {
                         Assert-MockCalled -CommandName Install-AdfsFarm `
-                            -ParameterFilter { $FederationServiceName -eq $mockGsaResource.FederationServiceName } `
+                            -ParameterFilter { $FederationServiceName -eq $setTargetResourceParameters.FederationServiceName } `
                             -Exactly -Times 1
                     }
                 }
@@ -340,17 +340,17 @@ try
                     Mock Install-AdfsFarm -MockWith { throw $mockExceptionErrorMessage }
 
                     It 'Should throw the correct error' {
-                        { Set-TargetResource @setTargetResourceParameters } | Should -Throw `
-                        ($script:localizedData.InstallationError -f $mockGsaResource.FederationServiceName)
+                        { Set-TargetResource @setTargetResourceParameters } | Should -Throw (`
+                                $script:localizedData.InstallationError -f $setTargetResourceParameters.FederationServiceName)
                     }
                 }
 
-                Context 'When Install-AdfsFarm returns a result with a status of ''Error''' {
+                Context 'When Install-AdfsFarm returns a result with a status of "Error"' {
                     Mock Install-AdfsFarm -MockWith { $mockInstallAdfsFarmErrorResult }
 
                     It 'Should throw the correct error' {
                         { Set-TargetResource @setTargetResourceParameters } | Should -Throw `
-                        ($mockInstallAdfsFarmErrorResult.Message)
+                            $mockInstallAdfsFarmErrorResult.Message
                     }
                 }
             }
