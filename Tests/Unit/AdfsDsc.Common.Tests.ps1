@@ -5,165 +5,117 @@ Import-Module -Name (Join-Path -Path $script:modulesFolderPath -ChildPath 'AdfsD
 
 InModuleScope 'AdfsDsc.Common' {
     Describe 'AdfsDsc.Common\Get-LocalizedData' {
-        $mockTestPath = {
-            return $mockTestPathReturnValue
-        }
+        BeforeAll {
+            $mockImportLocalizedData = {
+                $BaseDirectory | Should -Be $mockExpectedLanguagePath
+            }
 
-        $mockImportLocalizedData = {
-            $BaseDirectory | Should -Be $mockExpectedLanguagePath
-        }
-
-        BeforeEach {
-            Mock -CommandName Test-Path -MockWith $mockTestPath -Verifiable
             Mock -CommandName Import-LocalizedData -MockWith $mockImportLocalizedData -Verifiable
         }
 
         Context 'When loading localized data for Swedish' {
-            $mockExpectedLanguagePath = 'sv-SE'
-            $mockTestPathReturnValue = $true
 
-            It 'Should call Import-LocalizedData with sv-SE language' {
-                Mock -CommandName Join-Path -MockWith {
-                    return 'sv-SE'
-                } -Verifiable
+            Context 'When the Swedish language path exists' {
+                BeforeAll {
+                    $mockExpectedLanguagePath = 'sv-SE'
+                    $mockTestPathReturnValue = $true
 
-                { Get-LocalizedData -ResourceName 'DummyResource' } | Should -Not -Throw
+                    Mock -CommandName Test-Path -MockWith { $mockTestPathReturnValue } -Verifiable
+                    Mock -CommandName Join-Path -MockWith { $mockExpectedLanguagePath } -Verifiable
+                }
 
-                Assert-MockCalled -CommandName Join-Path -Exactly -Times 3 -Scope It
-                Assert-MockCalled -CommandName Test-Path -Exactly -Times 1 -Scope It
-                Assert-MockCalled -CommandName Import-LocalizedData -Exactly -Times 1 -Scope It
+                It 'Should not throw an error' {
+                    { Get-LocalizedData -ResourceName 'DummyResource' } | Should -Not -Throw
+                }
+
+                It 'Should call the expected mocks' {
+                    Assert-MockCalled -CommandName Join-Path -Exactly -Times 3
+                    Assert-MockCalled -CommandName Test-Path -Exactly -Times 1
+                    Assert-MockCalled -CommandName Import-LocalizedData -Exactly -Times 1
+                }
             }
 
-            $mockExpectedLanguagePath = 'en-US'
-            $mockTestPathReturnValue = $false
+            Context ' When the Swedish language path does not exist' {
+                BeforeAll {
+                    $mockExpectedLanguagePath = 'en-US'
+                    $mockTestPathReturnValue = $false
 
-            It 'Should call Import-LocalizedData and fallback to en-US if sv-SE language does not exist' {
-                Mock -CommandName Join-Path -MockWith {
-                    return $ChildPath
-                } -Verifiable
+                    Mock -CommandName Test-Path -MockWith { $mockTestPathReturnValue } -Verifiable
+                    Mock -CommandName Join-Path -MockWith { $ChildPath } -Verifiable
+                }
 
-                { Get-LocalizedData -ResourceName 'DummyResource' } | Should -Not -Throw
+                It 'Should not throw an error' {
+                    { Get-LocalizedData -ResourceName 'DummyResource' } | Should -Not -Throw
+                }
 
-                Assert-MockCalled -CommandName Join-Path -Exactly -Times 4 -Scope It
-                Assert-MockCalled -CommandName Test-Path -Exactly -Times 1 -Scope It
-                Assert-MockCalled -CommandName Import-LocalizedData -Exactly -Times 1 -Scope It
+                It 'Should call the expected mocks' {
+                    Assert-MockCalled -CommandName Join-Path -Exactly -Times 4
+                    Assert-MockCalled -CommandName Test-Path -Exactly -Times 1
+                    Assert-MockCalled -CommandName Import-LocalizedData -Exactly -Times 1
+                }
             }
 
             Context 'When $ScriptRoot is set to a path' {
-                $mockExpectedLanguagePath = 'sv-SE'
+
+                Context 'When the Swedish language path exists' {
+                    BeforeAll {
+                        $mockExpectedLanguagePath = 'sv-SE'
+                        $mockTestPathReturnValue = $true
+
+                        Mock -CommandName Test-Path -MockWith { $mockTestPathReturnValue } -Verifiable
+                        Mock -CommandName Join-Path -MockWith { $mockExpectedLanguagePath } -Verifiable
+                    }
+
+                    It 'Should not throw an error' {
+                        { Get-LocalizedData -ResourceName 'DummyResource' -ScriptRoot '.' } | Should -Not -Throw
+                    }
+
+                    It 'Should call the expected mocks' {
+                        Assert-MockCalled -CommandName Join-Path -Exactly -Times 1
+                        Assert-MockCalled -CommandName Test-Path -Exactly -Times 1
+                        Assert-MockCalled -CommandName Import-LocalizedData -Exactly -Times 1
+                    }
+                }
+
+                Context 'When the Swedish language path does not exist' {
+                    BeforeAll {
+                        $mockExpectedLanguagePath = 'en-US'
+                        $mockTestPathReturnValue = $false
+
+                        Mock -CommandName Test-Path -MockWith { $mockTestPathReturnValue } -Verifiable
+                        Mock -CommandName Join-Path -MockWith { $ChildPath } -Verifiable
+                    }
+
+                    It 'Should not throw an error' {
+                        { Get-LocalizedData -ResourceName 'DummyResource' -ScriptRoot '.' } | Should -Not -Throw
+                    }
+
+                    It 'Should call the expected mocks' {
+                        Assert-MockCalled -CommandName Join-Path -Exactly -Times 2
+                        Assert-MockCalled -CommandName Test-Path -Exactly -Times 1
+                        Assert-MockCalled -CommandName Import-LocalizedData -Exactly -Times 1
+                    }
+                }
+            }
+        }
+
+        Context 'When loading localized data for US English' {
+            BeforeAll {
+                $mockExpectedLanguagePath = 'en-US'
                 $mockTestPathReturnValue = $true
 
-                It 'Should call Import-LocalizedData with sv-SE language' {
-                    Mock -CommandName Join-Path -MockWith {
-                        return 'sv-SE'
-                    } -Verifiable
-
-                    { Get-LocalizedData -ResourceName 'DummyResource' -ScriptRoot '.' } | Should -Not -Throw
-
-                    Assert-MockCalled -CommandName Join-Path -Exactly -Times 1 -Scope It
-                    Assert-MockCalled -CommandName Test-Path -Exactly -Times 1 -Scope It
-                    Assert-MockCalled -CommandName Import-LocalizedData -Exactly -Times 1 -Scope It
-                }
-
-                $mockExpectedLanguagePath = 'en-US'
-                $mockTestPathReturnValue = $false
-
-                It 'Should call Import-LocalizedData and fallback to en-US if sv-SE language does not exist' {
-                    Mock -CommandName Join-Path -MockWith {
-                        return $ChildPath
-                    } -Verifiable
-
-                    { Get-LocalizedData -ResourceName 'DummyResource' -ScriptRoot '.' } | Should -Not -Throw
-
-                    Assert-MockCalled -CommandName Join-Path -Exactly -Times 2 -Scope It
-                    Assert-MockCalled -CommandName Test-Path -Exactly -Times 1 -Scope It
-                    Assert-MockCalled -CommandName Import-LocalizedData -Exactly -Times 1 -Scope It
-                }
+                Mock -CommandName Test-Path -MockWith { $mockTestPathReturnValue } -Verifiable
+                Mock -CommandName Join-Path -MockWith { $mockExpectedLanguagePath } -Verifiable
             }
-        }
 
-        Context 'When loading localized data for English' {
-            Mock -CommandName Join-Path -MockWith {
-                return 'en-US'
-            } -Verifiable
-
-            $mockExpectedLanguagePath = 'en-US'
-            $mockTestPathReturnValue = $true
-
-            It 'Should call Import-LocalizedData with en-US language' {
+            It 'Should not throw an error' {
                 { Get-LocalizedData -ResourceName 'DummyResource' } | Should -Not -Throw
             }
-        }
 
-        Assert-VerifiableMock
-    }
-
-    Describe 'AdfsDsc.Common\New-InvalidResultException' {
-        Context 'When calling with Message parameter only' {
-            It 'Should throw the correct error' {
-                $mockErrorMessage = 'Mocked error'
-
-                { New-InvalidResultException -Message $mockErrorMessage } | Should -Throw $mockErrorMessage
-            }
-        }
-
-        Context 'When calling with both the Message and ErrorRecord parameter' {
-            It 'Should throw the correct error' {
-                $mockErrorMessage = 'Mocked error'
-                $mockExceptionErrorMessage = 'Mocked exception error message'
-
-                $mockException = New-Object -TypeName 'System.Exception' -ArgumentList $mockExceptionErrorMessage
-                $mockErrorRecord = New-Object -TypeName 'System.Management.Automation.ErrorRecord' -ArgumentList @($mockException, $null, 'InvalidResult', $null)
-
-                { New-InvalidResultException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } | Should -Throw ('System.Exception: {0} ---> System.Exception: {1}' -f $mockErrorMessage, $mockExceptionErrorMessage)
-            }
-        }
-
-        Assert-VerifiableMock
-    }
-
-    Describe 'AdfsDsc.Common\New-ObjectNotFoundException' {
-        Context 'When calling with Message parameter only' {
-            It 'Should throw the correct error' {
-                $mockErrorMessage = 'Mocked error'
-
-                { New-ObjectNotFoundException -Message $mockErrorMessage } | Should -Throw $mockErrorMessage
-            }
-        }
-
-        Context 'When calling with both the Message and ErrorRecord parameter' {
-            It 'Should throw the correct error' {
-                $mockErrorMessage = 'Mocked error'
-                $mockExceptionErrorMessage = 'Mocked exception error message'
-
-                $mockException = New-Object -TypeName 'System.Exception' -ArgumentList $mockExceptionErrorMessage
-                $mockErrorRecord = New-Object -TypeName 'System.Management.Automation.ErrorRecord' -ArgumentList @($mockException, $null, 'InvalidResult', $null)
-
-                { New-ObjectNotFoundException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } | Should -Throw ('System.Exception: {0} ---> System.Exception: {1}' -f $mockErrorMessage, $mockExceptionErrorMessage)
-            }
-        }
-
-        Assert-VerifiableMock
-    }
-
-    Describe 'AdfsDsc.Common\New-InvalidOperationException' {
-        Context 'When calling with Message parameter only' {
-            It 'Should throw the correct error' {
-                $mockErrorMessage = 'Mocked error'
-
-                { New-InvalidOperationException -Message $mockErrorMessage } | Should -Throw $mockErrorMessage
-            }
-        }
-
-        Context 'When calling with both the Message and ErrorRecord parameter' {
-            It 'Should throw the correct error' {
-                $mockErrorMessage = 'Mocked error'
-                $mockExceptionErrorMessage = 'Mocked exception error message'
-
-                $mockException = New-Object -TypeName 'System.Exception' -ArgumentList $mockExceptionErrorMessage
-                $mockErrorRecord = New-Object -TypeName 'System.Management.Automation.ErrorRecord' -ArgumentList @($mockException, $null, 'InvalidResult', $null)
-
-                { New-InvalidOperationException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } | Should -Throw ('System.InvalidOperationException: {0} ---> System.Exception: {1}' -f $mockErrorMessage, $mockExceptionErrorMessage)
+            It 'Should call the expected mocks' {
+                Assert-MockCalled -CommandName Join-Path -Exactly -Times 3
+                Assert-MockCalled -CommandName Test-Path -Exactly -Times 1
+                Assert-MockCalled -CommandName Import-LocalizedData -Exactly -Times 1
             }
         }
 
@@ -172,56 +124,130 @@ InModuleScope 'AdfsDsc.Common' {
 
     Describe 'AdfsDsc.Common\New-InvalidArgumentException' {
         Context 'When calling with both the Message and ArgumentName parameter' {
-            It 'Should throw the correct error' {
+            BeforeAll {
                 $mockErrorMessage = 'Mocked error'
                 $mockArgumentName = 'MockArgument'
-
-                { New-InvalidArgumentException -Message $mockErrorMessage -ArgumentName $mockArgumentName } | Should -Throw ('Parameter name: {0}' -f $mockArgumentName)
-            }
-        }
-
-        Assert-VerifiableMock
-    }
-
-    Describe 'AdfsDsc.Common\Assert-Module' {
-        BeforeAll {
-            $testModuleName = 'TestModule'
-        }
-
-        Context 'When module is not installed' {
-            BeforeAll {
-                Mock -CommandName Get-Module
             }
 
             It 'Should throw the correct error' {
-                { Assert-Module -ModuleName $testModuleName } | Should -Throw ($script:localizedData.RoleNotFoundError -f $testModuleName)
+                { New-InvalidArgumentException -Message $mockErrorMessage -ArgumentName $mockArgumentName } | `
+                        Should -Throw ('Parameter name: {0}' -f $mockArgumentName)
+            }
+        }
+    }
+
+    Describe 'AdfsDsc.Common\New-InvalidOperationException' {
+        Context 'When calling with Message parameter only' {
+            BeforeAll {
+                $mockErrorMessage = 'Mocked error'
+            }
+
+            It 'Should throw the correct error' {
+                { New-InvalidOperationException -Message $mockErrorMessage } | Should -Throw $mockErrorMessage
             }
         }
 
-        Context 'When module is available' {
+        Context 'When calling with both the Message and ErrorRecord parameter' {
             BeforeAll {
-                Mock -CommandName Import-Module
-                Mock -CommandName Get-Module -MockWith {
-                    return @{
-                        Name = $testModuleName
-                    }
-                }
+                $mockErrorMessage = 'Mocked error'
+                $mockExceptionErrorMessage = 'Mocked exception error message'
+
+                $mockException = New-Object -TypeName 'System.Exception' -ArgumentList $mockExceptionErrorMessage
+                $mockErrorRecord = New-Object -TypeName 'System.Management.Automation.ErrorRecord' `
+                    -ArgumentList @($mockException, $null, 'InvalidResult', $null)
             }
 
-            Context 'When module should not be imported' {
-                It 'Should not throw an error' {
-                    { Assert-Module -ModuleName $testModuleName } | Should -Not -Throw
+            It 'Should throw the correct error' {
+                { New-InvalidOperationException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } | `
+                        Should -Throw ('System.InvalidOperationException: {0} ---> System.Exception: {1}' -f `
+                            $mockErrorMessage, $mockExceptionErrorMessage)
+            }
+        }
+    }
 
-                    Assert-MockCalled -CommandName Import-Module -Exactly -Times 0 -Scope It
-                }
+    Describe 'AdfsDsc.Common\New-ObjectNotFoundException' {
+        Context 'When calling with Message parameter only' {
+            BeforeAll {
+                $mockErrorMessage = 'Mocked error'
             }
 
-            Context 'When module should be imported' {
-                It 'Should not throw an error' {
-                    { Assert-Module -ModuleName $testModuleName -ImportModule } | Should -Not -Throw
+            It 'Should throw the correct error' {
+                { New-ObjectNotFoundException -Message $mockErrorMessage } | Should -Throw $mockErrorMessage
+            }
+        }
 
-                    Assert-MockCalled -CommandName Import-Module -Exactly -Times 1 -Scope It
-                }
+        Context 'When calling with both the Message and ErrorRecord parameter' {
+            BeforeAll {
+                $mockErrorMessage = 'Mocked error'
+                $mockExceptionErrorMessage = 'Mocked exception error message'
+
+                $mockException = New-Object -TypeName 'System.Exception' -ArgumentList $mockExceptionErrorMessage
+                $mockErrorRecord = New-Object -TypeName 'System.Management.Automation.ErrorRecord' `
+                    -ArgumentList @($mockException, $null, 'InvalidResult', $null)
+            }
+
+            It 'Should throw the correct error' {
+                { New-ObjectNotFoundException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } | `
+                        Should -Throw ('System.Exception: {0} ---> System.Exception: {1}' -f `
+                            $mockErrorMessage, $mockExceptionErrorMessage)
+            }
+        }
+    }
+
+    Describe 'AdfsDsc.Common\New-InvalidResultException' {
+        Context 'When calling with Message parameter only' {
+            BeforeAll {
+                $mockErrorMessage = 'Mocked error'
+            }
+
+            It 'Should throw the correct error' {
+                { New-InvalidResultException -Message $mockErrorMessage } | Should -Throw $mockErrorMessage
+            }
+        }
+
+        Context 'When calling with both the Message and ErrorRecord parameter' {
+            BeforeAll {
+                $mockErrorMessage = 'Mocked error'
+                $mockExceptionErrorMessage = 'Mocked exception error message'
+
+                $mockException = New-Object -TypeName 'System.Exception' -ArgumentList $mockExceptionErrorMessage
+                $mockErrorRecord = New-Object -TypeName 'System.Management.Automation.ErrorRecord' `
+                    -ArgumentList @($mockException, $null, 'InvalidResult', $null)
+            }
+
+            It 'Should throw the correct error' {
+                { New-InvalidResultException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } |  `
+                        Should -Throw ('System.Exception: {0} ---> System.Exception: {1}' -f `
+                            $mockErrorMessage, $mockExceptionErrorMessage)
+            }
+        }
+    }
+
+    Describe 'AdfsDsc.Common\New-NotImplementedException' {
+        Context 'When calling with Message parameter only' {
+            BeforeAll {
+                $mockErrorMessage = 'Mocked error'
+            }
+
+            It 'Should throw the correct error' {
+                { New-NotImplementedException -Message $mockErrorMessage } | Should -Throw $mockErrorMessage
+            }
+        }
+
+        Context 'When calling with both the Message and ErrorRecord parameter' {
+            BeforeAll {
+                $mockErrorMessage = 'Mocked error'
+                $mockExceptionErrorMessage = 'Mocked exception error message'
+
+                $mockException = New-Object -TypeName 'System.Exception' -ArgumentList $mockExceptionErrorMessage
+                $mockErrorRecord = New-Object -TypeName 'System.Management.Automation.ErrorRecord' `
+                    -ArgumentList @($mockException, $null, 'NotImplemented', $null)
+            }
+
+            It 'Should throw the correct error' {
+                { New-NotImplementedException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } | `
+                        Should -Throw ('System.NotImplementedException: {0} ---> System.Exception: {1}' -f `
+                            $mockErrorMessage, $mockExceptionErrorMessage)
             }
         }
     }
@@ -313,204 +339,6 @@ InModuleScope 'AdfsDsc.Common' {
 
             $result | Should -Be $testTimeSpan.TotalDays
         }
-    }
-
-    Describe 'DscResource.Common\Test-DscPropertyState' -Tag 'TestDscPropertyState' {
-        Context 'When comparing tables' {
-            It 'Should return true for two identical tables' {
-                $mockValues = @{
-                    CurrentValue = 'Test'
-                    DesiredValue = 'Test'
-                }
-
-                Test-DscPropertyState -Values $mockValues | Should -Be $true
-            }
-        }
-
-        Context 'When comparing strings' {
-            It 'Should return false when a value is different for [System.String]' {
-                $mockValues = @{
-                    CurrentValue = [System.String] 'something'
-                    DesiredValue = [System.String] 'test'
-                }
-
-                Test-DscPropertyState -Values $mockValues | Should -Be $false
-            }
-
-            It 'Should return false when a String value is missing' {
-                $mockValues = @{
-                    CurrentValue = $null
-                    DesiredValue = [System.String] 'Something'
-                }
-
-                Test-DscPropertyState -Values $mockValues | Should -Be $false
-            }
-        }
-
-        Context 'When comparing integers' {
-            It 'Should return false when a value is different for [System.Int32]' {
-                $mockValues = @{
-                    CurrentValue = [System.Int32] 1
-                    DesiredValue = [System.Int32] 2
-                }
-
-                Test-DscPropertyState -Values $mockValues | Should -Be $false
-            }
-
-            It 'Should return false when a value is different for [System.Int16]' {
-                $mockValues = @{
-                    CurrentValue = [System.Int16] 1
-                    DesiredValue = [System.Int16] 2
-                }
-
-                Test-DscPropertyState -Values $mockValues | Should -Be $false
-            }
-
-            It 'Should return false when a value is different for [System.UInt16]' {
-                $mockValues = @{
-                    CurrentValue = [System.UInt16] 1
-                    DesiredValue = [System.UInt16] 2
-                }
-
-                Test-DscPropertyState -Values $mockValues | Should -Be $false
-            }
-
-            It 'Should return false when a Integer value is missing' {
-                $mockValues = @{
-                    CurrentValue = $null
-                    DesiredValue = [System.Int32] 1
-                }
-
-                Test-DscPropertyState -Values $mockValues | Should -Be $false
-            }
-        }
-
-        Context 'When comparing booleans' {
-            It 'Should return false when a value is different for [System.Boolean]' {
-                $mockValues = @{
-                    CurrentValue = [System.Boolean] $true
-                    DesiredValue = [System.Boolean] $false
-                }
-
-                Test-DscPropertyState -Values $mockValues | Should -Be $false
-            }
-
-            It 'Should return false when a Boolean value is missing' {
-                $mockValues = @{
-                    CurrentValue = $null
-                    DesiredValue = [System.Boolean] $true
-                }
-
-                Test-DscPropertyState -Values $mockValues | Should -Be $false
-            }
-        }
-
-        Context 'When comparing arrays' {
-            It 'Should return true when evaluating an array' {
-                $mockValues = @{
-                    CurrentValue = @('1', '2')
-                    DesiredValue = @('1', '2')
-                }
-
-                Test-DscPropertyState -Values $mockValues | Should -BeTrue
-            }
-
-            It 'Should return false when evaluating an array with wrong values' {
-                $mockValues = @{
-                    CurrentValue = @('CurrentValueA', 'CurrentValueB')
-                    DesiredValue = @('DesiredValue1', 'DesiredValue2')
-                }
-
-                Test-DscPropertyState -Values $mockValues | Should -BeFalse
-            }
-
-            It 'Should return false when evaluating an array, but the current value is $null' {
-                $mockValues = @{
-                    CurrentValue = $null
-                    DesiredValue = @('1', '2')
-                }
-
-                Test-DscPropertyState -Values $mockValues | Should -BeFalse
-            }
-
-            It 'Should return false when evaluating an array, but the desired value is $null' {
-                $mockValues = @{
-                    CurrentValue = @('1', '2')
-                    DesiredValue = $null
-                }
-
-                Test-DscPropertyState -Values $mockValues | Should -BeFalse
-            }
-
-            It 'Should return false when evaluating an array, but the current value is an empty array' {
-                $mockValues = @{
-                    CurrentValue = @()
-                    DesiredValue = @('1', '2')
-                }
-
-                Test-DscPropertyState -Values $mockValues | Should -BeFalse
-            }
-
-            It 'Should return false when evaluating an array, but the desired value is an empty array' {
-                $mockValues = @{
-                    CurrentValue = @('1', '2')
-                    DesiredValue = @()
-                }
-
-                Test-DscPropertyState -Values $mockValues | Should -BeFalse
-            }
-
-            It 'Should return true when evaluating an array, when both values are $null' {
-                $mockValues = @{
-                    CurrentValue = $null
-                    DesiredValue = $null
-                }
-
-                Test-DscPropertyState -Values $mockValues -Verbose | Should -BeTrue
-            }
-
-            It 'Should return true when evaluating an array, when both values are an empty array' {
-                $mockValues = @{
-                    CurrentValue = @()
-                    DesiredValue = @()
-                }
-
-                Test-DscPropertyState -Values $mockValues -Verbose | Should -BeTrue
-            }
-        }
-
-        Context -Name 'When passing invalid types for DesiredValue' {
-            It 'Should write a warning when DesiredValue contain an unsupported type' {
-                Mock -CommandName Write-Warning -Verifiable
-
-                # This is a dummy type to test with a type that could never be a correct one.
-                class MockUnknownType
-                {
-                    [ValidateNotNullOrEmpty()]
-                    [System.String]
-                    $Property1
-
-                    [ValidateNotNullOrEmpty()]
-                    [System.String]
-                    $Property2
-
-                    MockUnknownType()
-                    {
-                    }
-                }
-
-                $mockValues = @{
-                    CurrentValue = New-Object -TypeName 'MockUnknownType'
-                    DesiredValue = New-Object -TypeName 'MockUnknownType'
-                }
-
-                Test-DscPropertyState -Values $mockValues | Should -Be $false
-
-                Assert-MockCalled -CommandName Write-Warning -Exactly -Times 1 -Scope It
-            }
-        }
-
-        Assert-VerifiableMock
     }
 
     Describe 'AdfsDsc.Common\Compare-ResourcePropertyState' {
@@ -754,6 +582,712 @@ InModuleScope 'AdfsDsc.Common' {
 
                 $compareTargetResourceStateResult = Compare-ResourcePropertyState @compareTargetResourceStateParameters
                 $compareTargetResourceStateResult | Should -BeNullOrEmpty
+            }
+        }
+    }
+
+    Describe 'DscResource.Common\Test-DscPropertyState' -Tag 'TestDscPropertyState' {
+        Context 'When comparing strings' {
+
+            Context 'When the strings match' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = [System.String] 'Test'
+                        DesiredValue = [System.String] 'Test'
+                    }
+                }
+
+                It 'Should return true' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $true
+                }
+            }
+
+            Context 'When the strings do not match' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = [System.String] 'something'
+                        DesiredValue = [System.String] 'test'
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $false
+                }
+            }
+
+            Context 'When a string value is missing' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = $null
+                        DesiredValue = [System.String] 'Something'
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $false
+                }
+            }
+        }
+
+        Context 'When comparing Int16' {
+
+            Context 'When the integers match' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = [System.Int16] 1
+                        DesiredValue = [System.Int16] 1
+                    }
+                }
+
+                It 'Should return true' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $true
+                }
+            }
+
+            Context 'When the integers do not match' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = [System.Int16] 1
+                        DesiredValue = [System.Int16] 2
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $false
+                }
+            }
+
+            Context 'When an integer value is missing' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = $null
+                        DesiredValue = [System.Int16] 1
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $false
+                }
+            }
+        }
+
+        Context 'When comparing UInt16' {
+            Context 'When the integers match' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = [System.UInt16] 1
+                        DesiredValue = [System.UInt16] 1
+                    }
+                }
+
+                It 'Should return true' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $true
+                }
+            }
+
+            Context 'When the integers do not match' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = [System.UInt16] 1
+                        DesiredValue = [System.UInt16] 2
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $false
+                }
+            }
+
+            Context 'When an integer value is missing' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = $null
+                        DesiredValue = [System.UInt16] 1
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $false
+                }
+            }
+        }
+
+        Context 'When comparing Int32' {
+            Context 'When the integers match' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = [System.Int32] 1
+                        DesiredValue = [System.Int32] 1
+                    }
+                }
+
+                It 'Should return true' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $true
+                }
+            }
+
+            Context 'When the integers do not match' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = [System.Int32] 1
+                        DesiredValue = [System.Int32] 2
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $false
+                }
+            }
+
+            Context 'When an integer value is missing' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = $null
+                        DesiredValue = [System.Int32] 1
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $false
+                }
+            }
+        }
+
+        Context 'When comparing booleans' {
+            Context 'When the booleans match' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = [System.Boolean] $true
+                        DesiredValue = [System.Boolean] $true
+                    }
+                }
+
+                It 'Should return true' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $true
+                }
+            }
+
+            Context 'When the booleans do not match' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = [System.Boolean] $true
+                        DesiredValue = [System.Boolean] $false
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $false
+                }
+            }
+
+            Context 'When a boolean value is missing' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = $null
+                        DesiredValue = [System.Boolean] $true
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $false
+                }
+            }
+        }
+
+        Context 'When comparing arrays' {
+            Context 'When the arrays match' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = @('1', '2')
+                        DesiredValue = @('1', '2')
+                    }
+                }
+
+                It 'Should return true' {
+                    Test-DscPropertyState -Values $mockValues | Should -BeTrue
+                }
+            }
+
+            Context 'When the arrays do not match' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = @('CurrentValueA', 'CurrentValueB')
+                        DesiredValue = @('DesiredValue1', 'DesiredValue2')
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -BeFalse
+                }
+            }
+
+            Context 'When the current value is $null' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = $null
+                        DesiredValue = @('1', '2')
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -BeFalse
+                }
+            }
+
+            Context 'When the desired value is $null' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = @('1', '2')
+                        DesiredValue = $null
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -BeFalse
+                }
+            }
+
+            Context 'When the current value is an empty array' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = @()
+                        DesiredValue = @('1', '2')
+                    }
+
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -BeFalse
+                }
+            }
+
+            Context 'when the desired value is an empty array' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = @('1', '2')
+                        DesiredValue = @()
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -BeFalse
+                }
+            }
+
+            Context 'when both values are $null' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = $null
+                        DesiredValue = $null
+                    }
+                }
+
+                It 'Should return true ' {
+                    Test-DscPropertyState -Values $mockValues -Verbose | Should -BeTrue
+                }
+            }
+
+            Context 'When both values are an empty array' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = @()
+                        DesiredValue = @()
+                    }
+                }
+
+                It 'Should return true' {
+                    Test-DscPropertyState -Values $mockValues -Verbose | Should -BeTrue
+                }
+            }
+        }
+
+        Context -Name 'When passing unsupported types for DesiredValue' {
+            BeforeAll {
+                Mock -CommandName Write-Warning -Verifiable
+                $mockUnknownType = 'MockUnknowntype'
+
+                # This is a dummy type to test with a type that could never be a correct one.
+                class MockUnknownType
+                {
+                    [ValidateNotNullOrEmpty()]
+                    [System.String]
+                    $Property1
+
+                    [ValidateNotNullOrEmpty()]
+                    [System.String]
+                    $Property2
+
+                    MockUnknownType()
+                    {
+                    }
+                }
+
+                $mockValues = @{
+                    CurrentValue = New-Object -TypeName $mockUnknownType
+                    DesiredValue = New-Object -TypeName $mockUnknownType
+                }
+            }
+
+            It 'Should return false' {
+                Test-DscPropertyState -Values $mockValues | Should -Be $false
+            }
+
+            It 'Should write the correct warning' {
+                Assert-MockCalled -CommandName Write-Warning `
+                    -ParameterFilter { $Message -eq ($script:localizedData.UnableToCompareType -f $mockUnknownType) } `
+                    -Exactly -Times 1
+            }
+        }
+
+        Assert-VerifiableMock
+    }
+
+    Describe 'AdfsDsc.Common\New-CimCredentialInstance' {
+        Context 'When creating a new MSFT_Credential CIM instance credential object' {
+            BeforeAll {
+                $mockAdministratorUser = 'admin@contoso.com'
+                $mockAdministratorPassword = 'P@ssw0rd-12P@ssw0rd-12'
+                $mockAdministratorCredential = New-Object -TypeName 'System.Management.Automation.PSCredential' `
+                    -ArgumentList @(
+                    $mockAdministratorUser,
+                    ($mockAdministratorPassword | ConvertTo-SecureString -AsPlainText -Force)
+                )
+            }
+
+            Context 'When the Credential parameter is specified' {
+                It 'Should return the correct values' {
+                    $newCimCredentialInstanceResult = New-CimCredentialInstance -Credential $mockAdministratorCredential
+                    $newCimCredentialInstanceResult | Should -BeOfType 'Microsoft.Management.Infrastructure.CimInstance'
+                    $newCimCredentialInstanceResult.CimClass.CimClassName | Should -Be 'MSFT_Credential'
+                    $newCimCredentialInstanceResult.UserName | Should -Be $mockAdministratorUser
+                    $newCimCredentialInstanceResult.Password | Should -BeNullOrEmpty
+                }
+            }
+
+            Context 'When the UserName parameter is specified' {
+                It 'Should return the correct values' {
+                    $newCimCredentialInstanceResult = New-CimCredentialInstance -UserName $mockAdministratorUser
+                    $newCimCredentialInstanceResult | Should -BeOfType 'Microsoft.Management.Infrastructure.CimInstance'
+                    $newCimCredentialInstanceResult.CimClass.CimClassName | Should -Be 'MSFT_Credential'
+                    $newCimCredentialInstanceResult.UserName | Should -Be $mockAdministratorUser
+                    $newCimCredentialInstanceResult.Password | Should -BeNullOrEmpty
+                }
+            }
+        }
+    }
+
+    Describe 'AdfsDsc.Common\Assert-Module' {
+        BeforeAll {
+            $testModuleName = 'TestModule'
+        }
+
+        Context 'When module is not installed' {
+            BeforeAll {
+                Mock -CommandName Get-Module
+            }
+
+            It 'Should throw the correct error' {
+                { Assert-Module -ModuleName $testModuleName } | `
+                        Should -Throw ($script:localizedData.ModuleNotFoundError -f $testModuleName)
+            }
+        }
+
+        Context 'When module is available' {
+            BeforeAll {
+                Mock -CommandName Import-Module
+                Mock -CommandName Get-Module -MockWith {
+                    return @{
+                        Name = $testModuleName
+                    }
+                }
+            }
+
+            Context 'When module should not be imported' {
+                It 'Should not throw an error' {
+                    { Assert-Module -ModuleName $testModuleName } | Should -Not -Throw
+
+                    Assert-MockCalled -CommandName Import-Module -Exactly -Times 0
+                }
+            }
+
+            Context 'When module should be imported' {
+                It 'Should not throw an error' {
+                    { Assert-Module -ModuleName $testModuleName -ImportModule } | Should -Not -Throw
+
+                    Assert-MockCalled -CommandName Import-Module -Exactly -Times 1
+                }
+            }
+        }
+    }
+
+    Describe 'AdfsDsc.Common\Assert-DomainMember' {
+        BeforeAll {
+            $mockGetCimInstanceDomainMemberResult = @{
+                PartOfDomain = $true
+            }
+
+            $mockGetCimInstanceNotDomainMemberResult = @{
+                PartOfDomain = $false
+            }
+        }
+
+        Context 'When the computer is a domain member' {
+            BeforeAll {
+                Mock -CommandName Get-CimInstance -MockWith { $mockGetCimInstanceDomainMemberResult }
+            }
+
+            It 'Should not throw an error' {
+                { Assert-DomainMember } | Should -Not -Throw
+            }
+
+            It 'Should call the correct mocks' {
+                Assert-MockCalled -CommandName Get-CimInstance `
+                    -ParameterFilter { $ClassName -eq 'Win32_ComputerSystem' } `
+                    -Exactly -Times 1
+            }
+        }
+
+        Context 'When the computer is not a domain member' {
+            BeforeAll {
+                Mock -CommandName Get-CimInstance -MockWith { $mockGetCimInstanceNotDomainMemberResult }
+            }
+
+            It 'Should throw the correct error' {
+                { Assert-DomainMember } | Should -Throw $script:localizedData.NotDomainMemberError
+            }
+        }
+    }
+
+    Describe 'AdfsDsc.Common\Assert-AdfsService' {
+        BeforeAll {
+            $mockGetCimInstanceResult = @{
+                LastBootUpTime = [DateTime]'05 October 2019 01:00:00'
+            }
+            $mockGetDateInsideResult = [DateTime]'05 October 2019 01:10:00'
+            $mockGetDateOutsideResult = [DateTime]'05 October 2019 02:00:00'
+            $mockGetServiceRunningResult = @{
+                Status = 'Running'
+            }
+            $mockGetServiceNotRunningResult = @{
+                Status = 'Stopped'
+            }
+        }
+
+        Mock -CommandName Start-Sleep
+
+        Context 'When it is inside the retry window' {
+            BeforeAll {
+                Mock -CommandName Get-CimInstance -MockWith { $mockGetCimInstanceResult }
+                Mock -CommandName Get-Date -MockWith { $mockGetDateInsideResult }
+            }
+
+            Context 'When the ADFS service is running' {
+                BeforeAll {
+                    Mock -CommandName Get-Service -MockWith { $mockGetServiceRunningResult }
+                }
+
+                It 'Should not throw an error' {
+                    { Assert-AdfsService } | Should -Not -Throw
+                }
+
+                It 'Should call the correct mocks' {
+                    Assert-MockCalled -CommandName Get-CimInstance `
+                        -ParameterFilter { $ClassName -eq 'Win32_OperatingSystem' } `
+                        -Exactly -Times 1
+                    Assert-MockCalled -CommandName Get-Date -Exactly -Times 1
+                    Assert-MockCalled -CommandName Get-Service `
+                        -ParameterFilter { $Name -eq $script:adfsServiceName } `
+                        -Exactly -Times 1
+                    Assert-MockCalled -CommandName Start-Sleep -Exactly -Times 0
+                }
+            }
+
+            Context 'When Get-Service throws an error' {
+                BeforeAll {
+                    Mock -CommandName Get-Service -MockWith { Throw 'Error' }
+                }
+
+                It 'Should throw the correct error' {
+                    { Assert-AdfsService } | Should -Throw $script:localizedData.GetAdfsServiceError
+                }
+            }
+        }
+
+        Context 'When it is outside the retry window' {
+            BeforeAll {
+                Mock -CommandName Get-CimInstance -MockWith { $mockGetCimInstanceResult }
+                Mock -CommandName Get-Date -MockWith { $mockGetDateOutsideResult }
+            }
+
+            Context 'When the ADFS service is running' {
+                BeforeAll {
+                    Mock -CommandName Get-Service -MockWith { $mockGetServiceRunningResult }
+                }
+
+                It 'Should not throw an error' {
+                    { Assert-AdfsService } | Should -Not -Throw
+                }
+
+                It 'Should call the correct mocks' {
+                    Assert-MockCalled -CommandName Get-CimInstance `
+                        -ParameterFilter { $ClassName -eq 'Win32_OperatingSystem' } `
+                        -Exactly -Times 1
+                    Assert-MockCalled -CommandName Get-Date -Exactly -Times 1
+                    Assert-MockCalled -CommandName Get-Service `
+                        -ParameterFilter { $Name -eq $script:adfsServiceName } `
+                        -Exactly -Times 1
+                    Assert-MockCalled -CommandName Start-Sleep -Exactly -Times 0
+                }
+            }
+
+            Context 'When Get-Service throws an error' {
+                BeforeAll {
+                    Mock -CommandName Get-Service -MockWith { Throw 'Error' }
+                }
+
+                It 'Should throw the correct error' {
+                    { Assert-AdfsService } | Should -Throw $script:localizedData.GetAdfsServiceError
+                }
+            }
+
+            Context 'When the ADFS service is not running' {
+                BeforeAll {
+                    Mock -CommandName Get-Service -MockWith { $mockGetServiceNotRunningResult }
+                }
+
+                It 'Should throw the correct error' {
+                    { Assert-AdfsService } | Should -Throw $script:localizedData.AdfsServiceNotRunningError
+                }
+            }
+        }
+    }
+
+    Describe 'AdfsDsc.Common\Assert-Command' {
+        BeforeAll {
+            $mockCommand = 'Get-MockCommand'
+            $mockModule = 'MockModule'
+
+            $mockGetCommandExistsResult = @{
+                CommandType = 'Cmdlet'
+                Name        = $mockCommand
+                Source      = $mockModule
+            }
+        }
+
+        Context 'When the specified command exists' {
+            BeforeAll {
+                Mock -CommandName Get-Command -MockWith { $mockGetCommandExistsResult }
+            }
+
+            It 'Should not throw an error' {
+                { Assert-Command -Command $mockCommand -Module $mockModule } | Should -Not -Throw
+            }
+
+            It 'Should call the correct mocks' {
+                Assert-MockCalled -CommandName Get-Command `
+                    -ParameterFilter { $Name -eq $mockCommand -and $Module -eq $mockModule } `
+                    -Exactly -Times 1
+            }
+        }
+
+        Context 'When the specified command does not exist' {
+            BeforeAll {
+                Mock -CommandName Get-Command
+            }
+
+            It 'Should throw the correct error' {
+                { Assert-Command -Command $mockCommand -Module $mockModule } | Should -Throw ( `
+                        $script:localizedData.ResourceNotImplementedError -f $mockModule, $mockCommand)
+            }
+        }
+    }
+
+    Describe 'AdfsDsc.Common\Assert-GroupServiceAccount' {
+    }
+
+    Describe 'AdfsDsc.Common\Get-AdfsConfigurationStatus' {
+        BeforeAll {
+            $mockGetItemPropertyFsConfigurationStatusNotConfigured0Result = @{
+                FSConfigurationStatus = 0
+            }
+            $mockGetItemPropertyFsConfigurationStatusNotConfigured1Result = @{
+                FSConfigurationStatus = 1
+            }
+            $mockGetItemPropertyFsConfigurationStatusConfiguredResult = @{
+                FSConfigurationStatus = 2
+            }
+            $mockUnexpectedStatus = 99
+            $mockGetItemPropertyFsConfigurationStatusUnexpectedResult = @{
+                FSConfigurationStatus = $mockUnexpectedStatus
+            }
+        }
+
+        Context 'When the ADFS Configuration Status is Configured' {
+            BeforeAll {
+                Mock -CommandName Get-ItemProperty -MockWith { $mockGetItemPropertyFsConfigurationStatusConfiguredResult }
+            }
+
+            It 'Should return the correct result' {
+                Get-AdfsConfigurationStatus | Should -Be 'Configured'
+            }
+
+            It 'Should call the correct mocks' {
+                Assert-MockCalled -CommandName Get-ItemProperty `
+                    -ParameterFilter { $Path -eq 'HKLM:\SOFTWARE\Microsoft\ADFS' } `
+                    -Exactly -Times 1
+            }
+        }
+
+        Context 'When the ADFS Configuration Status is NotConfigured with a value of 1' {
+            BeforeAll {
+                Mock -CommandName Get-ItemProperty -MockWith { $mockGetItemPropertyFsConfigurationStatusNotConfigured0Result }
+            }
+
+            It 'Should return the correct result' {
+                Get-AdfsConfigurationStatus | Should -Be 'NotConfigured'
+            }
+
+            It 'Should call the correct mocks' {
+                Assert-MockCalled -CommandName Get-ItemProperty `
+                    -ParameterFilter { $Path -eq 'HKLM:\SOFTWARE\Microsoft\ADFS' } `
+                    -Exactly -Times 1
+            }
+        }
+
+        Context 'When the ADFS Configuration Status is NotConfigured with a value of 2' {
+            BeforeAll {
+                Mock -CommandName Get-ItemProperty -MockWith { $mockGetItemPropertyFsConfigurationStatusNotConfigured1Result }
+            }
+
+            It 'Should return the correct result' {
+                Get-AdfsConfigurationStatus | Should -Be 'NotConfigured'
+            }
+
+            It 'Should call the correct mocks' {
+                Assert-MockCalled -CommandName Get-ItemProperty `
+                    -ParameterFilter { $Path -eq 'HKLM:\SOFTWARE\Microsoft\ADFS' } `
+                    -Exactly -Times 1
+            }
+        }
+
+        Context 'When Get-ItemProperty throws an error' {
+            BeforeAll {
+                Mock -CommandName Get-ItemProperty -MockWith { Throw 'Error' }
+            }
+
+            It 'Should throw the correct error' {
+                { Get-AdfsConfigurationStatus } | Should -Throw $script:localizedData.ConfigurationStatusNotFoundError
+            }
+        }
+
+        Context 'When FSConfigurationStatus is an unexpected value' {
+            BeforeAll {
+                Mock -CommandName Get-ItemProperty -MockWith { $mockGetItemPropertyFsConfigurationStatusUnexpectedResult }
+            }
+
+            It 'Should throw the correct error' {
+                { Get-AdfsConfigurationStatus } | Should -Throw ($script:localizedData.UnknownConfigurationStatusError -f `
+                        $mockUnexpectedStatus)
             }
         }
     }
