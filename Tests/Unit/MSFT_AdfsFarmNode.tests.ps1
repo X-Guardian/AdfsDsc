@@ -388,6 +388,16 @@ try
                         Assert-MockCalled -CommandName Remove-AdfsFarmNode -Exactly -Times 1
                         Assert-MockCalled -CommandName Add-AdfsFarmNode -Exactly -Times 0
                     }
+
+                    Context 'When Remove-AdfsFarmNode throws an exception' {
+                        Mock Remove-AdfsFarmNode -MockWith { throw $mockExceptionErrorMessage }
+
+                        It 'Should throw the correct error' {
+                            { Set-TargetResource @setTargetResourceAbsentParameters } | Should -Throw `
+                            ($script:localizedData.RemovalError -f `
+                                    $setTargetResourceAbsentParameters.FederationServiceName)
+                        }
+                    }
                 }
 
                 Context 'When the ADFS Service is not installed' {
