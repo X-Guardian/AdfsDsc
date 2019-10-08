@@ -139,7 +139,7 @@ function Get-TargetResource
         else
         {
             $errorMessage = $script:localizedData.GettingAdfsSslCertificateError -f $FederationServiceName
-            New-InvalidOperationException -Message $errorMesssage
+            New-InvalidOperationException -Message $errorMessage
         }
 
         # Get ADFS service StartName (log on as) property
@@ -153,7 +153,7 @@ function Get-TargetResource
         }
         else
         {
-            $errorMesssage = $script:localizedData.GettingAdfsServiceError -f $FederationServiceName
+            $errorMessage = $script:localizedData.GettingAdfsServiceError -f $FederationServiceName
             New-InvalidOperationException -Message $errorMessage
         }
 

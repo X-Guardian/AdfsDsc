@@ -317,7 +317,7 @@ try
                 }
 
                 Context 'When Install-AdfsFarm throws System.IO.FileNotFoundException' {
-                    Mock Install-AdfsFarm -MockWith { throw -New-Object System.IO.FileNotFoundException }
+                    Mock Install-AdfsFarm -MockWith { throw New-Object System.IO.FileNotFoundException }
 
                     It 'Should not throw' {
                         { Set-TargetResource @setTargetResourceParameters } | Should -Not -Throw
