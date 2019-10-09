@@ -425,38 +425,70 @@ try
                 PrimaryComputerPort           = $mockGsaResource.PrimaryComputerPort
             }
 
-            Context 'When the ADFS role is installed' {
+            $testTargetResourcePresentParameters = $testTargetResourceParameters.Clone()
+            $testTargetResourcePresentParameters.Ensure = 'Present'
+
+            $testTargetResourceAbsentParameters = $testTargetResourceParameters.Clone()
+            $testTargetResourceAbsentParameters.Ensure = 'Absent'
+
+            Context 'When the ADFS Farm Node is installed' {
                 Mock Get-TargetResource -MockWith { $mockGetTargetResourcePresentResult }
 
-                It 'Should not throw' {
-                    { Test-TargetResource @testTargetResourceParameters } | Should -Not -Throw
+                Context 'When the ADFS Farm Node should be installed' {
+                    It 'Should return true' {
+                        Test-TargetResource @testTargetResourcePresentParameters | Should -BeTrue
+                    }
+
+                    It 'Should call the expected mocks' {
+                        Assert-MockCalled -CommandName Get-TargetResource `
+                            -ParameterFilter { $FederationServiceName -eq `
+                                $TestTargetResourcePresentParameters.FederationServiceName } `
+                            -Exactly -Times 1
+
+                    }
                 }
 
-                It 'Should call the expected mocks' {
-                    Assert-MockCalled -CommandName Get-TargetResource `
-                        -ParameterFilter { $FederationServiceName -eq $mockGsaResource.FederationServiceName } `
-                        -Exactly -Times 1
+                Context 'When the ADFS Farm Node should not be installed' {
+                    It 'Should return false' {
+                        Test-TargetResource @testTargetResourceAbsentParameters | Should -BeFalse
+                    }
 
-                }
-
-                Context 'When all the resource properties are in the desired state' {
-                    It 'Should return $true' {
-                        Test-TargetResource @testTargetResourceParameters | Should -Be $true
+                    It 'Should call the expected mocks' {
+                        Assert-MockCalled -CommandName Get-TargetResource `
+                            -ParameterFilter { $FederationServiceName -eq `
+                                $TestTargetResourceAbsentParameters.FederationServiceName } `
+                            -Exactly -Times 1
                     }
                 }
             }
 
-            Context 'When the ADFS role is not configured' {
+            Context 'When the ADFS Farm Node is not installed' {
                 Mock Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
 
-                It 'Should return $false' {
-                    Test-TargetResource @testTargetResourceParameters | Should -Be $false
+                Context 'When the ADFS Farm Node should not be installed' {
+                    It 'Should return $false' {
+                        Test-TargetResource @testTargetResourceAbsentParameters | Should -Be $true
+                    }
+
+                    It 'Should call the expected mocks' {
+                        Assert-MockCalled -CommandName Get-TargetResource `
+                            -ParameterFilter { $FederationServiceName -eq `
+                                $testTargetResourceAbsentParameters.FederationServiceName } `
+                            -Exactly -Times 1
+                    }
                 }
 
-                It 'Should call the expected mocks' {
-                    Assert-MockCalled -CommandName Get-TargetResource `
-                        -ParameterFilter { $FederationServiceName -eq $mockGsaResource.FederationServiceName } `
-                        -Exactly -Times 1
+                Context 'When the ADFS Farm Node should be installed' {
+                    It 'Should return $false' {
+                        Test-TargetResource @testTargetResourcePresentParameters | Should -Be $false
+                    }
+
+                    It 'Should call the expected mocks' {
+                        Assert-MockCalled -CommandName Get-TargetResource `
+                            -ParameterFilter { $FederationServiceName -eq `
+                                $testTargetResourcePresentParameters.FederationServiceName } `
+                            -Exactly -Times 1
+                    }
                 }
             }
         }
