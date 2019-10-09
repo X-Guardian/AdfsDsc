@@ -244,7 +244,7 @@ try
                     It 'Should call the expected mocks' {
                         Assert-MockCalled -CommandName Get-TargetResource `
                             -ParameterFilter { $Name -eq $testTargetResourcePresentParameters.Name } `
-                            -Exactly -times 1
+                            -Exactly -Times 1
                     }
 
                     Context 'When all the resource properties are in the desired state' {
@@ -274,7 +274,7 @@ try
                     It 'Should call the expected mocks' {
                         Assert-MockCalled -CommandName Get-TargetResource `
                             -ParameterFilter { $Name -eq $testTargetResourceAbsentParameters.Name } `
-                            -Exactly -times 1
+                            -Exactly -Times 1
                     }
 
                     It 'Should return $false' {
@@ -294,7 +294,7 @@ try
                     It 'Should call the expected mocks' {
                         Assert-MockCalled -CommandName Get-TargetResource `
                             -ParameterFilter { $Name -eq $testTargetResourcePresentParameters.Name } `
-                            -Exactly -times 1
+                            -Exactly -Times 1
                     }
 
                     It 'Should return $false' {
@@ -310,7 +310,7 @@ try
                     It 'Should call the expected mocks' {
                         Assert-MockCalled -CommandName Get-TargetResource `
                             -ParameterFilter { $Name -eq $testTargetResourceAbsentParameters.Name } `
-                            -Exactly -times 1
+                            -Exactly -Times 1
                     }
 
                     It 'Should return $true' {
