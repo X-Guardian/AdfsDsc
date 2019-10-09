@@ -1,3 +1,5 @@
+Set-StrictMode -Version Latest
+
 function Get-LocalizedData
 {
     <#
@@ -639,7 +641,7 @@ function Test-DscPropertyState
         if ($desiredType.Name -notin $supportedTypes)
         {
             Write-Warning -Message ($script:localizedData.UnableToCompareType `
-                    -f $fieldName, $desiredType.Name)
+                    -f $desiredType.Name)
         }
         else
         {
@@ -866,14 +868,14 @@ function Assert-Command
     param (
         [Parameter(Mandatory = $true)]
         [System.String]
-        $Module,
+        $Command,
 
         [Parameter(Mandatory = $true)]
         [System.String]
-        $Command
-    )
+        $Module
+        )
 
-    if (!(Get-Command $Command -Module $Module -ErrorAction SilentlyContinue))
+    if (!(Get-Command -Name $Command -Module $Module -ErrorAction SilentlyContinue))
     {
         New-NotImplementedException -Message (
             $script:localizedData.ResourceNotImplementedError -f $Module, $Command)
