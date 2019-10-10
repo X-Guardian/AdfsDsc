@@ -478,14 +478,14 @@ function Compare-ResourcePropertyState
     {
         # Filter out the parameters (keys) not specified in Properties
         $desiredValuesToRemove = $DesiredValues.Keys |
-        Where-Object -FilterScript {
-            $_ -notin $Properties
-        }
+            Where-Object -FilterScript {
+                $_ -notin $Properties
+            }
 
         $desiredValuesToRemove |
-        ForEach-Object -Process {
-            $DesiredValues.Remove($_)
-        }
+            ForEach-Object -Process {
+                $DesiredValues.Remove($_)
+            }
     }
     else
     {
@@ -494,27 +494,27 @@ function Compare-ResourcePropertyState
             if it $PSBoundParameters was used to pass the desired values.
         #>
         $commonParametersToRemove = $DesiredValues.Keys |
-        Where-Object -FilterScript {
-            $_ -in [System.Management.Automation.PSCmdlet]::CommonParameters `
-                -or $_ -in [System.Management.Automation.PSCmdlet]::OptionalCommonParameters
-        }
+            Where-Object -FilterScript {
+                $_ -in [System.Management.Automation.PSCmdlet]::CommonParameters `
+                    -or $_ -in [System.Management.Automation.PSCmdlet]::OptionalCommonParameters
+            }
 
         $commonParametersToRemove |
-        ForEach-Object -Process {
-            $DesiredValues.Remove($_)
-        }
+            ForEach-Object -Process {
+                $DesiredValues.Remove($_)
+            }
     }
 
     # Remove any properties that should be ignored.
     if ($PSBoundParameters.ContainsKey('IgnoreProperties'))
     {
         $IgnoreProperties |
-        ForEach-Object -Process {
-            if ($DesiredValues.ContainsKey($_))
-            {
-                $DesiredValues.Remove($_)
+            ForEach-Object -Process {
+                if ($DesiredValues.ContainsKey($_))
+                {
+                    $DesiredValues.Remove($_)
+                }
             }
-        }
     }
 
     $compareTargetResourceStateReturnValue = @()
