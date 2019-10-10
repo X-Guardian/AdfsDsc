@@ -873,7 +873,7 @@ function Assert-Command
         [Parameter(Mandatory = $true)]
         [System.String]
         $Module
-        )
+    )
 
     if (!(Get-Command -Name $Command -Module $Module -ErrorAction SilentlyContinue))
     {
@@ -882,11 +882,33 @@ function Assert-Command
     }
 }
 
+Function Get-ADObjectBySamAccountName
+{
+    <#
+        .SYNOPSIS
+            Gets an Active Directory object by SamAccountName.
+
+        .PARAMETER Name
+            Specifies SamAccountName to search for.
+    #>
+
+    [CmdletBinding()]
+    [OutputType([System.DirectoryServices.SearchResult])]
+    param (
+        [Parameter(Mandatory = $true)]
+        [System.String]
+        $Name
+    )
+
+    [System.DirectoryServices.DirectorySearcher]::new($null, "SamAccountName=$Name*", `
+            'ObjectCategory').FindOne()
+}
+
 function Assert-GroupServiceAccount
 {
     <#
         .SYNOPSIS
-            Assert if the service account is a Group Managed Service Account
+            Assert if the service account is a Group Managed Service Account.
 
         .PARAMETER Name
             Specifies the service account name.
@@ -900,8 +922,7 @@ function Assert-GroupServiceAccount
         $Name
     )
 
-    $adObject = [System.DirectoryServices.DirectorySearcher]::new($null, "SamAccountName=$Name*", `
-            'ObjectCategory').FindOne()
+    $adObject = Get-ADObjectbySamAccountName -Name $Name
 
     if ($adObject)
     {
@@ -910,6 +931,11 @@ function Assert-GroupServiceAccount
             'CN=ms-DS-Group-Managed-Service-Account,CN=Schema,CN=Configuration*'
             {
                 $isGroupServiceAccount = $true
+                Break
+            }
+            'CN=ms-DS-Managed-Service-Account*'
+            {
+                $isGroupServiceAccount = $false
                 Break
             }
             'CN=Person,CN=Schema,CN=Configuration*'
@@ -928,7 +954,7 @@ function Assert-GroupServiceAccount
     else
     {
         New-ObjectNotFoundException -Message ( `
-                $script:localizedData.ServiceAccountNotFoundError -f $UserName)
+                $script:localizedData.ServiceAccountNotFoundError -f $Name)
     }
 
     $isGroupServiceAccount
