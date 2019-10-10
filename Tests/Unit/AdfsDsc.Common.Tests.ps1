@@ -615,11 +615,24 @@ InModuleScope 'AdfsDsc.Common' {
                 }
             }
 
-            Context 'When a string value is missing' {
+            Context 'When the string current value is missing' {
                 BeforeAll {
                     $mockValues = @{
                         CurrentValue = $null
                         DesiredValue = [System.String] 'Something'
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $false
+                }
+            }
+
+            Context 'When the string desired value is missing' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = [System.String] 'Something'
+                        DesiredValue = $null
                     }
                 }
 
@@ -657,11 +670,24 @@ InModuleScope 'AdfsDsc.Common' {
                 }
             }
 
-            Context 'When an integer value is missing' {
+            Context 'When the integers current value is missing' {
                 BeforeAll {
                     $mockValues = @{
                         CurrentValue = $null
                         DesiredValue = [System.Int16] 1
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $false
+                }
+            }
+
+            Context 'When the integers desired value is missing' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = [System.Int16] 1
+                        DesiredValue = $null
                     }
                 }
 
@@ -698,11 +724,24 @@ InModuleScope 'AdfsDsc.Common' {
                 }
             }
 
-            Context 'When an integer value is missing' {
+            Context 'When the integers current value is missing' {
                 BeforeAll {
                     $mockValues = @{
                         CurrentValue = $null
                         DesiredValue = [System.UInt16] 1
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $false
+                }
+            }
+
+            Context 'When the integers desired value is missing' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = [System.UInt16] 1
+                        DesiredValue = $null
                     }
                 }
 
@@ -739,11 +778,132 @@ InModuleScope 'AdfsDsc.Common' {
                 }
             }
 
-            Context 'When an integer value is missing' {
+            Context 'When the integers current value is missing' {
                 BeforeAll {
                     $mockValues = @{
                         CurrentValue = $null
                         DesiredValue = [System.Int32] 1
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $false
+                }
+            }
+
+            Context 'When the integers desired value is missing' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = [System.Int32] 1
+                        DesiredValue = $null
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $false
+                }
+            }
+        }
+
+        Context 'When comparing UInt32' {
+            Context 'When the integers match' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = [System.UInt32] 1
+                        DesiredValue = [System.UInt32] 1
+                    }
+                }
+
+                It 'Should return true' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $true
+                }
+            }
+
+            Context 'When the integers do not match' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = [System.UInt32] 1
+                        DesiredValue = [System.UInt32] 2
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $false
+                }
+            }
+
+            Context 'When the integers current value is missing' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = $null
+                        DesiredValue = [System.UInt32] 1
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $false
+                }
+            }
+
+            Context 'When the integers desired value is missing' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = [System.UInt32] 1
+                        DesiredValue = $null
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $false
+                }
+            }
+        }
+
+        Context 'When comparing Single' {
+            Context 'When the singles match' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = [System.Single] 1.5
+                        DesiredValue = [System.Single] 1.5
+                    }
+                }
+
+                It 'Should return true' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $true
+                }
+            }
+
+            Context 'When the singles do not match' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = [System.Single] 1.5
+                        DesiredValue = [System.Single] 2.5
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $false
+                }
+            }
+
+            Context 'When the single current value is missing' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = $null
+                        DesiredValue = [System.Single] 1.5
+                    }
+                }
+
+                It 'Should return false' {
+                    Test-DscPropertyState -Values $mockValues | Should -Be $false
+                }
+            }
+
+            Context 'When the single desired value is missing' {
+                BeforeAll {
+                    $mockValues = @{
+                        CurrentValue = [System.Single] 1.5
+                        DesiredValue = $null
                     }
                 }
 
@@ -1203,6 +1363,92 @@ InModuleScope 'AdfsDsc.Common' {
     }
 
     Describe 'AdfsDsc.Common\Assert-GroupServiceAccount' {
+        BeforeAll {
+            $mockDomainDn = 'DC=contoso,DC=com'
+            $mockGmsaName = 'mockgmsa'
+            $mockGetADObjectByNameGmsaResult = @{
+                Path       = "LDAP://CN=$mockGmsaName,CN=Managed Service Accounts,$mockDomainDn"
+                Properties = @{
+                    objectcategory = "CN=ms-DS-Group-Managed-Service-Account,CN=Schema,CN=Configuration,$mockDomainDn"
+                }
+            }
+            $mockDomainDn = 'DC=contoso,DC=com'
+            $mockSmsaName = 'mocksmsa'
+            $mockGetADObjectByNameSmsaResult = @{
+                Path       = "LDAP://CN=$mockSmsaName,CN=Managed Service Accounts,$mockDomainDn"
+                Properties = @{
+                    objectcategory = "CN=ms-DS-Managed-Service-Account,CN=Schema,CN=Configuration,$mockDomainDn"
+                }
+            }
+            $mockUserName = 'mockUserAccount'
+            $mockGetADObjectByNameUserResult = @{
+                Path       = "LDAP://CN=$mockUserName,CN=Users,$mockDomainDn"
+                Properties = @{
+                    objectcategory = "CN=Person,CN=Schema,CN=Configuration,$mockDomainDn"
+                }
+            }
+            $mockComputerName = 'mockComputerAccount'
+            $mockGetADObjectByNameComputerResult = @{
+                Path       = "LDAP://CN=$mockComputerName,CN=Computers,$mockDomainDn"
+                Properties = @{
+                    objectcategory = "CN=Computer,CN=Schema,CN=Configuration,$mockDomainDn"
+                }
+            }
+            $mockUnknownAccountName = 'UnknownAccount'
+        }
+
+        Context 'When the account is a Group Managed Service Account' {
+            BeforeAll {
+                Mock -CommandName Get-ADObjectBySamAccountName -MockWith { $mockGetADObjectByNameGmsaResult }
+            }
+
+            It 'Should return true' {
+                Assert-GroupServiceAccount -Name $mockGmsaName | Should -BeTrue
+            }
+        }
+
+        Context 'When the account is a Standalone Managed Service Account' {
+            BeforeAll {
+                Mock -CommandName Get-ADObjectBySamAccountName -MockWith { $mockGetADObjectByNameSmsaResult }
+            }
+
+            It 'Should return false' {
+                Assert-GroupServiceAccount -Name $mockSmsaName | Should -BeFalse
+            }
+        }
+
+        Context 'When the account is a User Account' {
+            BeforeAll {
+                Mock -CommandName Get-ADObjectBySamAccountName -MockWith { $mockGetADObjectByNameUserResult }
+            }
+
+            It 'Should return false' {
+                Assert-GroupServiceAccount -Name $mockUserName | Should -BeFalse
+            }
+        }
+
+        Context 'When the account is not a User/Service Account' {
+            BeforeAll {
+                Mock -CommandName Get-ADObjectBySamAccountName -MockWith { $mockGetADObjectByNameComputerResult }
+            }
+
+            It 'Should throw the correct error' {
+                { Assert-GroupServiceAccount -Name $mockComputerName } | Should -Throw ( `
+                        $script:localizedData.UnexpectedServiceAccountCategoryError -f `
+                        $mockGetADObjectByNameComputerResult.Properties.ObjectCategory, $mockComputerName)
+            }
+        }
+
+        Context 'When the account is not found' {
+            BeforeAll {
+                Mock -CommandName Get-ADObjectBySamAccountName
+            }
+
+            It 'Should throw the correct error' {
+                { Assert-GroupServiceAccount -Name $mockUnknownAccountName } | Should -Throw ( `
+                    $script:localizedData.ServiceAccountNotFoundError -f $mockUnknownAccountName)
+            }
+        }
     }
 
     Describe 'AdfsDsc.Common\Get-AdfsConfigurationStatus' {
