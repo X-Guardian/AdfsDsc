@@ -78,10 +78,10 @@ function Get-TargetResource
     # Check if the ADFS Service is present and running
     Assert-AdfsService -Verbose
 
-    Write-Verbose ($script:localizedData.GettingResourceMessage -f `
-            $ClientRoleIdentifier, $ServerRoleIdentifier)
+    Write-Verbose ($script:localizedData.GettingResourceMessage -f
+        $ClientRoleIdentifier, $ServerRoleIdentifier)
 
-    $targetResource = Get-AdfsApplicationPermission -ClientRoleIdentifiers $ClientRoleIdentifier | `
+    $targetResource = Get-AdfsApplicationPermission -ClientRoleIdentifiers $ClientRoleIdentifier |
         Where-Object -Property ServerRoleIdentifier -eq $ServerRoleIdentifier
 
     if ($targetResource)
@@ -168,22 +168,22 @@ function Set-TargetResource
         {
             # Resource exists
             $propertiesNotInDesiredState = (
-                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters | `
+                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
                     Where-Object -Property InDesiredState -eq $false)
 
             $SetParameters = @{ }
             foreach ($property in $propertiesNotInDesiredState)
             {
-                Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f `
-                        $ClientRoleIdentifier, $ServerRoleIdentifier, $property.ParameterName, `
+                Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f
+                    $ClientRoleIdentifier, $ServerRoleIdentifier, $property.ParameterName, `
                     ($property.Expected -join ', '))
                 $SetParameters.add($property.ParameterName, $property.Expected)
             }
 
             if ($ServerRoleIdentifier -ne $targetResource.ServerRoleIdentifier)
             {
-                Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f `
-                        $ClientRoleIdentifier, $ServerRoleIdentifier, 'ServerRoleIdentifier', `
+                Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f
+                    $ClientRoleIdentifier, $ServerRoleIdentifier, 'ServerRoleIdentifier', `
                     ($ServerRoleIdentifier -join ', '))
             }
 
@@ -195,8 +195,8 @@ function Set-TargetResource
         else
         {
             # Resource does not exist
-            Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f `
-                    $ClientRoleIdentifier, $ServerRoleIdentifier)
+            Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f
+                $ClientRoleIdentifier, $ServerRoleIdentifier)
             Grant-AdfsApplicationPermission `
                 -ClientRoleIdentifier $ClientRoleIdentifier `
                 -ServerRoleIdentifier $ServerRoleIdentifier `
@@ -209,8 +209,8 @@ function Set-TargetResource
         if ($targetResource.Ensure -eq 'Present')
         {
             # Resource exists
-            Write-Verbose -Message ($script:localizedData.RemovingResourceMessage -f `
-                    $ClientRoleIdentifier, $ServerRoleIdentifier)
+            Write-Verbose -Message ($script:localizedData.RemovingResourceMessage -f
+                $ClientRoleIdentifier, $ServerRoleIdentifier)
             Revoke-AdfsApplicationPermission `
                 -TargetClientRoleIdentifier $ClientRoleIdentifier `
                 -TargetServerRoleIdentifier $ServerRoleIdentifier
@@ -218,8 +218,8 @@ function Set-TargetResource
         else
         {
             # Resource does not exist
-            Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f `
-                    $ClientRoleIdentifier, $ServerRoleIdentifier)
+            Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f
+                $ClientRoleIdentifier, $ServerRoleIdentifier)
         }
     }
 }
@@ -270,15 +270,15 @@ function Test-TargetResource
         {
             # Resource should exist
             $propertiesNotInDesiredState = (
-                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters | `
+                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
                     Where-Object -Property InDesiredState -eq $false)
             if ($propertiesNotInDesiredState)
             {
                 # Resource is not in desired state
                 foreach ($property in $propertiesNotInDesiredState)
                 {
-                    Write-Verbose -Message ($script:localizedData.ResourcePropertyNotInDesiredStateMessage -f `
-                            $targetResource.ClientRoleIdentifier, $targetResource.ServerRoleIdentifier, `
+                    Write-Verbose -Message ($script:localizedData.ResourcePropertyNotInDesiredStateMessage -f
+                        $targetResource.ClientRoleIdentifier, $targetResource.ServerRoleIdentifier, `
                             $property.ParameterName)
                 }
                 $inDesiredState = $false
@@ -286,16 +286,16 @@ function Test-TargetResource
             else
             {
                 # Resource is in desired state
-                Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f `
-                        $targetResource.ClientRoleIdentifier, $targetResource.ServerRoleIdentifier)
+                Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f
+                    $targetResource.ClientRoleIdentifier, $targetResource.ServerRoleIdentifier)
                 $inDesiredState = $true
             }
         }
         else
         {
             # Resource should not exist
-            Write-Verbose -Message ($script:localizedData.ResourceExistsButShouldNotMessage -f `
-                    $targetResource.ClientRoleIdentifier, $targetResource.ServerRoleIdentifier)
+            Write-Verbose -Message ($script:localizedData.ResourceExistsButShouldNotMessage -f
+                $targetResource.ClientRoleIdentifier, $targetResource.ServerRoleIdentifier)
             $inDesiredState = $false
         }
     }
@@ -305,23 +305,23 @@ function Test-TargetResource
         if ($Ensure -eq 'Present')
         {
             # Resource should exist
-            Write-Verbose -Message ($script:localizedData.ResourceDoesNotExistButShouldMessage -f `
-                    $ClientRoleIdentifier, $ServerRoleIdentifier)
+            Write-Verbose -Message ($script:localizedData.ResourceDoesNotExistButShouldMessage -f
+                $ClientRoleIdentifier, $ServerRoleIdentifier)
             $inDesiredState = $false
         }
         else
         {
             # Resource should not exist
-            Write-Verbose -Message ($script:localizedData.ResourceDoesNotExistAndShouldNotMessage -f `
-                    $ClientRoleIdentifier, $ServerRoleIdentifier)
+            Write-Verbose -Message ($script:localizedData.ResourceDoesNotExistAndShouldNotMessage -f
+                $ClientRoleIdentifier, $ServerRoleIdentifier)
             $inDesiredState = $true
         }
     }
 
     if ($inDesiredState)
     {
-        Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f `
-                $ClientRoleIdentifier, $ServerRoleIdentifier)
+        Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f
+            $ClientRoleIdentifier, $ServerRoleIdentifier)
     }
 
     $inDesiredState

@@ -165,9 +165,9 @@ try
                     Mock Get-AdfsSslCertificate -MockWith { throw $mockExceptionErrorMessage }
 
                     It 'Should throw the correct exception' {
-                        { Get-TargetResource @getTargetResourceParameters } | Should -Throw ( `
-                                $script:localizedData.GettingAdfsSslCertificateError -f `
-                                $mockGsaResource.FederationServiceName)
+                        { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
+                            $script:localizedData.GettingAdfsSslCertificateError -f
+                            $mockGsaResource.FederationServiceName)
                     }
                 }
 
@@ -175,9 +175,9 @@ try
                     Mock Get-AdfsSslCertificate
 
                     It 'Should throw the correct exception' {
-                        { Get-TargetResource @getTargetResourceParameters } | Should -Throw ( `
-                                $script:localizedData.GettingAdfsSslCertificateError -f `
-                                $mockGsaResource.FederationServiceName)
+                        { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
+                            $script:localizedData.GettingAdfsSslCertificateError -f
+                            $mockGsaResource.FederationServiceName)
                     }
                 }
 
@@ -186,9 +186,9 @@ try
                         -ParameterFilter { $ClassName -eq 'Win32_Service' }
 
                     It 'Should throw the correct exception' {
-                        { Get-TargetResource @getTargetResourceParameters } | Should -Throw ( `
-                                $script:localizedData.GettingAdfsServiceError -f `
-                                $mockGsaResource.FederationServiceName)
+                        { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
+                            $script:localizedData.GettingAdfsServiceError -f
+                            $mockGsaResource.FederationServiceName)
                     }
                 }
 
@@ -213,9 +213,9 @@ try
                         -MockWith { throw $mockExceptionErrorMessage }
 
                     It 'Should throw the correct exception' {
-                        { Get-TargetResource @getTargetResourceParameters } | Should -Throw ( `
-                                $script:localizedData.GettingAdfsSecurityTokenServiceError -f `
-                                $mockGsaResource.FederationServiceName)
+                        { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
+                            $script:localizedData.GettingAdfsSecurityTokenServiceError -f
+                            $mockGsaResource.FederationServiceName)
                     }
                 }
 
@@ -223,9 +223,9 @@ try
                     Mock Get-AdfsProperties -MockWith { throw $mockExceptionErrorMessage }
 
                     It 'Should throw the correct exception' {
-                        { Get-TargetResource @getTargetResourceParameters } | Should -Throw ( `
-                                $script:localizedData.GettingAdfsPropertiesError -f `
-                                $mockGsaResource.FederationServiceName)
+                        { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
+                            $script:localizedData.GettingAdfsPropertiesError -f
+                            $mockGsaResource.FederationServiceName)
                     }
                 }
             }
@@ -288,9 +288,9 @@ try
                 $setTargetResourceBothCredentialParameters.Add('ServiceAccountCredential', $mockCredential)
 
                 It 'Should throw the correct error' {
-                    { Set-TargetResource @setTargetResourceBothCredentialParameters } | `
-                            Should -Throw ($script:localizedData.ResourceDuplicateCredentialError -f `
-                                $mockGsaResource.FederationServiceName)
+                    { Set-TargetResource @setTargetResourceBothCredentialParameters } |
+                        Should -Throw ($script:localizedData.ResourceDuplicateCredentialError -f
+                            $mockGsaResource.FederationServiceName)
                 }
             }
 
@@ -299,9 +299,9 @@ try
                 $setTargetResourceBothCredentialParameters.Remove('GroupServiceAccountIdentifier')
 
                 It 'Should throw the correct error' {
-                    { Set-TargetResource @setTargetResourceBothCredentialParameters } | `
-                            Should -Throw ($script:localizedData.ResourceMissingCredentialError -f `
-                                $mockGsaResource.FederationServiceName)
+                    { Set-TargetResource @setTargetResourceBothCredentialParameters } |
+                        Should -Throw ($script:localizedData.ResourceMissingCredentialError -f
+                            $mockGsaResource.FederationServiceName)
                 }
             }
 
@@ -340,8 +340,8 @@ try
                     Mock Install-AdfsFarm -MockWith { throw $mockExceptionErrorMessage }
 
                     It 'Should throw the correct error' {
-                        { Set-TargetResource @setTargetResourceParameters } | Should -Throw (`
-                                $script:localizedData.InstallationError -f $setTargetResourceParameters.FederationServiceName)
+                        { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
+                            $script:localizedData.InstallationError -f $setTargetResourceParameters.FederationServiceName)
                     }
                 }
 
@@ -349,8 +349,8 @@ try
                     Mock Install-AdfsFarm -MockWith { $mockInstallAdfsFarmErrorResult }
 
                     It 'Should throw the correct error' {
-                        { Set-TargetResource @setTargetResourceParameters } | Should -Throw `
-                            $mockInstallAdfsFarmErrorResult.Message
+                        { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
+                            $mockInstallAdfsFarmErrorResult.Message)
                     }
                 }
             }

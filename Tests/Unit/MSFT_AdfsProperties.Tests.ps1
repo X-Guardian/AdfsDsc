@@ -322,8 +322,8 @@ try
                 Mock -CommandName Get-AdfsProperties -MockWith { Throw 'Error' }
 
                 It 'Should throw the correct exception' {
-                    { Get-TargetResource @getTargetResourceParameters } | Should -Throw ( `
-                            $script:localizedData.GettingResourceError -f $getTargetResourceParameters.FederationServiceName )
+                    { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
+                        $script:localizedData.GettingResourceError -f $getTargetResourceParameters.FederationServiceName )
                 }
             }
         }
@@ -412,8 +412,8 @@ try
                 Mock -CommandName Set-AdfsProperties -MockWith { Throw 'Error' }
 
                 It 'Should throw the correct exception' {
-                    { Set-TargetResource @setTargetResourceParameters } | Should -Throw ( `
-                            $script:localizedData.SettingResourceError -f $setTargetResourceParameters.FederationServiceName )
+                    { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
+                        $script:localizedData.SettingResourceError -f $setTargetResourceParameters.FederationServiceName )
                 }
             }
         }

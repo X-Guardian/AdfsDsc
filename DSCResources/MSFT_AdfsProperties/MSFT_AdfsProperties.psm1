@@ -746,15 +746,15 @@ function Set-TargetResource
     $targetResource = Get-TargetResource @GetTargetResourceParms
 
     $propertiesNotInDesiredState = (
-        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters | `
-                Where-Object -Property InDesiredState -eq $false)
+        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
+            Where-Object -Property InDesiredState -eq $false)
 
     $SetParameters = New-Object -TypeName System.Collections.Hashtable
     foreach ($property in $propertiesNotInDesiredState)
     {
         Write-Verbose -Message (
-            $script:localizedData.SettingResourceMessage -f `
-                $FederationServiceName, $property.ParameterName, ($property.Expected -join ', '))
+            $script:localizedData.SettingResourceMessage -f
+            $FederationServiceName, $property.ParameterName, ($property.Expected -join ', '))
         $SetParameters.add($property.ParameterName, $property.Expected)
     }
 
@@ -1056,8 +1056,8 @@ function Test-TargetResource
     $targetResource = Get-TargetResource @GetTargetResourceParms
 
     $propertiesNotInDesiredState = (
-        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $Parameters | `
-                Where-Object -Property InDesiredState -eq $false)
+        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $Parameters |
+            Where-Object -Property InDesiredState -eq $false)
 
     if ($propertiesNotInDesiredState)
     {
@@ -1065,8 +1065,8 @@ function Test-TargetResource
         foreach ($property in $propertiesNotInDesiredState)
         {
             Write-Verbose -Message (
-                $script:localizedData.ResourcePropertyNotInDesiredStateMessage -f `
-                    $targetResource.FederationServiceName, $property.ParameterName, `
+                $script:localizedData.ResourcePropertyNotInDesiredStateMessage -f
+                $targetResource.FederationServiceName, $property.ParameterName, `
                     $property.Expected, $property.Actual)
         }
         $inDesiredState = $false

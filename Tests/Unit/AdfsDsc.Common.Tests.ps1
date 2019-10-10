@@ -130,8 +130,8 @@ InModuleScope 'AdfsDsc.Common' {
             }
 
             It 'Should throw the correct error' {
-                { New-InvalidArgumentException -Message $mockErrorMessage -ArgumentName $mockArgumentName } | `
-                        Should -Throw ('Parameter name: {0}' -f $mockArgumentName)
+                { New-InvalidArgumentException -Message $mockErrorMessage -ArgumentName $mockArgumentName } |
+                    Should -Throw ('Parameter name: {0}' -f $mockArgumentName)
             }
         }
     }
@@ -158,9 +158,9 @@ InModuleScope 'AdfsDsc.Common' {
             }
 
             It 'Should throw the correct error' {
-                { New-InvalidOperationException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } | `
-                        Should -Throw ('System.InvalidOperationException: {0} ---> System.Exception: {1}' -f `
-                            $mockErrorMessage, $mockExceptionErrorMessage)
+                { New-InvalidOperationException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } |
+                    Should -Throw ('System.InvalidOperationException: {0} ---> System.Exception: {1}' -f
+                        $mockErrorMessage, $mockExceptionErrorMessage)
             }
         }
     }
@@ -187,9 +187,9 @@ InModuleScope 'AdfsDsc.Common' {
             }
 
             It 'Should throw the correct error' {
-                { New-ObjectNotFoundException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } | `
-                        Should -Throw ('System.Exception: {0} ---> System.Exception: {1}' -f `
-                            $mockErrorMessage, $mockExceptionErrorMessage)
+                { New-ObjectNotFoundException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } |
+                    Should -Throw ('System.Exception: {0} ---> System.Exception: {1}' -f
+                        $mockErrorMessage, $mockExceptionErrorMessage)
             }
         }
     }
@@ -216,9 +216,9 @@ InModuleScope 'AdfsDsc.Common' {
             }
 
             It 'Should throw the correct error' {
-                { New-InvalidResultException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } |  `
-                        Should -Throw ('System.Exception: {0} ---> System.Exception: {1}' -f `
-                            $mockErrorMessage, $mockExceptionErrorMessage)
+                { New-InvalidResultException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } |
+                    Should -Throw ('System.Exception: {0} ---> System.Exception: {1}' -f
+                        $mockErrorMessage, $mockExceptionErrorMessage)
             }
         }
     }
@@ -245,9 +245,9 @@ InModuleScope 'AdfsDsc.Common' {
             }
 
             It 'Should throw the correct error' {
-                { New-NotImplementedException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } | `
-                        Should -Throw ('System.NotImplementedException: {0} ---> System.Exception: {1}' -f `
-                            $mockErrorMessage, $mockExceptionErrorMessage)
+                { New-NotImplementedException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } |
+                    Should -Throw ('System.NotImplementedException: {0} ---> System.Exception: {1}' -f
+                        $mockErrorMessage, $mockExceptionErrorMessage)
             }
         }
     }
@@ -1147,8 +1147,8 @@ InModuleScope 'AdfsDsc.Common' {
             }
 
             It 'Should throw the correct error' {
-                { Assert-Module -ModuleName $testModuleName } | `
-                        Should -Throw ($script:localizedData.ModuleNotFoundError -f $testModuleName)
+                { Assert-Module -ModuleName $testModuleName } |
+                    Should -Throw ($script:localizedData.ModuleNotFoundError -f $testModuleName)
             }
         }
 
@@ -1433,9 +1433,9 @@ InModuleScope 'AdfsDsc.Common' {
             }
 
             It 'Should throw the correct error' {
-                { Assert-GroupServiceAccount -Name $mockComputerName } | Should -Throw ( `
-                        $script:localizedData.UnexpectedServiceAccountCategoryError -f `
-                        $mockGetADObjectByNameComputerResult.Properties.ObjectCategory, $mockComputerName)
+                { Assert-GroupServiceAccount -Name $mockComputerName } | Should -Throw (
+                    $script:localizedData.UnexpectedServiceAccountCategoryError -f
+                    $mockGetADObjectByNameComputerResult.Properties.ObjectCategory, $mockComputerName)
             }
         }
 
@@ -1445,7 +1445,7 @@ InModuleScope 'AdfsDsc.Common' {
             }
 
             It 'Should throw the correct error' {
-                { Assert-GroupServiceAccount -Name $mockUnknownAccountName } | Should -Throw ( `
+                { Assert-GroupServiceAccount -Name $mockUnknownAccountName } | Should -Throw (
                     $script:localizedData.ServiceAccountNotFoundError -f $mockUnknownAccountName)
             }
         }
@@ -1532,8 +1532,8 @@ InModuleScope 'AdfsDsc.Common' {
             }
 
             It 'Should throw the correct error' {
-                { Get-AdfsConfigurationStatus } | Should -Throw ($script:localizedData.UnknownConfigurationStatusError -f `
-                        $mockUnexpectedStatus)
+                { Get-AdfsConfigurationStatus } | Should -Throw ($script:localizedData.UnknownConfigurationStatusError -f
+                    $mockUnexpectedStatus)
             }
         }
     }

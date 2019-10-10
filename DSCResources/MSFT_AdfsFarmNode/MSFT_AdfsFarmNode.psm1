@@ -318,8 +318,8 @@ function Set-TargetResource
             # ADFS Service not installed
             try
             {
-                Write-Verbose -Message ($script:localizedData.InstallingResourceMessage -f `
-                        $FederationServiceName)
+                Write-Verbose -Message ($script:localizedData.InstallingResourceMessage -f
+                    $FederationServiceName)
                 $Result = Add-AdfsFarmNode @parameters -ErrorAction SilentlyContinue
             }
             catch [System.IO.FileNotFoundException]
@@ -363,8 +363,8 @@ function Set-TargetResource
             $parameters.Remove('PrimaryComputerName')
             $parameters.Remove('PrimaryComputerPort')
 
-            Write-Verbose -Message ($script:localizedData.RemovingResourceMessage -f `
-                    $FederationServiceName)
+            Write-Verbose -Message ($script:localizedData.RemovingResourceMessage -f
+                $FederationServiceName)
 
             try
             {
@@ -379,8 +379,8 @@ function Set-TargetResource
         else
         {
             # Resource does not exist
-            Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f `
-                    $FederationServiceName)
+            Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f
+                $FederationServiceName)
         }
     }
 
@@ -453,15 +453,15 @@ function Test-TargetResource
         if ($Ensure -eq 'Present')
         {
             # Resource should exist
-            Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f `
-                    $targetResource.FederationServiceName)
+            Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f
+                $targetResource.FederationServiceName)
             $inDesiredState = $true
         }
         else
         {
             # Resource should not exist
-            Write-Verbose -Message ($script:localizedData.ResourceExistsButShouldNotMessage -f `
-                    $targetResource.FederationServiceName)
+            Write-Verbose -Message ($script:localizedData.ResourceExistsButShouldNotMessage -f
+                $targetResource.FederationServiceName)
             $inDesiredState = $false
         }
     }
@@ -471,23 +471,23 @@ function Test-TargetResource
         if ($Ensure -eq 'Present')
         {
             # Resource should exist
-            Write-Verbose -Message ($script:localizedData.ResourceDoesNotExistButShouldMessage -f `
-                    $FederationServiceName)
+            Write-Verbose -Message ($script:localizedData.ResourceDoesNotExistButShouldMessage -f
+                $FederationServiceName)
             $inDesiredState = $false
         }
         else
         {
             # Resource should not exist
-            Write-Verbose -Message ($script:localizedData.ResourceDoesNotExistAndShouldNotMessage -f `
-                    $FederationServiceName)
+            Write-Verbose -Message ($script:localizedData.ResourceDoesNotExistAndShouldNotMessage -f
+                $FederationServiceName)
             $inDesiredState = $true
         }
     }
 
     if ($inDesiredState)
     {
-        Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f `
-                $FederationServiceName)
+        Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f
+            $FederationServiceName)
     }
 
     $inDesiredState

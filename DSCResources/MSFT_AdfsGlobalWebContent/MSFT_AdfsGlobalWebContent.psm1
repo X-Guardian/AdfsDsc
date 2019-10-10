@@ -306,15 +306,15 @@ function Set-TargetResource
     $targetResource = Get-TargetResource @GetTargetResourceParms
 
     $propertiesNotInDesiredState = (
-        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $Parameters | `
-                Where-Object -Property InDesiredState -eq $false)
+        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $Parameters |
+            Where-Object -Property InDesiredState -eq $false)
 
     $SetParameters = @{ }
     foreach ($property in $propertiesNotInDesiredState)
     {
         Write-Verbose -Message (
-            $script:localizedData.SettingResourceMessage -f `
-                $FederationServiceName, $Locale, $property.ParameterName, ($property.Expected -join ', '))
+            $script:localizedData.SettingResourceMessage -f
+            $FederationServiceName, $Locale, $property.ParameterName, ($property.Expected -join ', '))
         $SetParameters.add($property.ParameterName, $property.Expected)
     }
 
@@ -443,8 +443,8 @@ function Test-TargetResource
     $targetResource = Get-TargetResource @GetTargetResourceParms
 
     $propertiesNotInDesiredState = (
-        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $Parameters | `
-                Where-Object -Property InDesiredState -eq $false)
+        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $Parameters |
+            Where-Object -Property InDesiredState -eq $false)
 
     if ($propertiesNotInDesiredState)
     {
@@ -452,8 +452,8 @@ function Test-TargetResource
         foreach ($property in $propertiesNotInDesiredState)
         {
             Write-Verbose -Message (
-                $script:localizedData.ResourcePropertyNotInDesiredStateMessage -f `
-                    $FederationServiceName, $Locale, $property.ParameterName)
+                $script:localizedData.ResourcePropertyNotInDesiredStateMessage -f
+                $FederationServiceName, $Locale, $property.ParameterName)
         }
         $inDesiredState = $false
     }

@@ -81,8 +81,8 @@ try
                 Mock -CommandName Get-AdfsCertificate -MockWith { Throw 'Error' }
 
                 It 'Should throw the correct exception' {
-                    { Get-TargetResource @getTargetResourceParameters } | Should -Throw ( `
-                            $script:localizedData.GettingResourceError -f $getTargetResourceParameters.CertificateType )
+                    { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
+                        $script:localizedData.GettingResourceError -f $getTargetResourceParameters.CertificateType )
                 }
             }
         }
@@ -116,8 +116,8 @@ try
                 Mock -CommandName Set-AdfsCertificate -MockWith { Throw 'Error' }
 
                 It 'Should throw the correct exception' {
-                    { Set-TargetResource @setTargetResourceParameters } | Should -Throw ( `
-                            $script:localizedData.SettingResourceError -f $setTargetResourceParameters.CertificateType )
+                    { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
+                        $script:localizedData.SettingResourceError -f $setTargetResourceParameters.CertificateType )
                 }
             }
         }

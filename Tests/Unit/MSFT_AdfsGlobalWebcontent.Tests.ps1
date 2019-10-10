@@ -157,8 +157,8 @@ try
                 Mock -CommandName Get-AdfsGlobalWebContent -MockWith { Throw 'Error' }
 
                 It 'Should throw the correct exception' {
-                    { Get-TargetResource @getTargetResourceParameters } | Should -Throw ( `
-                            $script:localizedData.GettingResourceError -f `
+                    { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
+                            $script:localizedData.GettingResourceError -f
                                 $getTargetResourceParameters.FederationServiceName, $getTargetResourceParameters.Locale )
                 }
             }
@@ -209,8 +209,8 @@ try
                 Mock -CommandName Set-AdfsGlobalWebContent -MockWith { Throw 'Error' }
 
                 It 'Should throw the correct exception' {
-                    { Set-TargetResource @setTargetResourceParameters } | Should -Throw ( `
-                            $script:localizedData.SettingResourceError -f `
+                    { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
+                            $script:localizedData.SettingResourceError -f
                                 $setTargetResourceParameters.FederationServiceName, $setTargetResourceParameters.Locale )
                 }
             }

@@ -406,8 +406,8 @@ function Test-TargetResource
     if ($targetResource.Ensure -eq 'Present')
     {
         # Resource is in desired state
-        Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f `
-                $targetResource.FederationServiceName)
+        Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f
+            $targetResource.FederationServiceName)
         $inDesiredState = $true
     }
     else

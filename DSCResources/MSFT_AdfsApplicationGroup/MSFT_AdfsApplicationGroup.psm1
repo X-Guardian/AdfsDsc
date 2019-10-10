@@ -143,14 +143,14 @@ function Set-TargetResource
         {
             # Resource exists
             $propertiesNotInDesiredState = (
-                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters | `
-                        Where-Object -Property InDesiredState -eq $false)
+                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
+                    Where-Object -Property InDesiredState -eq $false)
 
             $SetParameters = New-Object -TypeName System.Collections.Hashtable
             foreach ($property in $propertiesNotInDesiredState)
             {
-                Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f `
-                        $Name, $property.ParameterName, ($property.Expected -join ', '))
+                Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f
+                    $Name, $property.ParameterName, ($property.Expected -join ', '))
                 $SetParameters.add($property.ParameterName, $property.Expected)
             }
 
@@ -216,31 +216,31 @@ function Test-TargetResource
         {
             # Resource should exist
             $propertiesNotInDesiredState = (
-                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters | `
-                        Where-Object -Property InDesiredState -eq $false)
+                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
+                    Where-Object -Property InDesiredState -eq $false)
             if ($propertiesNotInDesiredState)
             {
                 # Resource is not in desired state
                 foreach ($property in $propertiesNotInDesiredState)
                 {
-                    Write-Verbose -Message ($script:localizedData.ResourcePropertyNotInDesiredStateMessage -f `
-                            $targetResource.Name, $property.ParameterName)
+                    Write-Verbose -Message ($script:localizedData.ResourcePropertyNotInDesiredStateMessage -f
+                        $targetResource.Name, $property.ParameterName)
                 }
                 $inDesiredState = $false
             }
             else
             {
                 # Resource is in desired state
-                Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f `
-                        $targetResource.Name)
+                Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f
+                    $targetResource.Name)
                 $inDesiredState = $true
             }
         }
         else
         {
             # Resource should not exist
-            Write-Verbose -Message ($script:localizedData.ResourceExistsButShouldNotMessage -f `
-                    $targetResource.Name)
+            Write-Verbose -Message ($script:localizedData.ResourceExistsButShouldNotMessage -f
+                $targetResource.Name)
             $inDesiredState = $false
         }
     }
@@ -250,15 +250,15 @@ function Test-TargetResource
         if ($Ensure -eq 'Present')
         {
             # Resource should exist
-            Write-Verbose -Message ($script:localizedData.ResourceDoesNotExistButShouldMessage -f `
-                    $targetResource.Name)
+            Write-Verbose -Message ($script:localizedData.ResourceDoesNotExistButShouldMessage -f
+                $targetResource.Name)
             $inDesiredState = $false
         }
         else
         {
             # Resource should not exist
-            Write-Verbose ($script:localizedData.ResourceDoesNotExistAndShouldNotMessage -f `
-                    $targetResource.Name)
+            Write-Verbose ($script:localizedData.ResourceDoesNotExistAndShouldNotMessage -f
+                $targetResource.Name)
             $inDesiredState = $true
         }
     }
