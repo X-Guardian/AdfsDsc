@@ -22,7 +22,7 @@
         Specifies the thumbprint of the certificate to use.
 
     .PARAMETER RemoteCredential
-        Required - String
+        Write - String
         Specifies the credential to use to connect to WinRM on all the members of the ADFS farm.
 #>
 
@@ -61,11 +61,7 @@ function Get-TargetResource
 
         [Parameter(Mandatory = $true)]
         [System.String]
-        $Thumbprint,
-
-        [Parameter(Mandatory = $true)]
-        [System.Management.Automation.PSCredential]
-        $RemoteCredential
+        $Thumbprint
     )
 
     # Check of the ADFS PowerShell module is installed
@@ -117,18 +113,18 @@ function Set-TargetResource
         [System.String]
         $Thumbprint,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter()]
         [System.Management.Automation.PSCredential]
         $RemoteCredential
     )
 
     [HashTable]$Parameters = $PSBoundParameters
     $Parameters.Remove('CertificateType')
+    $Parameters.Remove('RemoteCredential')
 
     $GetTargetResourceParms = @{
         CertificateType  = $CertificateType
         Thumbprint       = $Thumbprint
-        RemoteCredential = $RemoteCredential
     }
     $targetResource = Get-TargetResource @GetTargetResourceParms
 
@@ -143,6 +139,11 @@ function Set-TargetResource
             $script:localizedData.SettingResourceMessage -f
             $CertificateType, $property.ParameterName, ($property.Expected -join ', '))
         $SetParameters.add($property.ParameterName, $property.Expected)
+    }
+
+    if ($PSBoundParameters.ContainsKey('RemoteCredential'))
+    {
+        $SetParameters.Add('RemoteCredential',$RemoteCredential)
     }
 
     try
@@ -176,7 +177,7 @@ function Test-TargetResource
         [System.String]
         $Thumbprint,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter()]
         [System.Management.Automation.PSCredential]
         $RemoteCredential
     )
@@ -188,7 +189,6 @@ function Test-TargetResource
     $GetTargetResourceParms = @{
         CertificateType  = $CertificateType
         Thumbprint       = $Thumbprint
-        RemoteCredential = $RemoteCredential
     }
     $targetResource = Get-TargetResource @GetTargetResourceParms
 

@@ -56,7 +56,6 @@ try
             $getTargetResourceParameters = @{
                 CertificateType  = $mockResource.CertificateType
                 ThumbPrint       = $mockResource.Thumbprint
-                RemoteCredential = $mockCredential
             }
 
             $mockGetResourceCommandResult = @(
