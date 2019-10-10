@@ -629,10 +629,10 @@ function Test-DscPropertyState
 
         $supportedTypes = @(
             'String'
-            'Int32'
-            'UInt32'
             'Int16'
             'UInt16'
+            'Int32'
+            'UInt32'
             'Single'
             'Boolean'
             'DateTime'
