@@ -103,40 +103,41 @@ try
         }
 
         Describe "$Global:DSCResourceName\Get-TargetResource" -Tag 'Get' {
-            $getTargetResourceParameters = @{
-                FederationServiceName = $mockResource.FederationServiceName
-                Locale                = $mockResource.Locale
+            BeforeAll {
+                $getTargetResourceParameters = @{
+                    FederationServiceName = $mockResource.FederationServiceName
+                    Locale                = $mockResource.Locale
+                }
+
+                $mockGetResourceCommandResult = @{
+                    CompanyName                                        = $mockResource.CompanyName
+                    HelpDeskLink                                       = $mockResource.HelpDeskLink
+                    HelpDeskLinkText                                   = $mockResource.HelpDeskLinkText
+                    HomeLink                                           = $mockResource.HomeLink
+                    HomeLinkText                                       = $mockResource.HomeLinkText
+                    HomeRealmDiscoveryOtherOrganizationDescriptionText = $mockResource.HomeRealmDiscoveryOtherOrganizationDescriptionText
+                    HomeRealmDiscoveryPageDescriptionText              = $mockResource.HomeRealmDiscoveryPageDescriptionText
+                    OrganizationalNameDescriptionText                  = $mockResource.OrganizationalNameDescriptionText
+                    PrivacyLink                                        = $mockResource.PrivacyLink
+                    PrivacyLinkText                                    = $mockResource.PrivacyLinkText
+                    CertificatePageDescriptionText                     = $mockResource.CertificatePageDescriptionText
+                    SignInPageDescriptionText                          = $mockResource.SignInPageDescriptionText
+                    SignOutPageDescriptionText                         = $mockResource.SignOutPageDescriptionText
+                    ErrorPageDescriptionText                           = $mockResource.ErrorPageDescriptionText
+                    ErrorPageGenericErrorMessage                       = $mockResource.ErrorPageGenericErrorMessage
+                    ErrorPageAuthorizationErrorMessage                 = $mockResource.ErrorPageAuthorizationErrorMessage
+                    ErrorPageDeviceAuthenticationErrorMessage          = $mockResource.ErrorPageDeviceAuthenticationErrorMessage
+                    ErrorPageSupportEmail                              = $mockResource.ErrorPageSupportEmail
+                    UpdatePasswordPageDescriptionText                  = $mockResource.UpdatePasswordPageDescriptionText
+                    SignInPageAdditionalAuthenticationDescriptionText  = $mockResource.SignInPageAdditionalAuthenticationDescriptionText
+                }
+
+                Mock -CommandName Assert-Module
+                Mock -CommandName "Assert-$($Global:PSModuleName)Service"
+                Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
+
+                $result = Get-TargetResource @getTargetResourceParameters
             }
-
-            $mockGetResourceCommandResult = @{
-                CompanyName                                        = $mockResource.CompanyName
-                HelpDeskLink                                       = $mockResource.HelpDeskLink
-                HelpDeskLinkText                                   = $mockResource.HelpDeskLinkText
-                HomeLink                                           = $mockResource.HomeLink
-                HomeLinkText                                       = $mockResource.HomeLinkText
-                HomeRealmDiscoveryOtherOrganizationDescriptionText = $mockResource.HomeRealmDiscoveryOtherOrganizationDescriptionText
-                HomeRealmDiscoveryPageDescriptionText              = $mockResource.HomeRealmDiscoveryPageDescriptionText
-                OrganizationalNameDescriptionText                  = $mockResource.OrganizationalNameDescriptionText
-                PrivacyLink                                        = $mockResource.PrivacyLink
-                PrivacyLinkText                                    = $mockResource.PrivacyLinkText
-                CertificatePageDescriptionText                     = $mockResource.CertificatePageDescriptionText
-                SignInPageDescriptionText                          = $mockResource.SignInPageDescriptionText
-                SignOutPageDescriptionText                         = $mockResource.SignOutPageDescriptionText
-                ErrorPageDescriptionText                           = $mockResource.ErrorPageDescriptionText
-                ErrorPageGenericErrorMessage                       = $mockResource.ErrorPageGenericErrorMessage
-                ErrorPageAuthorizationErrorMessage                 = $mockResource.ErrorPageAuthorizationErrorMessage
-                ErrorPageDeviceAuthenticationErrorMessage          = $mockResource.ErrorPageDeviceAuthenticationErrorMessage
-                ErrorPageSupportEmail                              = $mockResource.ErrorPageSupportEmail
-                UpdatePasswordPageDescriptionText                  = $mockResource.UpdatePasswordPageDescriptionText
-                SignInPageAdditionalAuthenticationDescriptionText  = $mockResource.SignInPageAdditionalAuthenticationDescriptionText
-            }
-
-            Mock -CommandName Assert-Module
-            Mock -CommandName "Assert-$($Global:PSModuleName)Service"
-
-            Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
-
-            $result = Get-TargetResource @getTargetResourceParameters
 
             foreach ($property in $mockResource.Keys)
             {
@@ -154,95 +155,113 @@ try
             }
 
             Context 'When Get-AdfsGlobalWebContent throws an exception' {
-                Mock -CommandName Get-AdfsGlobalWebContent -MockWith { Throw 'Error' }
+                BeforeAll {
+                    Mock -CommandName Get-AdfsGlobalWebContent -MockWith { Throw 'Error' }
+                }
 
                 It 'Should throw the correct exception' {
                     { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
-                            $script:localizedData.GettingResourceError -f
-                                $getTargetResourceParameters.FederationServiceName, $getTargetResourceParameters.Locale )
+                        $script:localizedData.GettingResourceError -f
+                        $getTargetResourceParameters.FederationServiceName, $getTargetResourceParameters.Locale )
                 }
             }
         }
 
         Describe "$Global:DSCResourceName\Set-TargetResource" -Tag 'Set' {
-            $setTargetResourceParameters = @{
-                FederationServiceName                              = $mockResource.FederationServiceName
-                Locale                                             = $mockResource.Locale
-                CompanyName                                        = $mockChangedResource.CompanyName
-                HelpDeskLink                                       = $mockChangedResource.HelpDeskLink
-                HelpDeskLinkText                                   = $mockChangedResource.HelpDeskLinkText
-                HomeLink                                           = $mockChangedResource.HomeLink
-                HomeLinkText                                       = $mockChangedResource.HomeLinkText
-                HomeRealmDiscoveryOtherOrganizationDescriptionText = $mockChangedResource.HomeRealmDiscoveryOtherOrganizationDescriptionText
-                HomeRealmDiscoveryPageDescriptionText              = $mockChangedResource.HomeRealmDiscoveryPageDescriptionText
-                OrganizationalNameDescriptionText                  = $mockChangedResource.OrganizationalNameDescriptionText
-                PrivacyLink                                        = $mockChangedResource.PrivacyLink
-                PrivacyLinkText                                    = $mockChangedResource.PrivacyLinkText
-                CertificatePageDescriptionText                     = $mockChangedResource.CertificatePageDescriptionText
-                SignInPageDescriptionText                          = $mockChangedResource.SignInPageDescriptionText
-                SignOutPageDescriptionText                         = $mockChangedResource.SignOutPageDescriptionText
-                ErrorPageDescriptionText                           = $mockChangedResource.ErrorPageDescriptionText
-                ErrorPageGenericErrorMessage                       = $mockChangedResource.ErrorPageGenericErrorMessage
-                ErrorPageAuthorizationErrorMessage                 = $mockChangedResource.ErrorPageAuthorizationErrorMessage
-                ErrorPageDeviceAuthenticationErrorMessage          = $mockChangedResource.ErrorPageDeviceAuthenticationErrorMessage
-                ErrorPageSupportEmail                              = $mockChangedResource.ErrorPageSupportEmail
-                UpdatePasswordPageDescriptionText                  = $mockChangedResource.UpdatePasswordPageDescriptionText
-                SignInPageAdditionalAuthenticationDescriptionText  = $mockChangedResource.SignInPageAdditionalAuthenticationDescriptionText
+            BeforeAll {
+                $setTargetResourceParameters = @{
+                    FederationServiceName                              = $mockResource.FederationServiceName
+                    Locale                                             = $mockResource.Locale
+                    CompanyName                                        = $mockChangedResource.CompanyName
+                    HelpDeskLink                                       = $mockChangedResource.HelpDeskLink
+                    HelpDeskLinkText                                   = $mockChangedResource.HelpDeskLinkText
+                    HomeLink                                           = $mockChangedResource.HomeLink
+                    HomeLinkText                                       = $mockChangedResource.HomeLinkText
+                    HomeRealmDiscoveryOtherOrganizationDescriptionText = $mockChangedResource.HomeRealmDiscoveryOtherOrganizationDescriptionText
+                    HomeRealmDiscoveryPageDescriptionText              = $mockChangedResource.HomeRealmDiscoveryPageDescriptionText
+                    OrganizationalNameDescriptionText                  = $mockChangedResource.OrganizationalNameDescriptionText
+                    PrivacyLink                                        = $mockChangedResource.PrivacyLink
+                    PrivacyLinkText                                    = $mockChangedResource.PrivacyLinkText
+                    CertificatePageDescriptionText                     = $mockChangedResource.CertificatePageDescriptionText
+                    SignInPageDescriptionText                          = $mockChangedResource.SignInPageDescriptionText
+                    SignOutPageDescriptionText                         = $mockChangedResource.SignOutPageDescriptionText
+                    ErrorPageDescriptionText                           = $mockChangedResource.ErrorPageDescriptionText
+                    ErrorPageGenericErrorMessage                       = $mockChangedResource.ErrorPageGenericErrorMessage
+                    ErrorPageAuthorizationErrorMessage                 = $mockChangedResource.ErrorPageAuthorizationErrorMessage
+                    ErrorPageDeviceAuthenticationErrorMessage          = $mockChangedResource.ErrorPageDeviceAuthenticationErrorMessage
+                    ErrorPageSupportEmail                              = $mockChangedResource.ErrorPageSupportEmail
+                    UpdatePasswordPageDescriptionText                  = $mockChangedResource.UpdatePasswordPageDescriptionText
+                    SignInPageAdditionalAuthenticationDescriptionText  = $mockChangedResource.SignInPageAdditionalAuthenticationDescriptionText
+                }
+
+                Mock -CommandName $ResourceCommand.Set
+                Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceResult }
             }
 
-            Mock -CommandName $ResourceCommand.Set
+            foreach ($property in $mockChangedResource.Keys)
+            {
+                Context "When $property has changed" {
+                    BeforeAll {
+                        $setTargetResourceParametersChangedProperty = $setTargetResourceParameters.Clone()
+                        $setTargetResourceParametersChangedProperty.$property = $mockChangedResource.$property
+                    }
 
-            Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceResult }
+                    It 'Should not throw' {
+                        { Set-TargetResource @setTargetResourceParametersChangedProperty } | Should -Not -Throw
+                    }
 
-            It 'Should not throw' {
-                { Set-TargetResource @setTargetResourceParameters } | Should -Not -Throw
-            }
-
-            It 'Should call the expected mocks' {
-                Assert-MockCalled -CommandName Get-TargetResource `
-                    -ParameterFilter { $FederationServiceName -eq $setTargetResourceParameters.FederationServiceName } `
-                    -Exactly -Times 1
-                Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 1
+                    It 'Should call the correct mocks' {
+                        Assert-MockCalled -CommandName Get-TargetResource `
+                            -ParameterFilter { `
+                                $FederationServiceName -eq $setTargetResourceParametersChangedProperty.FederationServiceName } `
+                            -Exactly -Times 1
+                        Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 1
+                    }
+                }
             }
 
             Context 'When Set-AdfsGlobalWebContent throws an exception' {
-                Mock -CommandName Set-AdfsGlobalWebContent -MockWith { Throw 'Error' }
+                BeforeAll {
+                    Mock -CommandName Set-AdfsGlobalWebContent -MockWith { Throw 'Error' }
+                }
 
                 It 'Should throw the correct exception' {
                     { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
-                            $script:localizedData.SettingResourceError -f
-                                $setTargetResourceParameters.FederationServiceName, $setTargetResourceParameters.Locale )
+                        $script:localizedData.SettingResourceError -f
+                        $setTargetResourceParameters.FederationServiceName, $setTargetResourceParameters.Locale )
                 }
             }
         }
 
         Describe "$Global:DSCResourceName\Test-TargetResource" -Tag 'Test' {
-            $testTargetResourceParameters = @{
-                FederationServiceName                              = $mockResource.FederationServiceName
-                Locale                                             = $mockResource.Locale
-                CompanyName                                        = $mockResource.CompanyName
-                HelpDeskLink                                       = $mockResource.HelpDeskLink
-                HelpDeskLinkText                                   = $mockResource.HelpDeskLinkText
-                HomeLink                                           = $mockResource.HomeLink
-                HomeLinkText                                       = $mockResource.HomeLinkText
-                HomeRealmDiscoveryOtherOrganizationDescriptionText = $mockResource.HomeRealmDiscoveryOtherOrganizationDescriptionText
-                HomeRealmDiscoveryPageDescriptionText              = $mockResource.HomeRealmDiscoveryPageDescriptionText
-                OrganizationalNameDescriptionText                  = $mockResource.OrganizationalNameDescriptionText
-                PrivacyLink                                        = $mockResource.PrivacyLink
-                PrivacyLinkText                                    = $mockResource.PrivacyLinkText
-                CertificatePageDescriptionText                     = $mockResource.CertificatePageDescriptionText
-                SignInPageDescriptionText                          = $mockResource.SignInPageDescriptionText
-                SignOutPageDescriptionText                         = $mockResource.SignOutPageDescriptionText
-                ErrorPageDescriptionText                           = $mockResource.ErrorPageDescriptionText
-                ErrorPageGenericErrorMessage                       = $mockResource.ErrorPageGenericErrorMessage
-                ErrorPageAuthorizationErrorMessage                 = $mockResource.ErrorPageAuthorizationErrorMessage
-                ErrorPageDeviceAuthenticationErrorMessage          = $mockResource.ErrorPageDeviceAuthenticationErrorMessage
-                ErrorPageSupportEmail                              = $mockResource.ErrorPageSupportEmail
-                UpdatePasswordPageDescriptionText                  = $mockResource.UpdatePasswordPageDescriptionText
-                SignInPageAdditionalAuthenticationDescriptionText  = $mockResource.SignInPageAdditionalAuthenticationDescriptionText
-            }
+            BeforeAll {
+                $testTargetResourceParameters = @{
+                    FederationServiceName                              = $mockResource.FederationServiceName
+                    Locale                                             = $mockResource.Locale
+                    CompanyName                                        = $mockResource.CompanyName
+                    HelpDeskLink                                       = $mockResource.HelpDeskLink
+                    HelpDeskLinkText                                   = $mockResource.HelpDeskLinkText
+                    HomeLink                                           = $mockResource.HomeLink
+                    HomeLinkText                                       = $mockResource.HomeLinkText
+                    HomeRealmDiscoveryOtherOrganizationDescriptionText = $mockResource.HomeRealmDiscoveryOtherOrganizationDescriptionText
+                    HomeRealmDiscoveryPageDescriptionText              = $mockResource.HomeRealmDiscoveryPageDescriptionText
+                    OrganizationalNameDescriptionText                  = $mockResource.OrganizationalNameDescriptionText
+                    PrivacyLink                                        = $mockResource.PrivacyLink
+                    PrivacyLinkText                                    = $mockResource.PrivacyLinkText
+                    CertificatePageDescriptionText                     = $mockResource.CertificatePageDescriptionText
+                    SignInPageDescriptionText                          = $mockResource.SignInPageDescriptionText
+                    SignOutPageDescriptionText                         = $mockResource.SignOutPageDescriptionText
+                    ErrorPageDescriptionText                           = $mockResource.ErrorPageDescriptionText
+                    ErrorPageGenericErrorMessage                       = $mockResource.ErrorPageGenericErrorMessage
+                    ErrorPageAuthorizationErrorMessage                 = $mockResource.ErrorPageAuthorizationErrorMessage
+                    ErrorPageDeviceAuthenticationErrorMessage          = $mockResource.ErrorPageDeviceAuthenticationErrorMessage
+                    ErrorPageSupportEmail                              = $mockResource.ErrorPageSupportEmail
+                    UpdatePasswordPageDescriptionText                  = $mockResource.UpdatePasswordPageDescriptionText
+                    SignInPageAdditionalAuthenticationDescriptionText  = $mockResource.SignInPageAdditionalAuthenticationDescriptionText
+                }
 
-            Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceResult }
+                Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceResult }
+            }
 
             It 'Should not throw' {
                 { Test-TargetResource @testTargetResourceParameters } | Should -Not -Throw
@@ -263,8 +282,10 @@ try
             foreach ($property in $mockChangedResource.Keys)
             {
                 Context "When the $property resource property is not in the desired state" {
-                    $testTargetResourceNotInDesiredStateParameters = $testTargetResourceParameters.Clone()
-                    $testTargetResourceNotInDesiredStateParameters.$property = $mockChangedResource.$property
+                    BeforeAll {
+                        $testTargetResourceNotInDesiredStateParameters = $testTargetResourceParameters.Clone()
+                        $testTargetResourceNotInDesiredStateParameters.$property = $mockChangedResource.$property
+                    }
 
                     It 'Should return $false' {
                         Test-TargetResource @testTargetResourceNotInDesiredStateParameters | Should -Be $false

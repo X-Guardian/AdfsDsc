@@ -48,9 +48,8 @@ try
         }
 
         $mockChangedResource = @{
-            ServerRoleIdentifier = 'https://nativeapp1.fabrikam.com'
-            Description          = "This is the new AppPermission1 Description"
-            ScopeNames           = 'openid, profile'
+            Description = "This is the new AppPermission1 Description"
+            ScopeNames  = 'openid, profile'
         }
 
         $mockGetTargetResourceResult = @{
@@ -58,7 +57,6 @@ try
             ServerRoleIdentifier = $mockResource.ServerRoleIdentifier
             Description          = $mockResource.Description
             ScopeNames           = $mockResource.ScopeNames
-            Ensure               = $mockResource.Ensure
         }
 
         $mockGetTargetResourcePresentResult = $mockGetTargetResourceResult.Clone()
@@ -68,25 +66,28 @@ try
         $mockGetTargetResourceAbsentResult.Ensure = 'Absent'
 
         Describe "$Global:DSCResourceName\Get-TargetResource" -Tag 'Get' {
+            BeforeAll {
+                $getTargetResourceParameters = @{
+                    ClientRoleIdentifier = $mockResource.ClientRoleIdentifier
+                    ServerRoleIdentifier = $mockResource.ServerRoleIdentifier
+                }
 
-            $getTargetResourceParameters = @{
-                ClientRoleIdentifier = $mockResource.ClientRoleIdentifier
-                ServerRoleIdentifier = $mockResource.ServerRoleIdentifier
+                $mockGetResourceCommandResult = @{
+                    ClientRoleIdentifier = $mockResource.ClientRoleIdentifier
+                    ServerRoleIdentifier = $mockResource.ServerRoleIdentifier
+                    Description          = $mockResource.Description
+                    ScopeNames           = $mockResource.ScopeNames
+                }
+
+                Mock -CommandName Assert-Module
+                Mock -CommandName Assert-Command
+                Mock -CommandName "Assert-$($Global:PSModuleName)Service"
             }
-
-            $mockGetResourceCommandResult = @{
-                ClientRoleIdentifier = $mockResource.ClientRoleIdentifier
-                ServerRoleIdentifier = $mockResource.ServerRoleIdentifier
-                Description          = $mockResource.Description
-                ScopeNames           = $mockResource.ScopeNames
-            }
-
-            Mock -CommandName Assert-Module
-            Mock -CommandName Assert-Command
-            Mock -CommandName "Assert-$($Global:PSModuleName)Service"
 
             Context 'When the Resource is Present' {
-                Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
+                BeforeAll {
+                    Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
+                }
 
                 $result = Get-TargetResource @getTargetResourceParameters
 
@@ -113,9 +114,11 @@ try
             }
 
             Context 'When the Resource is Absent' {
-                Mock -CommandName $ResourceCommand.Get
+                BeforeAll {
+                    Mock -CommandName $ResourceCommand.Get
 
-                $result = Get-TargetResource @GetTargetResourceParameters
+                    $result = Get-TargetResource @GetTargetResourceParameters
+                }
 
                 foreach ($property in $mockResource.Keys)
                 {
@@ -141,44 +144,58 @@ try
         }
 
         Describe "$Global:DSCResourceName\Set-TargetResource" -Tag 'Set' {
-            $setTargetResourceParameters = @{
-                ClientRoleIdentifier = $mockResource.ClientRoleIdentifier
-                ServerRoleIdentifier = $mockChangedResource.ServerRoleIdentifier
-                Description          = $mockChangedResource.Description
-                ScopeNames           = $mockChangedResource.ScopeNames
+            BeforeAll {
+                $setTargetResourceParameters = @{
+                    ClientRoleIdentifier = $mockResource.ClientRoleIdentifier
+                    ServerRoleIdentifier = $mockResource.ServerRoleIdentifier
+                    Description          = $mockResource.Description
+                    ScopeNames           = $mockResource.ScopeNames
+                }
+
+                $setTargetResourcePresentParameters = $setTargetResourceParameters.Clone()
+                $setTargetResourcePresentParameters.Ensure = 'Present'
+
+                $setTargetResourceAbsentParameters = $setTargetResourceParameters.Clone()
+                $setTargetResourceAbsentParameters.Ensure = 'Absent'
+
+                Mock -CommandName $ResourceCommand.Set
+                Mock -CommandName $ResourceCommand.Add
+                Mock -CommandName $ResourceCommand.Remove
             }
 
-            $setTargetResourcePresentParameters = $setTargetResourceParameters.Clone()
-            $setTargetResourcePresentParameters.Ensure = 'Present'
-
-            $setTargetResourceAbsentParameters = $setTargetResourceParameters.Clone()
-            $setTargetResourceAbsentParameters.Ensure = 'Absent'
-
-            Mock -CommandName $ResourceCommand.Set
-            Mock -CommandName $ResourceCommand.Add
-            Mock -CommandName $ResourceCommand.Remove
-
             Context 'When the Resource is Present' {
-                Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourcePresentResult }
+                BeforeAll {
+                    Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourcePresentResult }
+                }
 
                 Context 'When the Resource should be Present' {
-                    It 'Should not throw' {
-                        { Set-TargetResource @setTargetResourcePresentParameters } | Should -Not -Throw
-                    }
+                    foreach ($property in $mockChangedResource.Keys)
+                    {
+                        Context "When $property has changed" {
+                            BeforeAll {
+                                $setTargetResourceParametersChangedProperty = $setTargetResourcePresentParameters.Clone()
+                                $setTargetResourceParametersChangedProperty.$property = $mockChangedResource.$property
+                            }
 
-                    It 'Should call the expected mocks' {
-                        Assert-MockCalled -CommandName Get-TargetResource `
-                            -ParameterFilter { `
-                                $ClientRoleIdentifier -eq $setTargetResourcePresentParameters.ClientRoleIdentifier -and `
-                                $ServerRoleIdentifier -eq $setTargetResourcePresentParameters.ServerRoleIdentifier } `
-                            -Exactly -Times 1
-                        Assert-MockCalled -CommandName $ResourceCommand.Set `
-                            -ParameterFilter { `
-                                $TargetClientRoleIdentifier -eq $setTargetResourcePresentParameters.ClientRoleIdentifier -and `
-                                $TargetServerRoleIdentifier -eq $setTargetResourcePresentParameters.ServerRoleIdentifier } `
-                            -Exactly -Times 1
-                        Assert-MockCalled -CommandName $ResourceCommand.Add -Exactly -Times 0
-                        Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
+                            It 'Should not throw' {
+                                { Set-TargetResource @setTargetResourceParametersChangedProperty } | Should -Not -Throw
+                            }
+
+                            It 'Should call the correct mocks' {
+                                Assert-MockCalled -CommandName Get-TargetResource `
+                                    -ParameterFilter { `
+                                        $ClientRoleIdentifier -eq $setTargetResourcePresentParameters.ClientRoleIdentifier -and `
+                                        $ServerRoleIdentifier -eq $setTargetResourcePresentParameters.ServerRoleIdentifier } `
+                                    -Exactly -Times 1
+                                Assert-MockCalled -CommandName $ResourceCommand.Set `
+                                    -ParameterFilter { `
+                                        $TargetClientRoleIdentifier -eq $setTargetResourcePresentParameters.ClientRoleIdentifier -and `
+                                        $TargetServerRoleIdentifier -eq $setTargetResourcePresentParameters.ServerRoleIdentifier } `
+                                    -Exactly -Times 1
+                                Assert-MockCalled -CommandName $ResourceCommand.Add -Exactly -Times 0
+                                Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
+                            }
+                        }
                     }
                 }
 
@@ -205,7 +222,9 @@ try
             }
 
             Context 'When the Resource is Absent' {
-                Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
+                BeforeAll {
+                    Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
+                }
 
                 Context 'When the Resource should be Present' {
                     It 'Should not throw' {
@@ -248,21 +267,25 @@ try
         }
 
         Describe "$Global:DSCResourceName\Test-TargetResource" -Tag 'Test' {
-            $testTargetResourceParameters = @{
-                ClientRoleIdentifier = $mockResource.ClientRoleIdentifier
-                ServerRoleIdentifier = $mockResource.ServerRoleIdentifier
-                Description          = $mockResource.Description
-                ScopeNames           = $mockResource.ScopeNames
+            BeforeAll {
+                $testTargetResourceParameters = @{
+                    ClientRoleIdentifier = $mockResource.ClientRoleIdentifier
+                    ServerRoleIdentifier = $mockResource.ServerRoleIdentifier
+                    Description          = $mockResource.Description
+                    ScopeNames           = $mockResource.ScopeNames
+                }
+
+                $testTargetResourcePresentParameters = $testTargetResourceParameters.Clone()
+                $testTargetResourcePresentParameters.Ensure = 'Present'
+
+                $testTargetResourceAbsentParameters = $testTargetResourceParameters.Clone()
+                $testTargetResourceAbsentParameters.Ensure = 'Absent'
             }
 
-            $testTargetResourcePresentParameters = $testTargetResourceParameters.Clone()
-            $testTargetResourcePresentParameters.Ensure = 'Present'
-
-            $testTargetResourceAbsentParameters = $testTargetResourceParameters.Clone()
-            $testTargetResourceAbsentParameters.Ensure = 'Absent'
-
             Context 'When the Resource is Present' {
-                Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourcePresentResult }
+                BeforeAll {
+                    Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourcePresentResult }
+                }
 
                 Context 'When the Resource should be Present' {
                     It 'Should not throw' {
@@ -286,9 +309,10 @@ try
                     foreach ($property in $mockChangedResource.Keys)
                     {
                         Context "When the $property resource property is not in the desired state" {
-
-                            $testTargetResourceNotInDesiredStateParameters = $testTargetResourceParameters.Clone()
-                            $testTargetResourceNotInDesiredStateParameters.$property = $mockChangedResource.$property
+                            BeforeAll {
+                                $testTargetResourceNotInDesiredStateParameters = $testTargetResourceParameters.Clone()
+                                $testTargetResourceNotInDesiredStateParameters.$property = $mockChangedResource.$property
+                            }
 
                             It 'Should return $false' {
                                 Test-TargetResource @testTargetResourceNotInDesiredStateParameters | Should -Be $false
@@ -317,7 +341,9 @@ try
             }
 
             Context 'When the Resource is Absent' {
-                Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
+                BeforeAll {
+                    Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
+                }
 
                 Context 'When the Resource should be Present' {
                     It 'Should not throw' {

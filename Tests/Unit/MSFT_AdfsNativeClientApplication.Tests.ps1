@@ -52,12 +52,13 @@ try
         }
 
         $mockChangedResource = @{
-            ApplicationGroupIdentifier = 'AppGroup2'
-            Identifier                 = 'Updated NativeApp1'
-            RedirectUri                = @('https://nativeapp1.fabrikam.com')
-            Description                = 'App1 Updated Native App'
-            LogoutUri                  = 'https://nativeapp1.fabrikam.com/logout'
+            Identifier  = 'Updated NativeApp1'
+            RedirectUri = @('https://nativeapp1.fabrikam.com')
+            Description = 'App1 Updated Native App'
+            LogoutUri   = 'https://nativeapp1.fabrikam.com/logout'
         }
+
+        $mockChangedApplicationGroupIdentifier = 'AppGroup2'
 
         $mockGetTargetResourceResult = @{
             Name                       = $mockResource.Name
@@ -75,29 +76,33 @@ try
         $mockGetTargetResourceAbsentResult.Ensure = 'Absent'
 
         Describe "$Global:DSCResourceName\Get-TargetResource" -Tag 'Get' {
-            $getTargetResourceParameters = @{
-                Name                       = $mockResource.Name
-                ApplicationGroupIdentifier = $mockResource.ApplicationGroupIdentifier
-                Identifier                 = $mockResource.Identifier
-            }
+            BeforeAll {
+                $getTargetResourceParameters = @{
+                    Name                       = $mockResource.Name
+                    ApplicationGroupIdentifier = $mockResource.ApplicationGroupIdentifier
+                    Identifier                 = $mockResource.Identifier
+                }
 
-            $mockGetResourceCommandResult = @{
-                Name                       = $mockResource.Name
-                ApplicationGroupIdentifier = $mockResource.ApplicationGroupIdentifier
-                Identifier                 = $mockResource.Identifier
-                RedirectUri                = $mockResource.RedirectUri
-                Description                = $mockResource.Description
-                LogoutUri                  = $mockResource.LogoutUri
-            }
+                $mockGetResourceCommandResult = @{
+                    Name                       = $mockResource.Name
+                    ApplicationGroupIdentifier = $mockResource.ApplicationGroupIdentifier
+                    Identifier                 = $mockResource.Identifier
+                    RedirectUri                = $mockResource.RedirectUri
+                    Description                = $mockResource.Description
+                    LogoutUri                  = $mockResource.LogoutUri
+                }
 
-            Mock -CommandName Assert-Module
-            Mock -CommandName Assert-Command
-            Mock -CommandName Assert-AdfsService
+                Mock -CommandName Assert-Module
+                Mock -CommandName Assert-Command
+                Mock -CommandName "Assert-$($Global:PSModuleName)Service"
+            }
 
             Context 'When the Resource is Present' {
-                Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
+                BeforeAll {
+                    Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
 
-                $result = Get-TargetResource @getTargetResourceParameters
+                    $result = Get-TargetResource @getTargetResourceParameters
+                }
 
                 foreach ($property in $mockResource.Keys)
                 {
@@ -113,7 +118,7 @@ try
                     Assert-MockCalled -CommandName Assert-Command `
                         -ParameterFilter { $Module -eq $Global:PSModuleName -and $Command -eq $ResourceCommand.Get } `
                         -Exactly -Times 1
-                    Assert-MockCalled -CommandName Assert-AdfsService -Exactly -Times 1
+                    Assert-MockCalled -CommandName "Assert-$($Global:PSModuleName)Service" -Exactly -Times 1
                     Assert-MockCalled -CommandName $ResourceCommand.Get `
                         -ParameterFilter { $name -eq $getTargetResourceParameters.Name } `
                         -Exactly -Times 1
@@ -121,9 +126,11 @@ try
             }
 
             Context 'When the Resource is Absent' {
-                Mock -CommandName $ResourceCommand.Get
+                BeforeAll {
+                    Mock -CommandName $ResourceCommand.Get
 
-                $result = Get-TargetResource @getTargetResourceParameters
+                    $result = Get-TargetResource @getTargetResourceParameters
+                }
 
                 foreach ($property in $mockResource.Keys)
                 {
@@ -139,7 +146,7 @@ try
                     Assert-MockCalled -CommandName Assert-Command `
                         -ParameterFilter { $Module -eq $Global:PSModuleName -and $Command -eq $ResourceCommand.Get } `
                         -Exactly -Times 1
-                    Assert-MockCalled -CommandName Assert-AdfsService -Exactly -Times 1
+                    Assert-MockCalled -CommandName "Assert-$($Global:PSModuleName)Service" -Exactly -Times 1
                     Assert-MockCalled -CommandName $ResourceCommand.Get `
                         -ParameterFilter { $name -eq $getTargetResourceParameters.Name } `
                         -Exactly -Times 1
@@ -148,34 +155,39 @@ try
         }
 
         Describe "$Global:DSCResourceName\Set-TargetResource" -Tag 'Set' {
-            $setTargetResourceParameters = @{
-                Name                       = $mockResource.Name
-                ApplicationGroupIdentifier = $mockResource.ApplicationGroupIdentifier
-                Identifier                 = $mockChangedResource.Identifier
-                RedirectUri                = $mockChangedResource.RedirectUri
-                Description                = $mockChangedResource.Description
-                LogoutUri                  = $mockChangedResource.LogoutUri
+            BeforeAll {
+                $setTargetResourceParameters = @{
+                    Name                       = $mockResource.Name
+                    ApplicationGroupIdentifier = $mockResource.ApplicationGroupIdentifier
+                    Identifier                 = $mockResource.Identifier
+                    RedirectUri                = $mockResource.RedirectUri
+                    Description                = $mockResource.Description
+                    LogoutUri                  = $mockResource.LogoutUri
+                }
+
+                $setTargetResourcePresentParameters = $setTargetResourceParameters.Clone()
+                $setTargetResourcePresentParameters.Ensure = 'Present'
+
+                $setTargetResourceAbsentParameters = $setTargetResourceParameters.Clone()
+                $setTargetResourceAbsentParameters.Ensure = 'Absent'
+
+                Mock -CommandName $ResourceCommand.Set
+                Mock -CommandName $ResourceCommand.Add
+                Mock -CommandName $ResourceCommand.Remove
             }
 
-            $setTargetResourcePresentParameters = $setTargetResourceParameters.Clone()
-            $setTargetResourcePresentParameters.Ensure = 'Present'
-
-            $setTargetResourcePresentAGIChangedParameters = $setTargetResourcePresentParameters.Clone()
-            $setTargetResourcePresentAgiChangedParameters.ApplicationGroupIdentifier = $mockChangedResource.ApplicationGroupIdentifier
-
-            $setTargetResourceAbsentParameters = $setTargetResourceParameters.Clone()
-            $setTargetResourceAbsentParameters.Ensure = 'Absent'
-
-            Mock -CommandName $ResourceCommand.Set
-            Mock -CommandName $ResourceCommand.Add
-            Mock -CommandName $ResourceCommand.Remove
-
             Context 'When the Resource is Present' {
-                Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourcePresentResult }
+                BeforeAll {
+                    Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourcePresentResult }
+                }
 
                 Context 'When the Resource should be Present' {
 
                     Context 'When the Application Group Identifier has changed' {
+                        BeforeAll {
+                            $setTargetResourcePresentAGIChangedParameters = $setTargetResourcePresentParameters.Clone()
+                            $setTargetResourcePresentAgiChangedParameters.ApplicationGroupIdentifier = $mockChangedApplicationGroupIdentifier
+                        }
 
                         It 'Should not throw' {
                             { Set-TargetResource @setTargetResourcePresentAGIChangedParameters } | Should -Not -Throw
@@ -184,9 +196,7 @@ try
                         It 'Should call the expected mocks' {
                             Assert-MockCalled -CommandName Get-TargetResource `
                                 -ParameterFilter { `
-                                    $ApplicationGroupIdentifier -eq $setTargetResourcePresentAGIChangedParameters.ApplicationGroupIdentifier -and `
-                                    $Name -eq $setTargetResourcePresentAGIChangedParameters.Name -and `
-                                    $Identifier -eq $setTargetResourcePresentAGIChangedParameters.Identifier } `
+                                    $Name -eq $setTargetResourcePresentAGIChangedParameters.Name } `
                                 -Exactly -Times 1
                             Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 0
                             Assert-MockCalled -CommandName $ResourceCommand.Remove `
@@ -199,22 +209,30 @@ try
                     }
 
                     Context 'When the Application Group Identifier has not changed' {
-                        It 'Should not throw' {
-                            { Set-TargetResource @setTargetResourcePresentParameters } | Should -Not -Throw
-                        }
+                        foreach ($property in $mockChangedResource.Keys)
+                        {
+                            Context "When $property has changed" {
+                                BeforeAll {
+                                    $setTargetResourceParametersChangedProperty = $setTargetResourcePresentParameters.Clone()
+                                    $setTargetResourceParametersChangedProperty.$property = $mockChangedResource.$property
+                                }
 
-                        It 'Should call the expected mocks' {
-                            Assert-MockCalled -CommandName Get-TargetResource `
-                                -ParameterFilter { `
-                                    $ApplicationGroupIdentifier -eq $setTargetResourcePresentParameters.ApplicationGroupIdentifier -and `
-                                    $Name -eq $setTargetResourcePresentParameters.Name -and `
-                                    $Identifier -eq $setTargetResourcePresentParameters.Identifier } `
-                                -Exactly -Times 1
-                            Assert-MockCalled -CommandName $ResourceCommand.Set `
-                                -ParameterFilter { $TargetName -eq $setTargetResourcePresentParameters.Name } `
-                                -Exactly -Times 1
-                            Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
-                            Assert-MockCalled -CommandName $ResourceCommand.Add -Exactly -Times 0
+                                It 'Should not throw' {
+                                    { Set-TargetResource @setTargetResourceParametersChangedProperty } | Should -Not -Throw
+                                }
+
+                                It 'Should call the correct mocks' {
+                                    Assert-MockCalled -CommandName Get-TargetResource `
+                                        -ParameterFilter { `
+                                            $Name -eq $setTargetResourceParametersChangedProperty.Name } `
+                                        -Exactly -Times 1
+                                    Assert-MockCalled -CommandName $ResourceCommand.Set `
+                                        -ParameterFilter { $TargetName -eq $setTargetResourcePresentParameters.Name } `
+                                        -Exactly -Times 1
+                                    Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
+                                    Assert-MockCalled -CommandName $ResourceCommand.Add -Exactly -Times 0
+                                }
+                            }
                         }
                     }
                 }
@@ -227,9 +245,7 @@ try
                     It 'Should call the expected mocks' {
                         Assert-MockCalled -CommandName Get-TargetResource `
                             -ParameterFilter { `
-                                $ApplicationGroupIdentifier -eq $setTargetResourceAbsentParameters.ApplicationGroupIdentifier -and `
-                                $Name -eq $setTargetResourceAbsentParameters.Name -and `
-                                $Identifier -eq $setTargetResourceAbsentParameters.Identifier } `
+                                $Name -eq $setTargetResourceAbsentParameters.Name } `
                             -Exactly -Times 1
                         Assert-MockCalled -CommandName $ResourceCommand.Remove `
                             -ParameterFilter { $TargetName -eq $setTargetResourceAbsentParameters.Name } `
@@ -241,7 +257,9 @@ try
             }
 
             Context 'When the Resource is Absent' {
-                Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
+                BeforeAll {
+                    Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
+                }
 
                 Context 'When the Resource should be Present' {
                     It 'Should not throw' {
@@ -250,10 +268,7 @@ try
 
                     It 'Should call the expected mocks' {
                         Assert-MockCalled -CommandName Get-TargetResource `
-                            -ParameterFilter { `
-                                $ApplicationGroupIdentifier -eq $setTargetResourcePresentParameters.ApplicationGroupIdentifier -and `
-                                $Name -eq $setTargetResourcePresentParameters.Name -and `
-                                $Identifier -eq $setTargetResourcePresentParameters.Identifier } `
+                            -ParameterFilter { $Name -eq $setTargetResourcePresentParameters.Name } `
                             -Exactly -Times 1
                         Assert-MockCalled -CommandName $ResourceCommand.Add `
                             -ParameterFilter { $name -eq $setTargetResourcePresentParameters.Name } `
@@ -270,10 +285,7 @@ try
 
                     It 'Should call the expected mocks' {
                         Assert-MockCalled -CommandName Get-TargetResource `
-                            -ParameterFilter { `
-                                $ApplicationGroupIdentifier -eq $setTargetResourceAbsentParameters.ApplicationGroupIdentifier -and `
-                                $Name -eq $setTargetResourceAbsentParameters.Name -and `
-                                $Identifier -eq $setTargetResourceAbsentParameters.Identifier } `
+                            -ParameterFilter { $Name -eq $setTargetResourceAbsentParameters.Name } `
                             -Exactly -Times 1
                         Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
                         Assert-MockCalled -CommandName $ResourceCommand.Add -Exactly -Times 0
@@ -300,7 +312,9 @@ try
             $testTargetResourceAbsentParameters.Ensure = 'Absent'
 
             Context 'When the Resource is Present' {
-                Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourcePresentResult }
+                BeforeAll {
+                    Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourcePresentResult }
+                }
 
                 Context 'When the Resource should be Present' {
                     It 'Should not throw' {
@@ -309,10 +323,7 @@ try
 
                     It 'Should call the expected mocks' {
                         Assert-MockCalled -CommandName Get-TargetResource `
-                            -ParameterFilter { `
-                                $ApplicationGroupIdentifier -eq $testTargetResourcePresentParameters.ApplicationGroupIdentifier -and `
-                                $Name -eq $testTargetResourcePresentParameters.Name -and `
-                                $Identifier -eq $testTargetResourcePresentParameters.Identifier } `
+                            -ParameterFilter { $Name -eq $testTargetResourcePresentParameters.Name } `
                             -Exactly -Times 1
                     }
 
@@ -325,8 +336,10 @@ try
                     foreach ($property in $mockChangedResource.Keys)
                     {
                         Context "When the $property resource property is not in the desired state" {
-                            $testTargetResourceNotInDesiredStateParameters = $testTargetResourceParameters.Clone()
-                            $testTargetResourceNotInDesiredStateParameters.$property = $mockChangedResource.$property
+                            BeforeAll {
+                                $testTargetResourceNotInDesiredStateParameters = $testTargetResourceParameters.Clone()
+                                $testTargetResourceNotInDesiredStateParameters.$property = $mockChangedResource.$property
+                            }
 
                             It 'Should return $false' {
                                 Test-TargetResource @testTargetResourceNotInDesiredStateParameters | Should -Be $false
@@ -342,10 +355,7 @@ try
 
                     It 'Should call the expected mocks' {
                         Assert-MockCalled -CommandName Get-TargetResource `
-                            -ParameterFilter { `
-                                $ApplicationGroupIdentifier -eq $testTargetResourceAbsentParameters.ApplicationGroupIdentifier -and `
-                                $Name -eq $testTargetResourceAbsentParameters.Name -and `
-                                $Identifier -eq $testTargetResourceAbsentParameters.Identifier } `
+                            -ParameterFilter { $Name -eq $testTargetResourceAbsentParameters.Name } `
                             -Exactly -Times 1
                     }
 
@@ -356,7 +366,9 @@ try
             }
 
             Context 'When the Resource is Absent' {
-                Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
+                BeforeAll {
+                    Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
+                }
 
                 Context 'When the Resource should be Present' {
                     It 'Should not throw' {
@@ -365,10 +377,7 @@ try
 
                     It 'Should call the expected mocks' {
                         Assert-MockCalled -CommandName Get-TargetResource `
-                            -ParameterFilter { `
-                                $ApplicationGroupIdentifier -eq $testTargetResourcePresentParameters.ApplicationGroupIdentifier -and `
-                                $Name -eq $testTargetResourcePresentParameters.Name -and `
-                                $Identifier -eq $testTargetResourcePresentParameters.Identifier } `
+                            -ParameterFilter { $Name -eq $testTargetResourcePresentParameters.Name } `
                             -Exactly -Times 1
                     }
 
@@ -384,10 +393,7 @@ try
 
                     It 'Should call the expected mocks' {
                         Assert-MockCalled -CommandName Get-TargetResource `
-                            -ParameterFilter { `
-                                $ApplicationGroupIdentifier -eq $testTargetResourceAbsentParameters.ApplicationGroupIdentifier -and `
-                                $Name -eq $testTargetResourceAbsentParameters.Name -and `
-                                $Identifier -eq $testTargetResourceAbsentParameters.Identifier } `
+                            -ParameterFilter { $Name -eq $testTargetResourceAbsentParameters.Name } `
                             -Exactly -Times 1
                     }
 

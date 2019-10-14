@@ -57,6 +57,7 @@ try
             ClaimAccepted                        = $mockClaim.ShortName
             ClaimsProviderName                   = ''
             DelegationAuthorizationRules         = ''
+            Enabled                              = $true
             EnableJWT                            = $true
             EncryptClaims                        = $true
             EncryptedNameIdRequired              = $true
@@ -87,6 +88,7 @@ try
             ClaimAccepted                        = @()
             ClaimsProviderName                   = @()
             DelegationAuthorizationRules         = $null
+            Enabled                              = $false
             EnableJWT                            = $false
             EncryptClaims                        = $false
             EncryptedNameIdRequired              = $false
@@ -113,7 +115,7 @@ try
             AdditionalAuthenticationRules        = 'changed'
             AdditionalWSFedEndpoint              = 'changed'
             AutoUpdateEnabled                    = $false
-            ClaimAccepted                        = $mockChangedClaimAccepted
+            ClaimAccepted                        = $mockChangedClaim.ShortName
             ClaimsProviderName                   = 'changed'
             DelegationAuthorizationRules         = 'changed'
             EnableJWT                            = $false
@@ -150,6 +152,7 @@ try
             ClaimAccepted                        = $mockResource.ClaimAccepted
             ClaimsProviderName                   = $mockResource.ClaimsProviderName
             DelegationAuthorizationRules         = $mockResource.DelegationAuthorizationRules
+            Enabled                              = $mockResource.Enabled
             EnableJWT                            = $mockResource.EnableJWT
             EncryptClaims                        = $mockResource.EncryptClaims
             EncryptedNameIdRequired              = $mockResource.EncryptedNameIdRequired
@@ -175,48 +178,53 @@ try
         $mockGetAdfsClaimDescriptionResult = New-MockObject -Type Microsoft.IdentityServer.Management.Resources.ClaimDescription
 
         Describe "$Global:DSCResourceName\Get-TargetResource" -Tag 'Get' {
-            $getTargetResourceParameters = @{
-                Name = $mockResource.Name
-            }
+            BeforeAll {
+                $getTargetResourceParameters = @{
+                    Name = $mockResource.Name
+                }
 
-            $mockGetResourceCommandResult = @{
-                Name                                 = $mockResource.Name
-                Notes                                = $mockResource.Notes
-                WSFedEndpoint                        = $mockResource.WSFedEndpoint
-                Identifier                           = $mockResource.Identifier
-                IssuanceTransformRules               = $mockResource.IssuanceTransformRules
-                IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
-                AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
-                AdditionalWSFedEndpoint              = $mockResource.AdditionalWSFedEndpoint
-                AutoUpdateEnabled                    = $mockResource.AutoUpdateEnabled
-                ClaimsAccepted                       = $mockClaimAccepted
-                ClaimsProviderName                   = $mockResource.ClaimsProviderName
-                DelegationAuthorizationRules         = $mockResource.DelegationAuthorizationRules
-                EnableJWT                            = $mockResource.EnableJWT
-                EncryptClaims                        = $mockResource.EncryptClaims
-                EncryptedNameIdRequired              = $mockResource.EncryptedNameIdRequired
-                EncryptionCertificateRevocationCheck = $mockResource.EncryptionCertificateRevocationCheck
-                ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
-                MetadataUrl                          = $mockResource.MetadataUrl
-                MonitoringEnabled                    = $mockResource.MonitoringEnabled
-                NotBeforeSkew                        = $mockResource.NotBeforeSkew
-                ProtocolProfile                      = $mockResource.ProtocolProfile
-                SamlResponseSignature                = $mockResource.SamlResponseSignature
-                SignatureAlgorithm                   = $mockResource.SignatureAlgorithm
-                SignedSamlRequestsRequired           = $mockResource.SignedSamlRequestsRequired
-                SigningCertificateRevocationCheck    = $mockResource.SigningCertificateRevocationCheck
-                TokenLifetime                        = $mockResource.TokenLifetime
-            }
+                $mockGetResourceCommandResult = @{
+                    Name                                 = $mockResource.Name
+                    Notes                                = $mockResource.Notes
+                    WSFedEndpoint                        = $mockResource.WSFedEndpoint
+                    Identifier                           = $mockResource.Identifier
+                    IssuanceTransformRules               = $mockResource.IssuanceTransformRules
+                    IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
+                    AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
+                    AdditionalWSFedEndpoint              = $mockResource.AdditionalWSFedEndpoint
+                    AutoUpdateEnabled                    = $mockResource.AutoUpdateEnabled
+                    ClaimsAccepted                       = $mockClaimAccepted
+                    ClaimsProviderName                   = $mockResource.ClaimsProviderName
+                    DelegationAuthorizationRules         = $mockResource.DelegationAuthorizationRules
+                    Enabled                              = $mockResource.Enabled
+                    EnableJWT                            = $mockResource.EnableJWT
+                    EncryptClaims                        = $mockResource.EncryptClaims
+                    EncryptedNameIdRequired              = $mockResource.EncryptedNameIdRequired
+                    EncryptionCertificateRevocationCheck = $mockResource.EncryptionCertificateRevocationCheck
+                    ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
+                    MetadataUrl                          = $mockResource.MetadataUrl
+                    MonitoringEnabled                    = $mockResource.MonitoringEnabled
+                    NotBeforeSkew                        = $mockResource.NotBeforeSkew
+                    ProtocolProfile                      = $mockResource.ProtocolProfile
+                    SamlResponseSignature                = $mockResource.SamlResponseSignature
+                    SignatureAlgorithm                   = $mockResource.SignatureAlgorithm
+                    SignedSamlRequestsRequired           = $mockResource.SignedSamlRequestsRequired
+                    SigningCertificateRevocationCheck    = $mockResource.SigningCertificateRevocationCheck
+                    TokenLifetime                        = $mockResource.TokenLifetime
+                }
 
-            Mock -CommandName Assert-Module
-            Mock -CommandName Assert-Command
-            Mock -CommandName Assert-AdfsService
-            Mock -CommandName Get-AdfsClaimDescription -MockWith { $mockGetAdfsClaimDescriptionResult }
+                Mock -CommandName Assert-Module
+                Mock -CommandName Assert-Command
+                Mock -CommandName Assert-$($Global:PSModuleName)Service
+                Mock -CommandName Get-AdfsClaimDescription -MockWith { $mockClaim }
+            }
 
             Context 'When the Resource is Present' {
-                Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
+                BeforeAll {
+                    Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
 
-                $result = Get-TargetResource @getTargetResourceParameters
+                    $result = Get-TargetResource @getTargetResourceParameters
+                }
 
                 foreach ($property in $mockResource.Keys)
                 {
@@ -232,15 +240,19 @@ try
                     Assert-MockCalled -CommandName Assert-Command `
                         -ParameterFilter { $Module -eq $Global:PSModuleName -and $Command -eq $ResourceCommand.Get } `
                         -Exactly -Times 1
-                    Assert-MockCalled -CommandName Assert-AdfsService -Exactly -Times 1
-                    Assert-MockCalled -CommandName $ResourceCommand.Get -Exactly -Times 1
+                    Assert-MockCalled -CommandName Assert-$($Global:PSModuleName)Service -Exactly -Times 1
+                    Assert-MockCalled -CommandName $ResourceCommand.Get `
+                        -ParameterFilter { $Name -eq $getTargetResourceParameters.Name } `
+                        -Exactly -Times 1
                 }
             }
 
             Context 'When the Resource is Absent' {
-                Mock -CommandName $ResourceCommand.Get
+                BeforeAll {
+                    Mock -CommandName $ResourceCommand.Get
 
-                $result = Get-TargetResource @getTargetResourceParameters
+                    $result = Get-TargetResource @getTargetResourceParameters
+                }
 
                 foreach ($property in $mockAbsentResource.Keys)
                 {
@@ -256,50 +268,56 @@ try
                     Assert-MockCalled -CommandName Assert-Command `
                         -ParameterFilter { $Module -eq $Global:PSModuleName -and $Command -eq $ResourceCommand.Get } `
                         -Exactly -Times 1
-                    Assert-MockCalled -CommandName Assert-AdfsService -Exactly -Times 1
-                    Assert-MockCalled -CommandName $ResourceCommand.Get -Exactly -Times 1
+                    Assert-MockCalled -CommandName Assert-$($Global:PSModuleName)Service -Exactly -Times 1
+                    Assert-MockCalled -CommandName $ResourceCommand.Get `
+                        -ParameterFilter { $Name -eq $getTargetResourceParameters.Name } `
+                        -Exactly -Times 1
                 }
             }
         }
 
         Describe "$Global:DSCResourceName\Set-TargetResource" -Tag 'Set' {
-            $setTargetResourceParameters = @{
-                Name                                 = $mockResource.Name
-                Notes                                = $mockResource.Notes
-                WSFedEndpoint                        = $mockResource.WSFedEndpoint
-                Identifier                           = $mockResource.Identifier
-                IssuanceTransformRules               = $mockResource.IssuanceTransformRules
-                IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
-                AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
-                AdditionalWSFedEndpoint              = $mockResource.AdditionalWSFedEndpoint
-                AutoUpdateEnabled                    = $mockResource.AutoUpdateEnabled
-                ClaimAccepted                        = $mockResource.ClaimAccepted
-                ClaimsProviderName                   = $mockResource.ClaimsProviderName
-                DelegationAuthorizationRules         = $mockResource.DelegationAuthorizationRules
-                EnableJWT                            = $mockResource.EnableJWT
-                EncryptClaims                        = $mockResource.EncryptClaims
-                EncryptedNameIdRequired              = $mockResource.EncryptedNameIdRequired
-                EncryptionCertificateRevocationCheck = $mockResource.EncryptionCertificateRevocationCheck
-                ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
-                MonitoringEnabled                    = $mockResource.MonitoringEnabled
-                NotBeforeSkew                        = $mockResource.NotBeforeSkew
-                ProtocolProfile                      = $mockResource.ProtocolProfile
-                SamlResponseSignature                = $mockResource.SamlResponseSignature
-                SignatureAlgorithm                   = $mockResource.SignatureAlgorithm
-                SignedSamlRequestsRequired           = $mockResource.SignedSamlRequestsRequired
-                SigningCertificateRevocationCheck    = $mockResource.SigningCertificateRevocationCheck
-                TokenLifetime                        = $mockResource.TokenLifetime
+            BeforeAll {
+                $setTargetResourceParameters = @{
+                    Name                                 = $mockResource.Name
+                    Notes                                = $mockResource.Notes
+                    WSFedEndpoint                        = $mockResource.WSFedEndpoint
+                    Identifier                           = $mockResource.Identifier
+                    IssuanceTransformRules               = $mockResource.IssuanceTransformRules
+                    IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
+                    AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
+                    AdditionalWSFedEndpoint              = $mockResource.AdditionalWSFedEndpoint
+                    AutoUpdateEnabled                    = $mockResource.AutoUpdateEnabled
+                    ClaimAccepted                        = $mockResource.ClaimAccepted
+                    ClaimsProviderName                   = $mockResource.ClaimsProviderName
+                    DelegationAuthorizationRules         = $mockResource.DelegationAuthorizationRules
+                    EnableJWT                            = $mockResource.EnableJWT
+                    EncryptClaims                        = $mockResource.EncryptClaims
+                    EncryptedNameIdRequired              = $mockResource.EncryptedNameIdRequired
+                    EncryptionCertificateRevocationCheck = $mockResource.EncryptionCertificateRevocationCheck
+                    ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
+                    MonitoringEnabled                    = $mockResource.MonitoringEnabled
+                    NotBeforeSkew                        = $mockResource.NotBeforeSkew
+                    ProtocolProfile                      = $mockResource.ProtocolProfile
+                    SamlResponseSignature                = $mockResource.SamlResponseSignature
+                    SignatureAlgorithm                   = $mockResource.SignatureAlgorithm
+                    SignedSamlRequestsRequired           = $mockResource.SignedSamlRequestsRequired
+                    SigningCertificateRevocationCheck    = $mockResource.SigningCertificateRevocationCheck
+                    TokenLifetime                        = $mockResource.TokenLifetime
+                }
+
+                $setTargetResourcePresentParameters = $setTargetResourceParameters.Clone()
+                $setTargetResourcePresentParameters.Ensure = 'Present'
+
+                $setTargetResourceAbsentParameters = $setTargetResourceParameters.Clone()
+                $setTargetResourceAbsentParameters.Ensure = 'Absent'
+
+                Mock -CommandName $ResourceCommand.Set
+                Mock -CommandName $ResourceCommand.Add
+                Mock -CommandName $ResourceCommand.Remove
+                Mock -CommandName Enable-AdfsRelyingPartyTrust
+                Mock -CommandName Disable-AdfsRelyingPartyTrust
             }
-
-            $setTargetResourcePresentParameters = $setTargetResourceParameters.Clone()
-            $setTargetResourcePresentParameters.Ensure = 'Present'
-
-            $setTargetResourceAbsentParameters = $setTargetResourceParameters.Clone()
-            $setTargetResourceAbsentParameters.Ensure = 'Absent'
-
-            Mock -CommandName $ResourceCommand.Set
-            Mock -CommandName $ResourceCommand.Add
-            Mock -CommandName $ResourceCommand.Remove
 
             Context 'When the Resource is Present' {
                 BeforeAll {
@@ -313,24 +331,84 @@ try
 
                     foreach ($property in $mockChangedResource.Keys)
                     {
-                        $setTargetResourceParametersChangedProperty = $setTargetResourceParameters.Clone()
-                        $setTargetResourceParametersChangedProperty.$property = $mockChangedResource.$property
+                        Context "When $property has changed" {
+                            BeforeAll {
+                                $setTargetResourceParametersChangedProperty = $setTargetResourcePresentParameters.Clone()
+                                $setTargetResourceParametersChangedProperty.$property = $mockChangedResource.$property
+                            }
 
-                        Mock -CommandName Get-TargetResource `
-                            -ParameterFilter { $mockGetResourceResults.Name -eq $Name } `
-                            -MockWith { $mockGetTargetResourceResults }
+                            It 'Should not throw' {
+                                { Set-TargetResource @setTargetResourceParametersChangedProperty } | Should -Not -Throw
+                            }
 
-                        It "Should call the correct mocks when $property has changed" {
-                            Set-TargetResource @setTargetResourceParametersChangedProperty
+                            It 'Should call the correct mocks' {
+                                Assert-MockCalled -CommandName Get-TargetResource `
+                                    -ParameterFilter { `
+                                        $Name -eq $setTargetResourceParametersChangedProperty.Name } `
+                                    -Exactly -Times 1
+                                Assert-MockCalled -CommandName $ResourceCommand.Set `
+                                    -ParameterFilter { `
+                                        $TargetName -eq $setTargetResourceParametersChangedProperty.Name } `
+                                    -Exactly -Times 1
+                                Assert-MockCalled -CommandName $ResourceCommand.Add -Exactly -Times 0
+                                Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
+                                Assert-MockCalled -CommandName Enable-AdfsRelyingPartyTrust -Exactly -Times 0
+                                Assert-MockCalled -CommandName Disable-AdfsRelyingPartyTrust -Exactly -Times 0
+                            }
+                        }
+                    }
 
+                    Context 'When Enabled property has changed to true' {
+                        BeforeAll {
+                            $setTargetResourceParametersChangedProperty = $setTargetResourcePresentParameters.Clone()
+                            $setTargetResourceParametersChangedProperty.Enabled = $true
+                            $mockGetTargetResourceEnabledResult = $mockGetTargetResourcePresentResult.Clone()
+                            $mockGetTargetResourceEnabledResult.Enabled = $false
+
+                            Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceEnabledResult }
+                        }
+
+                        It 'Should not throw' {
+                            { Set-TargetResource @setTargetResourceParametersChangedProperty } | Should -Not -Throw
+                        }
+
+                        It 'Should call the correct mocks' {
                             Assert-MockCalled -CommandName Get-TargetResource `
-                                -ParameterFilter { `
-                                    $Name -eq $setTargetResourceParametersChangedProperty.Name } `
-                                -Scope It -Exactly -Times 1
-                            Assert-MockCalled -CommandName $ResourceCommand.Set `
-                                -ParameterFilter { `
-                                    $TargetName -eq $setTargetResourceParametersChangedProperty.Name } `
-                                -Scope It -Exactly -Times 1
+                                -ParameterFilter { $Name -eq $setTargetResourceParametersChangedProperty.Name } `
+                                -Exactly -Times 1
+                            Assert-MockCalled -CommandName Enable-AdfsRelyingPartyTrust `
+                                -ParameterFilter { $TargetName -eq $setTargetResourceParametersChangedProperty.Name } `
+                                -Exactly -Times 1
+                            Assert-MockCalled -CommandName Disable-AdfsRelyingPartyTrust -Exactly -Times 0
+                            Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 0
+                            Assert-MockCalled -CommandName $ResourceCommand.Add -Exactly -Times 0
+                            Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
+                        }
+                    }
+
+                    Context 'When Enabled property has changed to false' {
+                        BeforeAll {
+                            $setTargetResourceParametersChangedProperty = $setTargetResourcePresentParameters.Clone()
+                            $setTargetResourceParametersChangedProperty.Enabled = $false
+                            $mockGetTargetResourceDisabledResult = $mockGetTargetResourcePresentResult.Clone()
+                            $mockGetTargetResourceDisabledResult.Enabled = $true
+
+                            Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceDisabledResult }
+                        }
+
+                        It 'Should not throw' {
+                            { Set-TargetResource @setTargetResourceParametersChangedProperty } | Should -Not -Throw
+                        }
+
+                        It 'Should call the correct mocks' {
+                            Assert-MockCalled -CommandName Get-TargetResource `
+                                -ParameterFilter { $Name -eq $setTargetResourceParametersChangedProperty.Name } `
+                                -Exactly -Times 1
+                            Assert-MockCalled -CommandName Disable-AdfsRelyingPartyTrust `
+                                -ParameterFilter { $TargetName -eq $setTargetResourceParametersChangedProperty.Name } `
+                                -Exactly -Times 1
+                            Assert-MockCalled -CommandName Enable-AdfsRelyingPartyTrust -Exactly -Times 0
+                            Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 0
                             Assert-MockCalled -CommandName $ResourceCommand.Add -Exactly -Times 0
                             Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
                         }
@@ -346,18 +424,26 @@ try
                         Assert-MockCalled -CommandName Get-TargetResource `
                             -ParameterFilter { $Name -eq $setTargetResourceAbsentParameters.Name } `
                             -Exactly -Times 1
-                        Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 1
+                        Assert-MockCalled -CommandName $ResourceCommand.Remove `
+                            -ParameterFilter { $TargetName -eq $setTargetResourceAbsentParameters.Name } `
+                            -Exactly -Times 1
                         Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 0
                         Assert-MockCalled -CommandName $ResourceCommand.Add -Exactly -Times 0
+                        Assert-MockCalled -CommandName Enable-AdfsRelyingPartyTrust -Exactly -Times 0
+                        Assert-MockCalled -CommandName Disable-AdfsRelyingPartyTrust -Exactly -Times 0
                     }
                 }
             }
 
             Context 'When the Resource is Absent' {
-                Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
+                BeforeAll {
+                    Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
+                }
 
                 Context 'When the Resource should be Present' {
-                    Mock -CommandName Get-AdfsClaimDescription -MockWith { $mockGetAdfsClaimDescriptionResult }
+                    BeforeAll {
+                        Mock -CommandName Get-AdfsClaimDescription -MockWith { $mockGetAdfsClaimDescriptionResult }
+                    }
 
                     It 'Should not throw' {
                         { Set-TargetResource @setTargetResourcePresentParameters } | Should -Not -Throw
@@ -367,9 +453,13 @@ try
                         Assert-MockCalled -CommandName Get-TargetResource `
                             -ParameterFilter { $Name -eq $setTargetResourcePresentParameters.Name } `
                             -Exactly -Times 1
-                        Assert-MockCalled -CommandName $ResourceCommand.Add -Exactly -Times 1
+                        Assert-MockCalled -CommandName $ResourceCommand.Add `
+                            -ParameterFilter { $Name -eq $setTargetResourcePresentParameters.Name } `
+                            -Exactly -Times 1
                         Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 0
                         Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
+                        Assert-MockCalled -CommandName Enable-AdfsRelyingPartyTrust -Exactly -Times 0
+                        Assert-MockCalled -CommandName Disable-AdfsRelyingPartyTrust -Exactly -Times 0
                     }
                 }
 
@@ -385,49 +475,55 @@ try
                         Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
                         Assert-MockCalled -CommandName $ResourceCommand.Add -Exactly -Times 0
                         Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 0
+                        Assert-MockCalled -CommandName Enable-AdfsRelyingPartyTrust -Exactly -Times 0
+                        Assert-MockCalled -CommandName Disable-AdfsRelyingPartyTrust -Exactly -Times 0
                     }
                 }
             }
         }
 
         Describe "$Global:DSCResourceName\Test-TargetResource" -Tag 'Test' {
-            $testTargetResourceParameters = @{
-                Name                                 = $mockResource.Name
-                Notes                                = $mockResource.Notes
-                WSFedEndpoint                        = $mockResource.WSFedEndpoint
-                Identifier                           = $mockResource.Identifier
-                IssuanceTransformRules               = $mockResource.IssuanceTransformRules
-                IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
-                AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
-                AdditionalWSFedEndpoint              = $mockResource.AdditionalWSFedEndpoint
-                AutoUpdateEnabled                    = $mockResource.AutoUpdateEnabled
-                ClaimAccepted                        = $mockResource.ClaimAccepted
-                ClaimsProviderName                   = $mockResource.ClaimsProviderName
-                DelegationAuthorizationRules         = $mockResource.DelegationAuthorizationRules
-                EnableJWT                            = $mockResource.EnableJWT
-                EncryptClaims                        = $mockResource.EncryptClaims
-                EncryptedNameIdRequired              = $mockResource.EncryptedNameIdRequired
-                EncryptionCertificateRevocationCheck = $mockResource.EncryptionCertificateRevocationCheck
-                ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
-                MetadataUrl                          = $mockResource.MetadataUrl
-                MonitoringEnabled                    = $mockResource.MonitoringEnabled
-                NotBeforeSkew                        = $mockResource.NotBeforeSkew
-                ProtocolProfile                      = $mockResource.ProtocolProfile
-                SamlResponseSignature                = $mockResource.SamlResponseSignature
-                SignatureAlgorithm                   = $mockResource.SignatureAlgorithm
-                SignedSamlRequestsRequired           = $mockResource.SignedSamlRequestsRequired
-                SigningCertificateRevocationCheck    = $mockResource.SigningCertificateRevocationCheck
-                TokenLifetime                        = $mockResource.TokenLifetime
+            BeforeAll {
+                $testTargetResourceParameters = @{
+                    Name                                 = $mockResource.Name
+                    Notes                                = $mockResource.Notes
+                    WSFedEndpoint                        = $mockResource.WSFedEndpoint
+                    Identifier                           = $mockResource.Identifier
+                    IssuanceTransformRules               = $mockResource.IssuanceTransformRules
+                    IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
+                    AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
+                    AdditionalWSFedEndpoint              = $mockResource.AdditionalWSFedEndpoint
+                    AutoUpdateEnabled                    = $mockResource.AutoUpdateEnabled
+                    ClaimAccepted                        = $mockResource.ClaimAccepted
+                    ClaimsProviderName                   = $mockResource.ClaimsProviderName
+                    DelegationAuthorizationRules         = $mockResource.DelegationAuthorizationRules
+                    EnableJWT                            = $mockResource.EnableJWT
+                    EncryptClaims                        = $mockResource.EncryptClaims
+                    EncryptedNameIdRequired              = $mockResource.EncryptedNameIdRequired
+                    EncryptionCertificateRevocationCheck = $mockResource.EncryptionCertificateRevocationCheck
+                    ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
+                    MetadataUrl                          = $mockResource.MetadataUrl
+                    MonitoringEnabled                    = $mockResource.MonitoringEnabled
+                    NotBeforeSkew                        = $mockResource.NotBeforeSkew
+                    ProtocolProfile                      = $mockResource.ProtocolProfile
+                    SamlResponseSignature                = $mockResource.SamlResponseSignature
+                    SignatureAlgorithm                   = $mockResource.SignatureAlgorithm
+                    SignedSamlRequestsRequired           = $mockResource.SignedSamlRequestsRequired
+                    SigningCertificateRevocationCheck    = $mockResource.SigningCertificateRevocationCheck
+                    TokenLifetime                        = $mockResource.TokenLifetime
+                }
+
+                $testTargetResourcePresentParameters = $testTargetResourceParameters.Clone()
+                $testTargetResourcePresentParameters.Ensure = 'Present'
+
+                $testTargetResourceAbsentParameters = $testTargetResourceParameters.Clone()
+                $testTargetResourceAbsentParameters.Ensure = 'Absent'
             }
 
-            $testTargetResourcePresentParameters = $testTargetResourceParameters.Clone()
-            $testTargetResourcePresentParameters.Ensure = 'Present'
-
-            $testTargetResourceAbsentParameters = $testTargetResourceParameters.Clone()
-            $testTargetResourceAbsentParameters.Ensure = 'Absent'
-
             Context 'When the Resource is Present' {
-                Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourcePresentResult }
+                BeforeAll {
+                    Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourcePresentResult }
+                }
 
                 Context 'When the Resource should be Present' {
                     It 'Should not throw' {
@@ -449,8 +545,10 @@ try
                     foreach ($property in $mockChangedResource.Keys)
                     {
                         Context "When the $property resource property is not in the desired state" {
-                            $testTargetResourceNotInDesiredStateParameters = $testTargetResourceParameters.Clone()
-                            $testTargetResourceNotInDesiredStateParameters.$property = $mockChangedResource.$property
+                            BeforeAll {
+                                $testTargetResourceNotInDesiredStateParameters = $testTargetResourceParameters.Clone()
+                                $testTargetResourceNotInDesiredStateParameters.$property = $mockChangedResource.$property
+                            }
 
                             It 'Should return $false' {
                                 Test-TargetResource @testTargetResourceNotInDesiredStateParameters | Should -Be $false
@@ -477,7 +575,9 @@ try
             }
 
             Context 'When the Resource is Absent' {
-                Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
+                BeforeAll {
+                    Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
+                }
 
                 Context 'When the Resource should be Present' {
                     It 'Should not throw' {

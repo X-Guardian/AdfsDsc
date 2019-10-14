@@ -68,28 +68,29 @@ try
         }
 
         Describe "$Global:DSCResourceName\Get-TargetResource" -Tag 'Get' {
-            $getTargetResourceParameters = @{
-                FederationServiceName = $mockResource.FederationServiceName
+            BeforeAll {
+                $getTargetResourceParameters = @{
+                    FederationServiceName = $mockResource.FederationServiceName
+                }
+
+                $mockGetResourceCommandResult = @{
+                    AdditionalAuthenticationProvider       = $mockResource.AdditionalAuthenticationProvider
+                    AllowAdditionalAuthenticationAsPrimary = $mockResource.AllowAdditionalAuthenticationAsPrimary
+                    ClientAuthenticationMethods            = $mockResource.ClientAuthenticationMethods
+                    EnablePaginatedAuthenticationPages     = $mockResource.EnablePaginatedAuthenticationPages
+                    DeviceAuthenticationEnabled            = $mockResource.DeviceAuthenticationEnabled
+                    DeviceAuthenticationMethod             = $mockResource.DeviceAuthenticationMethod
+                    PrimaryExtranetAuthenticationProvider  = $mockResource.PrimaryExtranetAuthenticationProvider
+                    PrimaryIntranetAuthenticationProvider  = $mockResource.PrimaryIntranetAuthenticationProvider
+                    WindowsIntegratedFallbackEnabled       = $mockResource.WindowsIntegratedFallbackEnabled
+                }
+
+                Mock -CommandName Assert-Module
+                Mock -CommandName "Assert-$($Global:PSModuleName)Service"
+                Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
+
+                $result = Get-TargetResource @getTargetResourceParameters
             }
-
-            $mockGetResourceCommandResult = @{
-                AdditionalAuthenticationProvider       = $mockResource.AdditionalAuthenticationProvider
-                AllowAdditionalAuthenticationAsPrimary = $mockResource.AllowAdditionalAuthenticationAsPrimary
-                ClientAuthenticationMethods            = $mockResource.ClientAuthenticationMethods
-                EnablePaginatedAuthenticationPages     = $mockResource.EnablePaginatedAuthenticationPages
-                DeviceAuthenticationEnabled            = $mockResource.DeviceAuthenticationEnabled
-                DeviceAuthenticationMethod             = $mockResource.DeviceAuthenticationMethod
-                PrimaryExtranetAuthenticationProvider  = $mockResource.PrimaryExtranetAuthenticationProvider
-                PrimaryIntranetAuthenticationProvider  = $mockResource.PrimaryIntranetAuthenticationProvider
-                WindowsIntegratedFallbackEnabled       = $mockResource.WindowsIntegratedFallbackEnabled
-            }
-
-            Mock -CommandName Assert-Module
-            Mock -CommandName Assert-AdfsService
-
-            Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
-
-            $result = Get-TargetResource @getTargetResourceParameters
 
             foreach ($property in $mockResource.Keys)
             {
@@ -102,12 +103,14 @@ try
                 Assert-MockCalled -CommandName Assert-Module `
                     -ParameterFilter { $ModuleName -eq $Global:PSModuleName } `
                     -Exactly -Times 1
-                Assert-MockCalled -CommandName Assert-AdfsService -Exactly -Times 1
+                Assert-MockCalled -CommandName "Assert-$($Global:PSModuleName)Service" -Exactly -Times 1
                 Assert-MockCalled -CommandName $ResourceCommand.Get -Exactly -Times 1
             }
 
             Context 'When Get-AdfsGlobalAuthenticationPolicy throws an exception' {
-                Mock -CommandName Get-AdfsGlobalAuthenticationPolicy -MockWith { Throw 'Error' }
+                BeforeAll {
+                    Mock -CommandName Get-AdfsGlobalAuthenticationPolicy -MockWith { Throw 'Error' }
+                }
 
                 It 'Should throw the correct exception' {
                     { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
@@ -117,36 +120,50 @@ try
         }
 
         Describe "$Global:DSCResourceName\Set-TargetResource" -Tag 'Set' {
-            $setTargetResourceParameters = @{
-                FederationServiceName                  = $mockResource.FederationServiceName
-                AdditionalAuthenticationProvider       = $mockChangedResource.AdditionalAuthenticationProvider
-                AllowAdditionalAuthenticationAsPrimary = $mockChangedResource.AllowAdditionalAuthenticationAsPrimary
-                ClientAuthenticationMethods            = $mockChangedResource.ClientAuthenticationMethods
-                EnablePaginatedAuthenticationPages     = $mockChangedResource.EnablePaginatedAuthenticationPages
-                DeviceAuthenticationEnabled            = $mockChangedResource.DeviceAuthenticationEnabled
-                DeviceAuthenticationMethod             = $mockChangedResource.DeviceAuthenticationMethod
-                PrimaryExtranetAuthenticationProvider  = $mockChangedResource.PrimaryExtranetAuthenticationProvider
-                PrimaryIntranetAuthenticationProvider  = $mockChangedResource.PrimaryIntranetAuthenticationProvider
-                WindowsIntegratedFallbackEnabled       = $mockChangedResource.WindowsIntegratedFallbackEnabled
+            BeforeAll {
+                $setTargetResourceParameters = @{
+                    FederationServiceName                  = $mockResource.FederationServiceName
+                    AdditionalAuthenticationProvider       = $mockResource.AdditionalAuthenticationProvider
+                    AllowAdditionalAuthenticationAsPrimary = $mockResource.AllowAdditionalAuthenticationAsPrimary
+                    ClientAuthenticationMethods            = $mockResource.ClientAuthenticationMethods
+                    EnablePaginatedAuthenticationPages     = $mockResource.EnablePaginatedAuthenticationPages
+                    DeviceAuthenticationEnabled            = $mockResource.DeviceAuthenticationEnabled
+                    DeviceAuthenticationMethod             = $mockResource.DeviceAuthenticationMethod
+                    PrimaryExtranetAuthenticationProvider  = $mockResource.PrimaryExtranetAuthenticationProvider
+                    PrimaryIntranetAuthenticationProvider  = $mockResource.PrimaryIntranetAuthenticationProvider
+                    WindowsIntegratedFallbackEnabled       = $mockResource.WindowsIntegratedFallbackEnabled
+                }
+
+                Mock -CommandName $ResourceCommand.Set
+                Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceResult }
             }
 
-            Mock -CommandName $ResourceCommand.Set
+            foreach ($property in $mockChangedResource.Keys)
+            {
+                Context "When $property has changed" {
+                    BeforeAll {
+                        $setTargetResourceParametersChangedProperty = $setTargetResourceParameters.Clone()
+                        $setTargetResourceParametersChangedProperty.$property = $mockChangedResource.$property
+                    }
 
-            Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceResult }
+                    It 'Should not throw' {
+                        { Set-TargetResource @setTargetResourceParametersChangedProperty } | Should -Not -Throw
+                    }
 
-            It 'Should not throw' {
-                { Set-TargetResource @setTargetResourceParameters } | Should -Not -Throw
-            }
-
-            It 'Should call the expected mocks' {
-                Assert-MockCalled -CommandName Get-TargetResource `
-                    -ParameterFilter { $FederationServiceName -eq $setTargetResourceParameters.FederationServiceName } `
-                    -Exactly -Times 1
-                Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 1
+                    It 'Should call the correct mocks' {
+                        Assert-MockCalled -CommandName Get-TargetResource `
+                            -ParameterFilter { `
+                                $FederationServiceName -eq $setTargetResourceParametersChangedProperty.FederationServiceName } `
+                            -Exactly -Times 1
+                        Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 1
+                    }
+                }
             }
 
             Context 'When Set-AdfsGlobalAuthenticationPolicy throws an exception' {
-                Mock -CommandName Set-AdfsGlobalAuthenticationPolicy -MockWith { Throw 'Error' }
+                BeforeAll {
+                    Mock -CommandName Set-AdfsGlobalAuthenticationPolicy -MockWith { Throw 'Error' }
+                }
 
                 It 'Should throw the correct exception' {
                     { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
@@ -156,20 +173,22 @@ try
         }
 
         Describe "$Global:DSCResourceName\Test-TargetResource" -Tag 'Test' {
-            $testTargetResourceParameters = @{
-                FederationServiceName                  = $mockResource.FederationServiceName
-                AdditionalAuthenticationProvider       = $mockResource.AdditionalAuthenticationProvider
-                AllowAdditionalAuthenticationAsPrimary = $mockResource.AllowAdditionalAuthenticationAsPrimary
-                ClientAuthenticationMethods            = $mockResource.ClientAuthenticationMethods
-                EnablePaginatedAuthenticationPages     = $mockResource.EnablePaginatedAuthenticationPages
-                DeviceAuthenticationEnabled            = $mockResource.DeviceAuthenticationEnabled
-                DeviceAuthenticationMethod             = $mockResource.DeviceAuthenticationMethod
-                PrimaryExtranetAuthenticationProvider  = $mockResource.PrimaryExtranetAuthenticationProvider
-                PrimaryIntranetAuthenticationProvider  = $mockResource.PrimaryIntranetAuthenticationProvider
-                WindowsIntegratedFallbackEnabled       = $mockResource.WindowsIntegratedFallbackEnabled
-            }
+            BeforeAll {
+                $testTargetResourceParameters = @{
+                    FederationServiceName                  = $mockResource.FederationServiceName
+                    AdditionalAuthenticationProvider       = $mockResource.AdditionalAuthenticationProvider
+                    AllowAdditionalAuthenticationAsPrimary = $mockResource.AllowAdditionalAuthenticationAsPrimary
+                    ClientAuthenticationMethods            = $mockResource.ClientAuthenticationMethods
+                    EnablePaginatedAuthenticationPages     = $mockResource.EnablePaginatedAuthenticationPages
+                    DeviceAuthenticationEnabled            = $mockResource.DeviceAuthenticationEnabled
+                    DeviceAuthenticationMethod             = $mockResource.DeviceAuthenticationMethod
+                    PrimaryExtranetAuthenticationProvider  = $mockResource.PrimaryExtranetAuthenticationProvider
+                    PrimaryIntranetAuthenticationProvider  = $mockResource.PrimaryIntranetAuthenticationProvider
+                    WindowsIntegratedFallbackEnabled       = $mockResource.WindowsIntegratedFallbackEnabled
+                }
 
-            Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceResult }
+                Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceResult }
+            }
 
             It 'Should not throw' {
                 { Test-TargetResource @testTargetResourceParameters } | Should -Not -Throw
@@ -190,8 +209,10 @@ try
             foreach ($property in $mockChangedResource.Keys)
             {
                 Context "When the $property resource property is not in the desired state" {
-                    $testTargetResourceNotInDesiredStateParameters = $testTargetResourceParameters.Clone()
-                    $testTargetResourceNotInDesiredStateParameters.$property = $mockChangedResource.$property
+                    BeforeAll {
+                        $testTargetResourceNotInDesiredStateParameters = $testTargetResourceParameters.Clone()
+                        $testTargetResourceNotInDesiredStateParameters.$property = $mockChangedResource.$property
+                    }
 
                     It 'Should return $false' {
                         Test-TargetResource @testTargetResourceNotInDesiredStateParameters | Should -Be $false

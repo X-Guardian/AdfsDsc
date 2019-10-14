@@ -224,91 +224,95 @@ try
         }
 
         Describe "$Global:DSCResourceName\Get-TargetResource" -Tag 'Get' {
-            $getTargetResourceParameters = @{
-                FederationServiceName = $mockResource.FederationServiceName
-            }
+            BeforeAll {
+                $getTargetResourceParameters = @{
+                    FederationServiceName = $mockResource.FederationServiceName
+                }
 
-            $mockGetResourceCommandResult = @{
-                FederationServiceName                      = $mockResource.FederationServiceName
-                AcceptableIdentifiers                      = $mockResource.AcceptableIdentifiers
-                AdditionalErrorPageInfo                    = $mockResource.AdditionalErrorPageInfo
-                ArtifactDbConnection                       = $mockResource.ArtifactDbConnection
-                AuthenticationContextOrder                 = $mockResource.AuthenticationContextOrder
-                AuditLevel                                 = $mockResource.AuditLevel
-                AutoCertificateRollover                    = $mockResource.AutoCertificateRollover
-                CertificateCriticalThreshold               = $mockResource.CertificateCriticalThreshold
-                CertificateDuration                        = $mockResource.CertificateDuration
-                CertificateGenerationThreshold             = $mockResource.CertificateGenerationThreshold
-                CertificatePromotionThreshold              = $mockResource.CertificatePromotionThreshold
-                CertificateRolloverInterval                = $mockResource.CertificateRolloverInterval
-                CertificateThresholdMultiplier             = $mockResource.CertificateThresholdMultiplier
-                IntranetUseLocalClaimsProvider             = $mockResource.IntranetUseLocalClaimsProvider
-                ExtendedProtectionTokenCheck               = $mockResource.ExtendedProtectionTokenCheck
-                HostName                                   = $mockResource.HostName
-                HttpPort                                   = $mockResource.HttpPort
-                HttpsPort                                  = $mockResource.HttpsPort
-                TlsClientPort                              = $mockResource.TlsClientPort
-                Identifier                                 = $mockResource.Identifier
-                IdTokenIssuer                              = $mockResource.IdTokenIssuer
-                LogLevel                                   = $mockResource.LogLevel
-                MonitoringInterval                         = $mockResource.MonitoringInterval
-                NetTcpPort                                 = $mockResource.NetTcpPort
-                NtlmOnlySupportedClientAtProxy             = $mockResource.NtlmOnlySupportedClientAtProxy
-                PreventTokenReplays                        = $mockResource.PreventTokenReplays
-                ProxyTrustTokenLifetime                    = $mockResource.ProxyTrustTokenLifetime
-                ReplayCacheExpirationInterval              = $mockResource.ReplayCacheExpirationInterval
-                SignedSamlRequestsRequired                 = $mockResource.SignedSamlRequestsRequired
-                SamlMessageDeliveryWindow                  = $mockResource.SamlMessageDeliveryWindow
-                SignSamlAuthnRequests                      = $mockResource.SignSamlAuthnRequests
-                SsoLifetime                                = $mockResource.SsoLifetime
-                PersistentSsoLifetimeMins                  = $mockResource.PersistentSsoLifetimeMins
-                KmsiLifetimeMins                           = $mockResource.KmsiLifetimeMins
-                PersistentSsoEnabled                       = $mockResource.EnablePersistentSso
-                PersistentSsoCutoffTime                    = $mockResource.PersistentSsoCutoffTime
-                KmsiEnabled                                = $mockResource.EnableKmsi
-                LoopDetectionEnabled                       = $mockResource.EnableLoopDetection
-                LoopDetectionTimeIntervalInSeconds         = $mockResource.LoopDetectionTimeIntervalInSeconds
-                LoopDetectionMaximumTokensIssuedInInterval = $mockResource.LoopDetectionMaximumTokensIssuedInInterval
-                SendClientRequestIdAsQueryStringParameter  = $mockResource.SendClientRequestIdAsQueryStringParameter
-                WIASupportedUserAgents                     = $mockResource.WIASupportedUserAgents
-                BrowserSsoSupportedUserAgents              = $mockResource.BrowserSsoSupportedUserAgents
-                ExtranetLockoutThreshold                   = $mockResource.ExtranetLockoutThreshold
-                ExtranetLockoutThresholdFamiliarLocation   = $mockResource.ExtranetLockoutThresholdFamiliarLocation
-                ExtranetLockoutEnabled                     = $mockResource.EnableExtranetLockout
-                ExtranetLockoutMode                        = $mockResource.ExtranetLockoutMode
-                ExtranetObservationWindow                  = $mockResource.ExtranetObservationWindow
-                GlobalRelyingPartyClaimsIssuancePolicy     = $mockResource.GlobalRelyingPartyClaimsIssuancePolicy
-                ExtranetLockoutRequirePDC                  = $mockResource.ExtranetLockoutRequirePDC
-                LocalAuthenticationTypesEnabled            = $mockResource.EnableLocalAuthenticationTypes
-                RelayStateForIdpInitiatedSignOnEnabled     = $mockResource.EnableRelayStateForIdpInitiatedSignOn
-                BrowserSsoEnabled                          = $mockResource.BrowserSsoEnabled
-                DelegateServiceAdministration              = $mockResource.DelegateServiceAdministration
-                AllowSystemServiceAdministration           = $mockResource.AllowSystemServiceAdministration
-                AllowLocalAdminsServiceAdministration      = $mockResource.AllowLocalAdminsServiceAdministration
-                DeviceUsageWindowInDays                    = $mockResource.DeviceUsageWindowInDays
-                EnableIdpInitiatedSignonPage               = $mockResource.EnableIdpInitiatedSignonPage
-                IgnoreTokenBinding                         = $mockResource.IgnoreTokenBinding
-                EnableOauthDeviceFlow                      = $mockResource.EnableOauthDeviceFlow
-                PromptLoginFederation                      = $mockResource.PromptLoginFederation
-                PromptLoginFallbackAuthenticationType      = $mockResource.PromptLoginFallbackAuthenticationType
-            }
+                $mockGetResourceCommandResult = @{
+                    FederationServiceName                      = $mockResource.FederationServiceName
+                    AcceptableIdentifiers                      = $mockResource.AcceptableIdentifiers
+                    AdditionalErrorPageInfo                    = $mockResource.AdditionalErrorPageInfo
+                    ArtifactDbConnection                       = $mockResource.ArtifactDbConnection
+                    AuthenticationContextOrder                 = $mockResource.AuthenticationContextOrder
+                    AuditLevel                                 = $mockResource.AuditLevel
+                    AutoCertificateRollover                    = $mockResource.AutoCertificateRollover
+                    CertificateCriticalThreshold               = $mockResource.CertificateCriticalThreshold
+                    CertificateDuration                        = $mockResource.CertificateDuration
+                    CertificateGenerationThreshold             = $mockResource.CertificateGenerationThreshold
+                    CertificatePromotionThreshold              = $mockResource.CertificatePromotionThreshold
+                    CertificateRolloverInterval                = $mockResource.CertificateRolloverInterval
+                    CertificateThresholdMultiplier             = $mockResource.CertificateThresholdMultiplier
+                    IntranetUseLocalClaimsProvider             = $mockResource.IntranetUseLocalClaimsProvider
+                    ExtendedProtectionTokenCheck               = $mockResource.ExtendedProtectionTokenCheck
+                    HostName                                   = $mockResource.HostName
+                    HttpPort                                   = $mockResource.HttpPort
+                    HttpsPort                                  = $mockResource.HttpsPort
+                    TlsClientPort                              = $mockResource.TlsClientPort
+                    Identifier                                 = $mockResource.Identifier
+                    IdTokenIssuer                              = $mockResource.IdTokenIssuer
+                    LogLevel                                   = $mockResource.LogLevel
+                    MonitoringInterval                         = $mockResource.MonitoringInterval
+                    NetTcpPort                                 = $mockResource.NetTcpPort
+                    NtlmOnlySupportedClientAtProxy             = $mockResource.NtlmOnlySupportedClientAtProxy
+                    PreventTokenReplays                        = $mockResource.PreventTokenReplays
+                    ProxyTrustTokenLifetime                    = $mockResource.ProxyTrustTokenLifetime
+                    ReplayCacheExpirationInterval              = $mockResource.ReplayCacheExpirationInterval
+                    SignedSamlRequestsRequired                 = $mockResource.SignedSamlRequestsRequired
+                    SamlMessageDeliveryWindow                  = $mockResource.SamlMessageDeliveryWindow
+                    SignSamlAuthnRequests                      = $mockResource.SignSamlAuthnRequests
+                    SsoLifetime                                = $mockResource.SsoLifetime
+                    PersistentSsoLifetimeMins                  = $mockResource.PersistentSsoLifetimeMins
+                    KmsiLifetimeMins                           = $mockResource.KmsiLifetimeMins
+                    PersistentSsoEnabled                       = $mockResource.EnablePersistentSso
+                    PersistentSsoCutoffTime                    = $mockResource.PersistentSsoCutoffTime
+                    KmsiEnabled                                = $mockResource.EnableKmsi
+                    LoopDetectionEnabled                       = $mockResource.EnableLoopDetection
+                    LoopDetectionTimeIntervalInSeconds         = $mockResource.LoopDetectionTimeIntervalInSeconds
+                    LoopDetectionMaximumTokensIssuedInInterval = $mockResource.LoopDetectionMaximumTokensIssuedInInterval
+                    SendClientRequestIdAsQueryStringParameter  = $mockResource.SendClientRequestIdAsQueryStringParameter
+                    WIASupportedUserAgents                     = $mockResource.WIASupportedUserAgents
+                    BrowserSsoSupportedUserAgents              = $mockResource.BrowserSsoSupportedUserAgents
+                    ExtranetLockoutThreshold                   = $mockResource.ExtranetLockoutThreshold
+                    ExtranetLockoutThresholdFamiliarLocation   = $mockResource.ExtranetLockoutThresholdFamiliarLocation
+                    ExtranetLockoutEnabled                     = $mockResource.EnableExtranetLockout
+                    ExtranetLockoutMode                        = $mockResource.ExtranetLockoutMode
+                    ExtranetObservationWindow                  = $mockResource.ExtranetObservationWindow
+                    GlobalRelyingPartyClaimsIssuancePolicy     = $mockResource.GlobalRelyingPartyClaimsIssuancePolicy
+                    ExtranetLockoutRequirePDC                  = $mockResource.ExtranetLockoutRequirePDC
+                    LocalAuthenticationTypesEnabled            = $mockResource.EnableLocalAuthenticationTypes
+                    RelayStateForIdpInitiatedSignOnEnabled     = $mockResource.EnableRelayStateForIdpInitiatedSignOn
+                    BrowserSsoEnabled                          = $mockResource.BrowserSsoEnabled
+                    DelegateServiceAdministration              = $mockResource.DelegateServiceAdministration
+                    AllowSystemServiceAdministration           = $mockResource.AllowSystemServiceAdministration
+                    AllowLocalAdminsServiceAdministration      = $mockResource.AllowLocalAdminsServiceAdministration
+                    DeviceUsageWindowInDays                    = $mockResource.DeviceUsageWindowInDays
+                    EnableIdpInitiatedSignonPage               = $mockResource.EnableIdpInitiatedSignonPage
+                    IgnoreTokenBinding                         = $mockResource.IgnoreTokenBinding
+                    EnableOauthDeviceFlow                      = $mockResource.EnableOauthDeviceFlow
+                    PromptLoginFederation                      = $mockResource.PromptLoginFederation
+                    PromptLoginFallbackAuthenticationType      = $mockResource.PromptLoginFallbackAuthenticationType
+                }
 
-            Mock -CommandName Assert-Module
-            Mock -CommandName Assert-AdfsService
+                Mock -CommandName Assert-Module
+                Mock -CommandName "Assert-$($Global:PSModuleName)Service"
+                Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
 
-            Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
-
-            It 'Should return the correct properties' {
                 $result = Get-TargetResource @getTargetResourceParameters
+            }
 
-                $result.FederationServiceName | Should -Be $mockResource.FederationServiceName
+            foreach ($property in $mockResource.Keys)
+            {
+                It "Should return the correct $property property" {
+                    $result.$property | Should -Be $mockResource.$property
+                }
             }
 
             It 'Should call the expected mocks' {
                 Assert-MockCalled -CommandName Assert-Module `
                     -ParameterFilter { $ModuleName -eq $Global:PSModuleName } `
                     -Exactly -Times 1
-                Assert-MockCalled -CommandName Assert-AdfsService -Exactly -Times 1
+                Assert-MockCalled -CommandName "Assert-$($Global:PSModuleName)Service" -Exactly -Times 1
                 Assert-MockCalled -CommandName $ResourceCommand.Get -Exactly -Times 1
             }
 
@@ -323,85 +327,99 @@ try
         }
 
         Describe "$Global:DSCResourceName\Set-TargetResource" -Tag 'Set' {
-            $setTargetResourceParameters = @{
-                FederationServiceName                      = $mockResource.FederationServiceName
-                AuthenticationContextOrder                 = $mockChangedResource.AuthenticationContextOrder
-                AcceptableIdentifiers                      = $mockChangedResource.AcceptableIdentifiers
-                ArtifactDbConnection                       = $mockChangedResource.ArtifactDbConnection
-                AuditLevel                                 = $mockChangedResource.AuditLevel
-                AutoCertificateRollover                    = $mockChangedResource.AutoCertificateRollover
-                CertificateCriticalThreshold               = $mockChangedResource.CertificateCriticalThreshold
-                CertificateDuration                        = $mockChangedResource.CertificateDuration
-                CertificateGenerationThreshold             = $mockChangedResource.CertificateGenerationThreshold
-                CertificatePromotionThreshold              = $mockChangedResource.CertificatePromotionThreshold
-                CertificateRolloverInterval                = $mockChangedResource.CertificateRolloverInterval
-                CertificateThresholdMultiplier             = $mockChangedResource.CertificateThresholdMultiplier
-                EnableOAuthDeviceFlow                      = $mockChangedResource.EnableOAuthDeviceFlow
-                HostName                                   = $mockChangedResource.HostName
-                HttpPort                                   = $mockChangedResource.HttpPort
-                HttpsPort                                  = $mockChangedResource.HttpsPort
-                IntranetUseLocalClaimsProvider             = $mockChangedResource.IntranetUseLocalClaimsProvider
-                TlsClientPort                              = $mockChangedResource.TlsClientPort
-                Identifier                                 = $mockChangedResource.Identifier
-                LogLevel                                   = $mockChangedResource.LogLevel
-                MonitoringInterval                         = $mockChangedResource.MonitoringInterval
-                NetTcpPort                                 = $mockChangedResource.NetTcpPort
-                NtlmOnlySupportedClientAtProxy             = $mockChangedResource.NtlmOnlySupportedClientAtProxy
-                PreventTokenReplays                        = $mockChangedResource.PreventTokenReplays
-                ExtendedProtectionTokenCheck               = $mockChangedResource.ExtendedProtectionTokenCheck
-                ProxyTrustTokenLifetime                    = $mockChangedResource.ProxyTrustTokenLifetime
-                ReplayCacheExpirationInterval              = $mockChangedResource.ReplayCacheExpirationInterval
-                SignedSamlRequestsRequired                 = $mockChangedResource.SignedSamlRequestsRequired
-                SamlMessageDeliveryWindow                  = $mockChangedResource.SamlMessageDeliveryWindow
-                SignSamlAuthnRequests                      = $mockChangedResource.SignSamlAuthnRequests
-                SsoLifetime                                = $mockChangedResource.SsoLifetime
-                PersistentSsoLifetimeMins                  = $mockChangedResource.PersistentSsoLifetimeMins
-                KmsiLifetimeMins                           = $mockChangedResource.KmsiLifetimeMins
-                EnablePersistentSso                        = $mockChangedResource.EnablePersistentSso
-                PersistentSsoCutoffTime                    = $mockChangedResource.PersistentSsoCutoffTime
-                EnableKmsi                                 = $mockChangedResource.EnableKmsi
-                WIASupportedUserAgents                     = $mockChangedResource.WIASupportedUserAgents
-                BrowserSsoSupportedUserAgents              = $mockChangedResource.BrowserSsoSupportedUserAgents
-                BrowserSsoEnabled                          = $mockChangedResource.BrowserSsoEnabled
-                LoopDetectionTimeIntervalInSeconds         = $mockChangedResource.LoopDetectionTimeIntervalInSeconds
-                LoopDetectionMaximumTokensIssuedInInterval = $mockChangedResource.LoopDetectionMaximumTokensIssuedInInterval
-                EnableLoopDetection                        = $mockChangedResource.EnableLoopDetection
-                ExtranetLockoutThreshold                   = $mockChangedResource.ExtranetLockoutThreshold
-                EnableExtranetLockout                      = $mockChangedResource.EnableExtranetLockout
-                ExtranetObservationWindow                  = $mockChangedResource.ExtranetObservationWindow
-                ExtranetLockoutRequirePDC                  = $mockChangedResource.ExtranetLockoutRequirePDC
-                SendClientRequestIdAsQueryStringParameter  = $mockChangedResource.SendClientRequestIdAsQueryStringParameter
-                GlobalRelyingPartyClaimsIssuancePolicy     = $mockChangedResource.GlobalRelyingPartyClaimsIssuancePolicy
-                EnableLocalAuthenticationTypes             = $mockChangedResource.EnableLocalAuthenticationTypes
-                EnableRelayStateForIdpInitiatedSignOn      = $mockChangedResource.EnableRelayStateForIdpInitiatedSignOn
-                DelegateServiceAdministration              = $mockChangedResource.DelegateServiceAdministration
-                AllowSystemServiceAdministration           = $mockChangedResource.AllowSystemServiceAdministration
-                AllowLocalAdminsServiceAdministration      = $mockChangedResource.AllowLocalAdminsServiceAdministration
-                DeviceUsageWindowInDays                    = $mockChangedResource.DeviceUsageWindowInDays
-                EnableIdPInitiatedSignonPage               = $mockChangedResource.EnableIdPInitiatedSignonPage
-                IgnoreTokenBinding                         = $mockChangedResource.IgnoreTokenBinding
-                IdTokenIssuer                              = $mockChangedResource.IdTokenIssuer
-                PromptLoginFederation                      = $mockChangedResource.PromptLoginFederation
-                PromptLoginFallbackAuthenticationType      = $mockChangedResource.PromptLoginFallbackAuthenticationType
+            BeforeAll {
+                $setTargetResourceParameters = @{
+                    FederationServiceName                      = $mockResource.FederationServiceName
+                    AuthenticationContextOrder                 = $mockChangedResource.AuthenticationContextOrder
+                    AcceptableIdentifiers                      = $mockChangedResource.AcceptableIdentifiers
+                    ArtifactDbConnection                       = $mockChangedResource.ArtifactDbConnection
+                    AuditLevel                                 = $mockChangedResource.AuditLevel
+                    AutoCertificateRollover                    = $mockChangedResource.AutoCertificateRollover
+                    CertificateCriticalThreshold               = $mockChangedResource.CertificateCriticalThreshold
+                    CertificateDuration                        = $mockChangedResource.CertificateDuration
+                    CertificateGenerationThreshold             = $mockChangedResource.CertificateGenerationThreshold
+                    CertificatePromotionThreshold              = $mockChangedResource.CertificatePromotionThreshold
+                    CertificateRolloverInterval                = $mockChangedResource.CertificateRolloverInterval
+                    CertificateThresholdMultiplier             = $mockChangedResource.CertificateThresholdMultiplier
+                    EnableOAuthDeviceFlow                      = $mockChangedResource.EnableOAuthDeviceFlow
+                    HostName                                   = $mockChangedResource.HostName
+                    HttpPort                                   = $mockChangedResource.HttpPort
+                    HttpsPort                                  = $mockChangedResource.HttpsPort
+                    IntranetUseLocalClaimsProvider             = $mockChangedResource.IntranetUseLocalClaimsProvider
+                    TlsClientPort                              = $mockChangedResource.TlsClientPort
+                    Identifier                                 = $mockChangedResource.Identifier
+                    LogLevel                                   = $mockChangedResource.LogLevel
+                    MonitoringInterval                         = $mockChangedResource.MonitoringInterval
+                    NetTcpPort                                 = $mockChangedResource.NetTcpPort
+                    NtlmOnlySupportedClientAtProxy             = $mockChangedResource.NtlmOnlySupportedClientAtProxy
+                    PreventTokenReplays                        = $mockChangedResource.PreventTokenReplays
+                    ExtendedProtectionTokenCheck               = $mockChangedResource.ExtendedProtectionTokenCheck
+                    ProxyTrustTokenLifetime                    = $mockChangedResource.ProxyTrustTokenLifetime
+                    ReplayCacheExpirationInterval              = $mockChangedResource.ReplayCacheExpirationInterval
+                    SignedSamlRequestsRequired                 = $mockChangedResource.SignedSamlRequestsRequired
+                    SamlMessageDeliveryWindow                  = $mockChangedResource.SamlMessageDeliveryWindow
+                    SignSamlAuthnRequests                      = $mockChangedResource.SignSamlAuthnRequests
+                    SsoLifetime                                = $mockChangedResource.SsoLifetime
+                    PersistentSsoLifetimeMins                  = $mockChangedResource.PersistentSsoLifetimeMins
+                    KmsiLifetimeMins                           = $mockChangedResource.KmsiLifetimeMins
+                    EnablePersistentSso                        = $mockChangedResource.EnablePersistentSso
+                    PersistentSsoCutoffTime                    = $mockChangedResource.PersistentSsoCutoffTime
+                    EnableKmsi                                 = $mockChangedResource.EnableKmsi
+                    WIASupportedUserAgents                     = $mockChangedResource.WIASupportedUserAgents
+                    BrowserSsoSupportedUserAgents              = $mockChangedResource.BrowserSsoSupportedUserAgents
+                    BrowserSsoEnabled                          = $mockChangedResource.BrowserSsoEnabled
+                    LoopDetectionTimeIntervalInSeconds         = $mockChangedResource.LoopDetectionTimeIntervalInSeconds
+                    LoopDetectionMaximumTokensIssuedInInterval = $mockChangedResource.LoopDetectionMaximumTokensIssuedInInterval
+                    EnableLoopDetection                        = $mockChangedResource.EnableLoopDetection
+                    ExtranetLockoutThreshold                   = $mockChangedResource.ExtranetLockoutThreshold
+                    EnableExtranetLockout                      = $mockChangedResource.EnableExtranetLockout
+                    ExtranetObservationWindow                  = $mockChangedResource.ExtranetObservationWindow
+                    ExtranetLockoutRequirePDC                  = $mockChangedResource.ExtranetLockoutRequirePDC
+                    SendClientRequestIdAsQueryStringParameter  = $mockChangedResource.SendClientRequestIdAsQueryStringParameter
+                    GlobalRelyingPartyClaimsIssuancePolicy     = $mockChangedResource.GlobalRelyingPartyClaimsIssuancePolicy
+                    EnableLocalAuthenticationTypes             = $mockChangedResource.EnableLocalAuthenticationTypes
+                    EnableRelayStateForIdpInitiatedSignOn      = $mockChangedResource.EnableRelayStateForIdpInitiatedSignOn
+                    DelegateServiceAdministration              = $mockChangedResource.DelegateServiceAdministration
+                    AllowSystemServiceAdministration           = $mockChangedResource.AllowSystemServiceAdministration
+                    AllowLocalAdminsServiceAdministration      = $mockChangedResource.AllowLocalAdminsServiceAdministration
+                    DeviceUsageWindowInDays                    = $mockChangedResource.DeviceUsageWindowInDays
+                    EnableIdPInitiatedSignonPage               = $mockChangedResource.EnableIdPInitiatedSignonPage
+                    IgnoreTokenBinding                         = $mockChangedResource.IgnoreTokenBinding
+                    IdTokenIssuer                              = $mockChangedResource.IdTokenIssuer
+                    PromptLoginFederation                      = $mockChangedResource.PromptLoginFederation
+                    PromptLoginFallbackAuthenticationType      = $mockChangedResource.PromptLoginFallbackAuthenticationType
+                }
+
+                Mock -CommandName $ResourceCommand.Set
+                Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceResult }
             }
 
-            Mock -CommandName $ResourceCommand.Set
+            foreach ($property in $mockChangedResource.Keys)
+            {
+                Context "When $property has changed" {
+                    BeforeAll {
+                        $setTargetResourceParametersChangedProperty = $setTargetResourceParameters.Clone()
+                        $setTargetResourceParametersChangedProperty.$property = $mockChangedResource.$property
+                    }
 
-            Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceResult }
+                    It 'Should not throw' {
+                        { Set-TargetResource @setTargetResourceParametersChangedProperty } | Should -Not -Throw
+                    }
 
-            It 'Should not throw' {
-                { Set-TargetResource @setTargetResourceParameters } | Should -Not -Throw
-            }
-
-            It 'Should call the expected mocks' {
-                Assert-MockCalled -CommandName Get-TargetResource `
-                    -ParameterFilter { $FederationServiceName -eq $setTargetResourceParameters.FederationServiceName } `
-                    -Exactly -Times 1
-                Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 1
+                    It 'Should call the correct mocks' {
+                        Assert-MockCalled -CommandName Get-TargetResource `
+                            -ParameterFilter { `
+                                $FederationServiceName -eq $setTargetResourceParametersChangedProperty.FederationServiceName } `
+                            -Exactly -Times 1
+                        Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 1
+                    }
+                }
             }
 
             Context 'When Set-AdfsProperties throws an exception' {
-                Mock -CommandName Set-AdfsProperties -MockWith { Throw 'Error' }
+                BeforeAll {
+                    Mock -CommandName Set-AdfsProperties -MockWith { Throw 'Error' }
+                }
 
                 It 'Should throw the correct exception' {
                     { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
@@ -411,11 +429,13 @@ try
         }
 
         Describe "$Global:DSCResourceName\Test-TargetResource" -Tag 'Test' {
-            $testTargetResourceParameters = @{
-                FederationServiceName = $mockResource.FederationServiceName
-            }
+            BeforeAll {
+                $testTargetResourceParameters = @{
+                    FederationServiceName = $mockResource.FederationServiceName
+                }
 
-            Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceResult }
+                Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceResult }
+            }
 
             It 'Should not throw' {
                 { Test-TargetResource @testTargetResourceParameters } | Should -Not -Throw
@@ -437,8 +457,10 @@ try
             foreach ($property in $mockChangedResource.Keys)
             {
                 Context "When the $property resource property is not in the desired state" {
-                    $testTargetResourceNotInDesiredStateParameters = $testTargetResourceParameters.Clone()
-                    $testTargetResourceNotInDesiredStateParameters.$property = $mockChangedResource.$property
+                    BeforeAll {
+                        $testTargetResourceNotInDesiredStateParameters = $testTargetResourceParameters.Clone()
+                        $testTargetResourceNotInDesiredStateParameters.$property = $mockChangedResource.$property
+                    }
 
                     It 'Should return $false' {
                         Test-TargetResource @testTargetResourceNotInDesiredStateParameters | Should -Be $false
