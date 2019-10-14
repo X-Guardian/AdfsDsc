@@ -53,23 +53,24 @@ try
         }
 
         Describe "$Global:DSCResourceName\Get-TargetResource" -Tag 'Get' {
-            $getTargetResourceParameters = @{
-                CertificateType  = $mockResource.CertificateType
-                ThumbPrint       = $mockResource.Thumbprint
-            }
-
-            $mockGetResourceCommandResult = @(
-                @{
-                    CertificateHash = $mockResource.Thumbprint
+            BeforeAll {
+                $getTargetResourceParameters = @{
+                    CertificateType = $mockResource.CertificateType
+                    ThumbPrint      = $mockResource.Thumbprint
                 }
-            )
 
-            Mock -CommandName Assert-Module
-            Mock -CommandName Assert-AdfsService
+                $mockGetResourceCommandResult = @(
+                    @{
+                        CertificateHash = $mockResource.Thumbprint
+                    }
+                )
 
-            Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
+                Mock -CommandName Assert-Module
+                Mock -CommandName "Assert-$($Global:PSModuleName)Service"
+                Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
 
-            $result = Get-TargetResource @getTargetResourceParameters
+                $result = Get-TargetResource @getTargetResourceParameters
+            }
 
             foreach ($property in $mockResource.Keys)
             {
@@ -82,12 +83,12 @@ try
                 Assert-MockCalled -CommandName Assert-Module `
                     -ParameterFilter { $ModuleName -eq $Global:PSModuleName } `
                     -Exactly -Times 1
-                Assert-MockCalled -CommandName Assert-AdfsService -Exactly -Times 1
+                Assert-MockCalled -CommandName "Assert-$($Global:PSModuleName)Service" -Exactly -Times 1
                 Assert-MockCalled -CommandName $ResourceCommand.Get
             }
 
             Context 'When Get-AdfsSslCertificate throws an exception' {
-                Mock -CommandName Get-AdfsSslCertificate -MockWith { Throw 'Error' }
+                Mock -CommandName $ResourceCommand.Get -MockWith { Throw 'Error' }
 
                 It 'Should throw the correct exception' {
                     { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
@@ -97,47 +98,64 @@ try
         }
 
         Describe "$Global:DSCResourceName\Set-TargetResource" -Tag 'Set' {
-            $setTargetResourceParameters = @{
-                CertificateType  = $mockResource.CertificateType
-                Thumbprint       = $mockChangedResource.Thumbprint
-                RemoteCredential = $mockCredential
+            BeforeAll {
+                $setTargetResourceParameters = @{
+                    CertificateType  = $mockResource.CertificateType
+                    Thumbprint       = $mockResource.Thumbprint
+                    RemoteCredential = $mockCredential
+                }
+
+                Mock -CommandName $ResourceCommand.Set
+                Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceResult }
             }
 
-            Mock -CommandName $ResourceCommand.Set
+            foreach ($property in $mockChangedResource.Keys)
+            {
+                Context "When $property has changed" {
+                    BeforeAll {
+                        $setTargetResourceParametersChangedProperty = $setTargetResourceParameters.Clone()
+                        $setTargetResourceParametersChangedProperty.$property = $mockChangedResource.$property
+                    }
 
-            Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceResult }
+                    It 'Should not throw' {
+                        { Set-TargetResource @setTargetResourceParametersChangedProperty } | Should -Not -Throw
+                    }
 
-            It 'Should not throw' {
-                { Set-TargetResource @setTargetResourceParameters } | Should -Not -Throw
-            }
-
-            It 'Should call the expected mocks' {
-                Assert-MockCalled -CommandName Get-TargetResource `
-                    -ParameterFilter { `
-                        $CertificateType -eq $setTargetResourceParameters.CertificateType -and `
-                        $Thumbprint -eq $setTargetResourceParameters.Thumbprint } `
-                    -Exactly -Times 1
-                Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 1
+                    It 'Should call the correct mocks' {
+                        Assert-MockCalled -CommandName Get-TargetResource `
+                            -ParameterFilter { `
+                                $CertificateType -eq $setTargetResourceParametersChangedProperty.CertificateType } `
+                            -Exactly -Times 1
+                        Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 1
+                    }
+                }
             }
 
             Context 'When Set-AdfsSslCertificate throws an exception' {
-                Mock -CommandName Set-AdfsSslCertificate -MockWith { Throw 'Error' }
+                BeforeAll {
+                    $setTargetResourceParametersChangedProperty = $setTargetResourceParameters.Clone()
+                    $setTargetResourceParametersChangedProperty.Thumbprint = $mockChangedResource.Thumbprint
+
+                    Mock -CommandName $ResourceCommand.Set -MockWith { Throw 'Error' }
+                }
 
                 It 'Should throw the correct exception' {
-                    { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
+                    { Set-TargetResource @setTargetResourceParametersChangedProperty } | Should -Throw (
                         $script:localizedData.SettingResourceError -f $setTargetResourceParameters.CertificateType )
                 }
             }
         }
 
         Describe "$Global:DSCResourceName\Test-TargetResource" -Tag 'Test' {
-            $testTargetResourceParameters = @{
-                CertificateType  = $mockResource.CertificateType
-                ThumbPrint       = $mockResource.Thumbprint
-                RemoteCredential = $mockCredential
-            }
+            BeforeAll {
+                $testTargetResourceParameters = @{
+                    CertificateType  = $mockResource.CertificateType
+                    ThumbPrint       = $mockResource.Thumbprint
+                    RemoteCredential = $mockCredential
+                }
 
-            Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceResult }
+                Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceResult }
+            }
 
             It 'Should not throw' {
                 { Test-TargetResource @testTargetResourceParameters } | Should -Not -Throw
@@ -160,8 +178,10 @@ try
             foreach ($property in $mockChangedResource.Keys)
             {
                 Context "When the $property resource property is not in the desired state" {
-                    $testTargetResourceNotInDesiredStateParameters = $testTargetResourceParameters.Clone()
-                    $testTargetResourceNotInDesiredStateParameters.$property = $mockChangedResource.$property
+                    BeforeAll {
+                        $testTargetResourceNotInDesiredStateParameters = $testTargetResourceParameters.Clone()
+                        $testTargetResourceNotInDesiredStateParameters.$property = $mockChangedResource.$property
+                    }
 
                     It 'Should return $false' {
                         Test-TargetResource @testTargetResourceNotInDesiredStateParameters | Should -Be $false
