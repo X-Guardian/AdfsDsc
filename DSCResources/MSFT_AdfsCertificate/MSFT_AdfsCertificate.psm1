@@ -117,23 +117,26 @@ function Set-TargetResource
         Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $Parameters |
             Where-Object -Property InDesiredState -eq $false)
 
-    $SetParameters = @{ }
+    $setParameters = @{ }
     foreach ($property in $propertiesNotInDesiredState)
     {
         Write-Verbose -Message (
             $script:localizedData.SettingResourceMessage -f
             $CertificateType, $property.ParameterName, ($property.Expected -join ', '))
-        $SetParameters.add($property.ParameterName, $property.Expected)
+        $setParameters.add($property.ParameterName, $property.Expected)
     }
 
-    try
+    if ($setParameters.Count -gt 0)
     {
-        Set-AdfsCertificate -CertificateType $CertificateType @SetParameters
-    }
-    catch
-    {
-        $errorMessage = $script:localizedData.SettingResourceError -f $CertificateType
-        New-InvalidOperationException -Message $errorMessage -Error $_
+        try
+        {
+            Set-AdfsCertificate -CertificateType $CertificateType @setParameters
+        }
+        catch
+        {
+            $errorMessage = $script:localizedData.SettingResourceError -f $CertificateType
+            New-InvalidOperationException -Message $errorMessage -Error $_
+        }
     }
 }
 
