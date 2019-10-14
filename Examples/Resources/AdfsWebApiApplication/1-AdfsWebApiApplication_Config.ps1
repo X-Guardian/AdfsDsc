@@ -27,6 +27,7 @@ $LdapClaimsTransformRule = @'
 @RuleName = "LDAP Email Address"
 c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"]
  => issue(store = "Active Directory", types = ("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"), query = ";mail;{0}", param = c.Value);
+
 '@
 
 $EmitGroupClaimsTransformRule = @'
@@ -51,7 +52,7 @@ Configuration AdfsWebApiApplication_Config
             Identifier                           = 'e7bfb303-c5f6-4028-a360-b6293d41338c'
             Description                          = 'App1 Web Api'
             AccessControlPolicyName              = 'Permit everyone'
-            IssuanceTransformRules               = $LdapClaimsTransformRule, $EmitGroupClaimsTransformRule
+            IssuanceTransformRules               = $LdapClaimsTransformRule + $EmitGroupClaimsTransformRule
             AllowedAuthenticationClassReferences = ''
             ClaimsProviderName                   = ''
             IssuanceAuthorizationRules           = ''
