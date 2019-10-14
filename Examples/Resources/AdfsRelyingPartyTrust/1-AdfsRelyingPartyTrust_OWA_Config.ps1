@@ -17,7 +17,7 @@
 
 #Requires -module AdfsDsc
 
-Configuration OwaRelyingPartyTrust_Config
+Configuration AdfsRelyingPartyTrust_OWA_Config
 {
 
     Import-DscResource -Module AdfsDsc
@@ -37,7 +37,7 @@ Configuration OwaRelyingPartyTrust_Config
     }
 }
 
-$ConfigData = @{
+$ConfigurationData = @{
     AllNodes = @(
         @{
             IssuanceAuthorizationRules = @'
