@@ -132,23 +132,23 @@ function Set-TargetResource
         Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $Parameters |
             Where-Object -Property InDesiredState -eq $false)
 
-    $SetParameters = @{ }
+    $setParameters = @{ }
     foreach ($property in $propertiesNotInDesiredState)
     {
         Write-Verbose -Message (
             $script:localizedData.SettingResourceMessage -f
             $CertificateType, $property.ParameterName, ($property.Expected -join ', '))
-        $SetParameters.add($property.ParameterName, $property.Expected)
+        $setParameters.add($property.ParameterName, $property.Expected)
     }
 
     if ($PSBoundParameters.ContainsKey('RemoteCredential'))
     {
-        $SetParameters.Add('RemoteCredential',$RemoteCredential)
+        $setParameters.Add('RemoteCredential',$RemoteCredential)
     }
 
     try
     {
-        Set-AdfsSslCertificate @SetParameters
+        Set-AdfsSslCertificate @setParameters
     }
     catch
     {
