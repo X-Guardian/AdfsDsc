@@ -135,12 +135,12 @@ function Set-TargetResource
         $ServerRoleIdentifier,
 
         [Parameter()]
-        [System.String[]]
-        $ScopeNames,
-
-        [Parameter()]
         [System.String]
         $Description,
+
+        [Parameter()]
+        [System.String[]]
+        $ScopeNames,
 
         [Parameter()]
         [ValidateSet('Present', 'Absent')]
@@ -149,11 +149,11 @@ function Set-TargetResource
     )
 
     # Remove any parameters not used in Splats
-    $Parameters = $PSBoundParameters
-    $Parameters.Remove('Ensure')
-    $Parameters.Remove('Verbose')
-    $Parameters.Remove('ClientRoleIdentifier')
-    $Parameters.Remove('ServerRoleIdentifier')
+    $parameters = $PSBoundParameters
+    $parameters.Remove('Ensure')
+    $parameters.Remove('Verbose')
+    $parameters.Remove('ClientRoleIdentifier')
+    $parameters.Remove('ServerRoleIdentifier')
 
     $GetTargetResourceParms = @{
         ClientRoleIdentifier = $ClientRoleIdentifier
@@ -168,29 +168,22 @@ function Set-TargetResource
         {
             # Resource exists
             $propertiesNotInDesiredState = (
-                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
+                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters |
                     Where-Object -Property InDesiredState -eq $false)
 
-            $SetParameters = @{ }
+            $setParameters = @{ }
             foreach ($property in $propertiesNotInDesiredState)
             {
                 Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f
                     $ClientRoleIdentifier, $ServerRoleIdentifier, $property.ParameterName, `
                     ($property.Expected -join ', '))
-                $SetParameters.add($property.ParameterName, $property.Expected)
-            }
-
-            if ($ServerRoleIdentifier -ne $targetResource.ServerRoleIdentifier)
-            {
-                Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f
-                    $ClientRoleIdentifier, $ServerRoleIdentifier, 'ServerRoleIdentifier', `
-                    ($ServerRoleIdentifier -join ', '))
+                $setParameters.add($property.ParameterName, $property.Expected)
             }
 
             Set-AdfsApplicationPermission `
                 -TargetClientRoleIdentifier $ClientRoleIdentifier `
                 -TargetServerRoleIdentifier $ServerRoleIdentifier `
-                @SetParameters
+                @setParameters
         }
         else
         {
@@ -200,7 +193,7 @@ function Set-TargetResource
             Grant-AdfsApplicationPermission `
                 -ClientRoleIdentifier $ClientRoleIdentifier `
                 -ServerRoleIdentifier $ServerRoleIdentifier `
-                @Parameters
+                @parameters
         }
     }
     else
@@ -244,12 +237,12 @@ function Test-TargetResource
         $ServerRoleIdentifier,
 
         [Parameter()]
-        [System.String[]]
-        $ScopeNames,
-
-        [Parameter()]
         [System.String]
         $Description,
+
+        [Parameter()]
+        [System.String[]]
+        $ScopeNames,
 
         [Parameter()]
         [ValidateSet('Present', 'Absent')]
