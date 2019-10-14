@@ -31,19 +31,35 @@ try
             Remove = 'Remove-AdfsRelyingPartyTrust'
         }
 
+        $mockClaim = @{
+            ClaimType = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'
+            ShortName = 'email'
+        }
+
+        $mockChangedClaim = @{
+            ClaimType = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn'
+            ShortName = 'upn'
+        }
+
+        $mockClaimAccepted = @{
+            ClaimType = $mockClaim.ClaimType
+        }
+
+        $mockChangedClaimAccepted = @{
+            ClaimType = $mockChangedClaim.ClaimType
+        }
+
         $mockResource = @{
             Name                                 = 'Outlook Web App'
             AdditionalAuthenticationRules        = ''
             AdditionalWSFedEndpoint              = ''
             AutoUpdateEnabled                    = $true
-            ClaimAccepted                        = ''
+            ClaimAccepted                        = $mockClaim.ShortName
             ClaimsProviderName                   = ''
             DelegationAuthorizationRules         = ''
             EnableJWT                            = $true
-            Enabled                              = $true
             EncryptClaims                        = $true
             EncryptedNameIdRequired              = $true
-            EncryptionCertificate                = ''
             EncryptionCertificateRevocationCheck = 'CheckEndCert'
             Identifier                           = 'https://mail.contoso.com/owa'
             ImpersonationAuthorizationRules      = ''
@@ -54,8 +70,6 @@ try
             NotBeforeSkew                        = 1
             Notes                                = 'This is a trust for https://mail.contoso.com/owa'
             ProtocolProfile                      = 'SAML'
-            RequestSigningCertificate            = ''
-            SamlEndpoint                         = ''
             SamlResponseSignature                = 'AssertionOnly'
             SignatureAlgorithm                   = 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'
             SignedSamlRequestsRequired           = $true
@@ -73,11 +87,9 @@ try
             ClaimAccepted                        = @()
             ClaimsProviderName                   = @()
             DelegationAuthorizationRules         = $null
-            Enabled                              = $false
             EnableJWT                            = $false
             EncryptClaims                        = $false
             EncryptedNameIdRequired              = $false
-            EncryptionCertificate                = $null
             EncryptionCertificateRevocationCheck = 'CheckEndCert'
             Identifier                           = @()
             ImpersonationAuthorizationRules      = $null
@@ -88,8 +100,6 @@ try
             NotBeforeSkew                        = 0
             Notes                                = $null
             ProtocolProfile                      = 'SAML'
-            RequestSigningCertificate            = @()
-            SamlEndpoint                         = @()
             SamlResponseSignature                = 'AssertionOnly'
             SignatureAlgorithm                   = 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'
             SignedSamlRequestsRequired           = $false
@@ -103,14 +113,12 @@ try
             AdditionalAuthenticationRules        = 'changed'
             AdditionalWSFedEndpoint              = 'changed'
             AutoUpdateEnabled                    = $false
-            ClaimAccepted                        = 'changed'
+            ClaimAccepted                        = $mockChangedClaimAccepted
             ClaimsProviderName                   = 'changed'
             DelegationAuthorizationRules         = 'changed'
             EnableJWT                            = $false
-            Enabled                              = $false
             EncryptClaims                        = $false
             EncryptedNameIdRequired              = $false
-            EncryptionCertificate                = 'changed'
             EncryptionCertificateRevocationCheck = 'CheckChain'
             Identifier                           = 'https://mail.fabrikam.com/owa'
             ImpersonationAuthorizationRules      = 'changed'
@@ -121,8 +129,6 @@ try
             NotBeforeSkew                        = 0
             Notes                                = 'This is a trust for https://mail.fabrikam.com/owa'
             ProtocolProfile                      = 'WsFederation'
-            RequestSigningCertificate            = 'changed'
-            SamlEndpoint                         = 'changed'
             SamlResponseSignature                = 'MessageOnly'
             SignatureAlgorithm                   = 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'
             SignedSamlRequestsRequired           = $false
@@ -133,7 +139,6 @@ try
 
         $mockGetTargetResourceResult = @{
             Name                                 = $mockResource.Name
-            Enabled                              = $mockResource.Enabled
             Notes                                = $mockResource.Notes
             WSFedEndpoint                        = $mockResource.WSFedEndpoint
             Identifier                           = $mockResource.Identifier
@@ -148,15 +153,12 @@ try
             EnableJWT                            = $mockResource.EnableJWT
             EncryptClaims                        = $mockResource.EncryptClaims
             EncryptedNameIdRequired              = $mockResource.EncryptedNameIdRequired
-            EncryptionCertificate                = $mockResource.EncryptionCertificate
             EncryptionCertificateRevocationCheck = $mockResource.EncryptionCertificateRevocationCheck
             ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
             MetadataUrl                          = $mockResource.MetadataUrl
             MonitoringEnabled                    = $mockResource.MonitoringEnabled
             NotBeforeSkew                        = $mockResource.NotBeforeSkew
             ProtocolProfile                      = $mockResource.ProtocolProfile
-            RequestSigningCertificate            = $mockResource.RequestSigningCertificate
-            SamlEndpoint                         = $mockResource.SamlEndpoint
             SamlResponseSignature                = $mockResource.SamlResponseSignature
             SignatureAlgorithm                   = $mockResource.SignatureAlgorithm
             SignedSamlRequestsRequired           = $mockResource.SignedSamlRequestsRequired
@@ -170,6 +172,8 @@ try
         $mockGetTargetResourceAbsentResult = $mockGetTargetResourceResult.Clone()
         $mockGetTargetResourceAbsentResult.Ensure = 'Absent'
 
+        $mockGetAdfsClaimDescriptionResult = New-MockObject -Type Microsoft.IdentityServer.Management.Resources.ClaimDescription
+
         Describe "$Global:DSCResourceName\Get-TargetResource" -Tag 'Get' {
             $getTargetResourceParameters = @{
                 Name = $mockResource.Name
@@ -177,7 +181,6 @@ try
 
             $mockGetResourceCommandResult = @{
                 Name                                 = $mockResource.Name
-                Enabled                              = $mockResource.Enabled
                 Notes                                = $mockResource.Notes
                 WSFedEndpoint                        = $mockResource.WSFedEndpoint
                 Identifier                           = $mockResource.Identifier
@@ -186,21 +189,18 @@ try
                 AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
                 AdditionalWSFedEndpoint              = $mockResource.AdditionalWSFedEndpoint
                 AutoUpdateEnabled                    = $mockResource.AutoUpdateEnabled
-                ClaimsAccepted                       = $mockResource.ClaimAccepted
+                ClaimsAccepted                       = $mockClaimAccepted
                 ClaimsProviderName                   = $mockResource.ClaimsProviderName
                 DelegationAuthorizationRules         = $mockResource.DelegationAuthorizationRules
                 EnableJWT                            = $mockResource.EnableJWT
                 EncryptClaims                        = $mockResource.EncryptClaims
                 EncryptedNameIdRequired              = $mockResource.EncryptedNameIdRequired
-                EncryptionCertificate                = $mockResource.EncryptionCertificate
                 EncryptionCertificateRevocationCheck = $mockResource.EncryptionCertificateRevocationCheck
                 ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
                 MetadataUrl                          = $mockResource.MetadataUrl
                 MonitoringEnabled                    = $mockResource.MonitoringEnabled
                 NotBeforeSkew                        = $mockResource.NotBeforeSkew
                 ProtocolProfile                      = $mockResource.ProtocolProfile
-                RequestSigningCertificate            = $mockResource.RequestSigningCertificate
-                SamlEndpoints                        = $mockResource.SamlEndpoint
                 SamlResponseSignature                = $mockResource.SamlResponseSignature
                 SignatureAlgorithm                   = $mockResource.SignatureAlgorithm
                 SignedSamlRequestsRequired           = $mockResource.SignedSamlRequestsRequired
@@ -211,6 +211,7 @@ try
             Mock -CommandName Assert-Module
             Mock -CommandName Assert-Command
             Mock -CommandName Assert-AdfsService
+            Mock -CommandName Get-AdfsClaimDescription -MockWith { $mockGetAdfsClaimDescriptionResult }
 
             Context 'When the Resource is Present' {
                 Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
@@ -264,35 +265,30 @@ try
         Describe "$Global:DSCResourceName\Set-TargetResource" -Tag 'Set' {
             $setTargetResourceParameters = @{
                 Name                                 = $mockResource.Name
-                Enabled                              = $mockChangedResource.Enabled
-                Notes                                = $mockChangedResource.Notes
-                WSFedEndpoint                        = $mockChangedResource.WSFedEndpoint
-                Identifier                           = $mockChangedResource.Identifier
-                IssuanceTransformRules               = $mockChangedResource.IssuanceTransformRules
-                IssuanceAuthorizationRules           = $mockChangedResource.IssuanceAuthorizationRules
-                AdditionalAuthenticationRules        = $mockChangedResource.AdditionalAuthenticationRules
-                AdditionalWSFedEndpoint              = $mockChangedResource.AdditionalWSFedEndpoint
-                AutoUpdateEnabled                    = $mockChangedResource.AutoUpdateEnabled
-                ClaimAccepted                        = $mockChangedResource.ClaimAccepted
-                ClaimsProviderName                   = $mockChangedResource.ClaimsProviderName
-                DelegationAuthorizationRules         = $mockChangedResource.DelegationAuthorizationRules
-                EnableJWT                            = $mockChangedResource.EnableJWT
-                EncryptClaims                        = $mockChangedResource.EncryptClaims
-                EncryptedNameIdRequired              = $mockChangedResource.EncryptedNameIdRequired
-                EncryptionCertificate                = $mockChangedResource.EncryptionCertificate
-                EncryptionCertificateRevocationCheck = $mockChangedResource.EncryptionCertificateRevocationCheck
-                ImpersonationAuthorizationRules      = $mockChangedResource.ImpersonationAuthorizationRules
-                MetadataUrl                          = $mockChangedResource.MetadataUrl
-                MonitoringEnabled                    = $mockChangedResource.MonitoringEnabled
-                NotBeforeSkew                        = $mockChangedResource.NotBeforeSkew
-                ProtocolProfile                      = $mockChangedResource.ProtocolProfile
-                RequestSigningCertificate            = $mockChangedResource.RequestSigningCertificate
-                SamlEndpoint                         = $mockChangedResource.SamlEndpoint
-                SamlResponseSignature                = $mockChangedResource.SamlResponseSignature
-                SignatureAlgorithm                   = $mockChangedResource.SignatureAlgorithm
-                SignedSamlRequestsRequired           = $mockChangedResource.SignedSamlRequestsRequired
-                SigningCertificateRevocationCheck    = $mockChangedResource.SigningCertificateRevocationCheck
-                TokenLifetime                        = $mockChangedResource.TokenLifetime
+                Notes                                = $mockResource.Notes
+                WSFedEndpoint                        = $mockResource.WSFedEndpoint
+                Identifier                           = $mockResource.Identifier
+                IssuanceTransformRules               = $mockResource.IssuanceTransformRules
+                IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
+                AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
+                AdditionalWSFedEndpoint              = $mockResource.AdditionalWSFedEndpoint
+                AutoUpdateEnabled                    = $mockResource.AutoUpdateEnabled
+                ClaimAccepted                        = $mockResource.ClaimAccepted
+                ClaimsProviderName                   = $mockResource.ClaimsProviderName
+                DelegationAuthorizationRules         = $mockResource.DelegationAuthorizationRules
+                EnableJWT                            = $mockResource.EnableJWT
+                EncryptClaims                        = $mockResource.EncryptClaims
+                EncryptedNameIdRequired              = $mockResource.EncryptedNameIdRequired
+                EncryptionCertificateRevocationCheck = $mockResource.EncryptionCertificateRevocationCheck
+                ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
+                MonitoringEnabled                    = $mockResource.MonitoringEnabled
+                NotBeforeSkew                        = $mockResource.NotBeforeSkew
+                ProtocolProfile                      = $mockResource.ProtocolProfile
+                SamlResponseSignature                = $mockResource.SamlResponseSignature
+                SignatureAlgorithm                   = $mockResource.SignatureAlgorithm
+                SignedSamlRequestsRequired           = $mockResource.SignedSamlRequestsRequired
+                SigningCertificateRevocationCheck    = $mockResource.SigningCertificateRevocationCheck
+                TokenLifetime                        = $mockResource.TokenLifetime
             }
 
             $setTargetResourcePresentParameters = $setTargetResourceParameters.Clone()
@@ -306,20 +302,38 @@ try
             Mock -CommandName $ResourceCommand.Remove
 
             Context 'When the Resource is Present' {
-                Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourcePresentResult }
+                BeforeAll {
+                    Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourcePresentResult }
+                }
 
                 Context 'When the Resource should be Present' {
-                    It 'Should not throw' {
-                        { Set-TargetResource @setTargetResourcePresentParameters } | Should -Not -Throw
+                    BeforeAll {
+                        Mock -CommandName Get-AdfsClaimDescription -MockWith { $mockGetAdfsClaimDescriptionResult }
                     }
 
-                    It 'Should call the expected mocks' {
-                        Assert-MockCalled -CommandName Get-TargetResource `
-                            -ParameterFilter { $Name -eq $setTargetResourcePresentParameters.Name } `
-                            -Exactly -Times 1
-                        Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 1
-                        Assert-MockCalled -CommandName $ResourceCommand.Add -Exactly -Times 0
-                        Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
+                    foreach ($property in $mockChangedResource.Keys)
+                    {
+                        $setTargetResourceParametersChangedProperty = $setTargetResourceParameters.Clone()
+                        $setTargetResourceParametersChangedProperty.$property = $mockChangedResource.$property
+
+                        Mock -CommandName Get-TargetResource `
+                            -ParameterFilter { $mockGetResourceResults.Name -eq $Name } `
+                            -MockWith { $mockGetTargetResourceResults }
+
+                        It "Should call the correct mocks when $property has changed" {
+                            Set-TargetResource @setTargetResourceParametersChangedProperty
+
+                            Assert-MockCalled -CommandName Get-TargetResource `
+                                -ParameterFilter { `
+                                    $Name -eq $setTargetResourceParametersChangedProperty.Name } `
+                                -Scope It -Exactly -Times 1
+                            Assert-MockCalled -CommandName $ResourceCommand.Set `
+                                -ParameterFilter { `
+                                    $TargetName -eq $setTargetResourceParametersChangedProperty.Name } `
+                                -Scope It -Exactly -Times 1
+                            Assert-MockCalled -CommandName $ResourceCommand.Add -Exactly -Times 0
+                            Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
+                        }
                     }
                 }
 
@@ -343,6 +357,8 @@ try
                 Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
 
                 Context 'When the Resource should be Present' {
+                    Mock -CommandName Get-AdfsClaimDescription -MockWith { $mockGetAdfsClaimDescriptionResult }
+
                     It 'Should not throw' {
                         { Set-TargetResource @setTargetResourcePresentParameters } | Should -Not -Throw
                     }
@@ -377,7 +393,6 @@ try
         Describe "$Global:DSCResourceName\Test-TargetResource" -Tag 'Test' {
             $testTargetResourceParameters = @{
                 Name                                 = $mockResource.Name
-                Enabled                              = $mockResource.Enabled
                 Notes                                = $mockResource.Notes
                 WSFedEndpoint                        = $mockResource.WSFedEndpoint
                 Identifier                           = $mockResource.Identifier
@@ -392,15 +407,12 @@ try
                 EnableJWT                            = $mockResource.EnableJWT
                 EncryptClaims                        = $mockResource.EncryptClaims
                 EncryptedNameIdRequired              = $mockResource.EncryptedNameIdRequired
-                EncryptionCertificate                = $mockResource.EncryptionCertificate
                 EncryptionCertificateRevocationCheck = $mockResource.EncryptionCertificateRevocationCheck
                 ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
                 MetadataUrl                          = $mockResource.MetadataUrl
                 MonitoringEnabled                    = $mockResource.MonitoringEnabled
                 NotBeforeSkew                        = $mockResource.NotBeforeSkew
                 ProtocolProfile                      = $mockResource.ProtocolProfile
-                RequestSigningCertificate            = $mockResource.RequestSigningCertificate
-                SamlEndpoint                         = $mockResource.SamlEndpoint
                 SamlResponseSignature                = $mockResource.SamlResponseSignature
                 SignatureAlgorithm                   = $mockResource.SignatureAlgorithm
                 SignedSamlRequestsRequired           = $mockResource.SignedSamlRequestsRequired

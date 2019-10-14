@@ -57,7 +57,7 @@
         Indicates whether the relying party requires that the NameID claim be encrypted.
 
     .PARAMETER EncryptionCertificate
-        Write - String
+        ** Not Currently Implemented **
         Specifies the certificate to be used for encrypting claims that are issued to this relying party. Encrypting
         claims is optional.
 
@@ -110,11 +110,11 @@
         Specifies which protocol profiles the relying party supports.
 
     .PARAMETER RequestSigningCertificate
-        Write - String
+        ** Not Currently Implemented **
         Specifies an array of certificates to be used to verify the signature on a request from the relying party.
 
     .PARAMETER SamlEndpoint
-        Write - String
+        ** Not Currently Implemented **
         Specifies an array of Security Assertion Markup Language (SAML) protocol endpoints for this relying party.
 
     .PARAMETER SamlResponseSignature
@@ -201,20 +201,26 @@ function Get-TargetResource
 
     if ($targetResource)
     {
+        $claimAccepted = @()
+        foreach ($claimDescription in $targetResource.ClaimsAccepted)
+        {
+            $claim = Get-AdfsClaimDescription -ClaimType $claimDescription.ClaimType
+            $claimAccepted += $claim.ShortName
+        }
+
         # Resource exists
         $returnValue = @{
             Name                                 = $targetResource.Name
             AdditionalAuthenticationRules        = $targetResource.AdditionalAuthenticationRules
             AdditionalWSFedEndpoint              = @($targetResource.AdditionalWSFedEndpoint)
             AutoUpdateEnabled                    = $targetResource.AutoUpdateEnabled
-            ClaimAccepted                        = @($targetResource.ClaimsAccepted)
+            ClaimAccepted                        = $claimAccepted
             ClaimsProviderName                   = @($targetResource.ClaimsProviderName)
             DelegationAuthorizationRules         = $targetResource.DelegationAuthorizationRules
             Enabled                              = $targetResource.Enabled
             EnableJWT                            = $targetResource.EnableJWT
             EncryptClaims                        = $targetResource.EncryptClaims
             EncryptedNameIdRequired              = $targetResource.EncryptedNameIdRequired
-            EncryptionCertificate                = $targetResource.EncryptionCertificate
             EncryptionCertificateRevocationCheck = $targetResource.EncryptionCertificateRevocationCheck
             Identifier                           = @($targetResource.Identifier)
             ImpersonationAuthorizationRules      = $targetResource.ImpersonationAuthorizationRules
@@ -225,8 +231,6 @@ function Get-TargetResource
             NotBeforeSkew                        = $targetResource.NotBeforeSkew
             Notes                                = $targetResource.Notes
             ProtocolProfile                      = $targetResource.ProtocolProfile
-            RequestSigningCertificate            = @($targetResource.RequestSigningCertificate)
-            SamlEndpoint                         = @($targetResource.SamlEndpoints)
             SamlResponseSignature                = $targetResource.SamlResponseSignature
             SignatureAlgorithm                   = $targetResource.SignatureAlgorithm
             SignedSamlRequestsRequired           = $targetResource.SignedSamlRequestsRequired
@@ -251,7 +255,6 @@ function Get-TargetResource
             EnableJWT                            = $false
             EncryptClaims                        = $false
             EncryptedNameIdRequired              = $false
-            EncryptionCertificate                = $null
             EncryptionCertificateRevocationCheck = 'CheckEndCert'
             Identifier                           = @()
             ImpersonationAuthorizationRules      = $null
@@ -262,8 +265,6 @@ function Get-TargetResource
             NotBeforeSkew                        = 0
             Notes                                = $null
             ProtocolProfile                      = 'SAML'
-            RequestSigningCertificate            = @()
-            SamlEndpoint                         = @()
             SamlResponseSignature                = 'AssertionOnly'
             SignatureAlgorithm                   = 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'
             SignedSamlRequestsRequired           = $false
@@ -339,10 +340,6 @@ function Set-TargetResource
         $EncryptedNameIdRequired,
 
         [Parameter()]
-        [System.String]
-        $EncryptionCertificate,
-
-        [Parameter()]
         [ValidateSet('None',
             'CheckEndCert',
             'CheckEndCertCacheOnly',
@@ -391,14 +388,6 @@ function Set-TargetResource
         $ProtocolProfile,
 
         [Parameter()]
-        [System.String[]]
-        $RequestSigningCertificate,
-
-        [Parameter()]
-        [System.String[]]
-        $SamlEndpoint,
-
-        [Parameter()]
         [ValidateSet('AssertionOnly', 'MessageAndAssertion', 'MessageOnly')]
         [System.String]
         $SamlResponseSignature,
@@ -439,9 +428,9 @@ function Set-TargetResource
     )
 
     # Remove any parameters not used in Splats
-    [HashTable]$Parameters = $PSBoundParameters
-    $Parameters.Remove('Ensure')
-    $Parameters.Remove('Verbose')
+    [HashTable]$parameters = $PSBoundParameters
+    $parameters.Remove('Ensure')
+    $parameters.Remove('Verbose')
 
     $GetTargetResourceParms = @{
         Name = $Name
@@ -463,15 +452,38 @@ function Set-TargetResource
             {
                 Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f
                     $Name, $property.ParameterName, ($property.Expected -join ', '))
-                $SetParameters.add($property.ParameterName, $property.Expected)
+                if ($property.ParameterName -eq 'ClaimAccepted')
+                {
+                    $ClaimAcceptedDescriptions = @()
+                    foreach ($claim in $property.Expected)
+                    {
+                        $ClaimAcceptedDescriptions += Get-AdfsClaimDescription -ShortName $claim
+                    }
+                    $SetParameters.Add($property.ParameterName, $ClaimAcceptedDescriptions)
+                }
+                else
+                {
+                    $SetParameters.Add($property.ParameterName, $property.Expected)
+                }
             }
             Set-AdfsRelyingPartyTrust -TargetName $Name @SetParameters
         }
         else
         {
             # Resource does not exist
+            if ($parameters.ContainsKey('ClaimAccepted'))
+            {
+                $ClaimAcceptedDescriptions = @()
+                foreach ($claim in $parameters.ClaimAccepted)
+                {
+                    $ClaimAcceptedDescriptions += Get-AdfsClaimDescription -ShortName $claim
+                }
+
+                $parameters.ClaimAccepted = $ClaimAcceptedDescriptions
+            }
+
             Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f $Name)
-            Add-AdfsRelyingPartyTrust @Parameters -Verbose:$false
+            Add-AdfsRelyingPartyTrust @parameters -Verbose:$false
         }
     }
     else
@@ -547,10 +559,6 @@ function Test-TargetResource
         $EncryptedNameIdRequired,
 
         [Parameter()]
-        [System.String]
-        $EncryptionCertificate,
-
-        [Parameter()]
         [ValidateSet('None',
             'CheckEndCert',
             'CheckEndCertCacheOnly',
@@ -597,14 +605,6 @@ function Test-TargetResource
         [ValidateSet('SAML', 'WsFederation', 'WsFed-SAML')]
         [System.String]
         $ProtocolProfile,
-
-        [Parameter()]
-        [System.String[]]
-        $RequestSigningCertificate,
-
-        [Parameter()]
-        [System.String[]]
-        $SamlEndpoint,
 
         [Parameter()]
         [ValidateSet('AssertionOnly', 'MessageAndAssertion', 'MessageOnly')]
