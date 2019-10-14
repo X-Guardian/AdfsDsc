@@ -77,7 +77,7 @@
         as less than a single day, for calculating the time periods for other certificate threshold parameters.
 
     .PARAMETER ContactPerson
-        Write - String
+        ** Not Currently Implemented **
         Specifies the contact information for support issues.
 
     .PARAMETER EnableOAuthDeviceFlow
@@ -131,10 +131,9 @@
         server proxy does not support Negotiate method of authentication. This setting only affects the Windows
         transport endpoint.
 
-    .PARAMETER OrganizationInfo
-        Write - String
-        Specifies information about the organization as published in the federation metadata for the Federation
-        Service.
+    .PARAMETER Organization
+        ** Not Currently Implemented **
+        Specifies the organization that is published in the federation metadata for the Federation Service.
 
     .PARAMETER PreventTokenReplays
         Write - Boolean
@@ -332,6 +331,11 @@
     .PARAMETER PromptLoginFallbackAuthenticationType
         Write - String
         Specifies a fallback authentication type for a prompt login request.
+
+    .NOTES
+        Todo:
+            - ContactPerson parameter [Microsoft.IdentityServer.PowerShell.Resources.ContactPerson]
+            - Organization parameter [Microsoft.IdentityServer.PowerShell.Resources.Organization]
 #>
 
 Set-StrictMode -Version Latest
@@ -399,7 +403,6 @@ function Get-TargetResource
         CertificatePromotionThreshold              = $targetResource.CertificatePromotionThreshold
         CertificateRolloverInterval                = $targetResource.CertificateRolloverInterval
         CertificateThresholdMultiplier             = $targetResource.CertificateThresholdMultiplier
-        ContactPerson                              = $targetResource.ContactPerson
         EnableOAuthDeviceFlow                      = $targetResource.EnableOAuthDeviceFlow
         HostName                                   = $targetResource.HostName
         HttpPort                                   = $targetResource.HttpPort
@@ -411,7 +414,6 @@ function Get-TargetResource
         MonitoringInterval                         = $targetResource.MonitoringInterval
         NetTcpPort                                 = $targetResource.NetTcpPort
         NtlmOnlySupportedClientAtProxy             = $targetResource.NtlmOnlySupportedClientAtProxy
-        OrganizationInfo                           = $targetResource.OrganizationInfo
         PreventTokenReplays                        = $targetResource.PreventTokenReplays
         ExtendedProtectionTokenCheck               = $targetResource.ExtendedProtectionTokenCheck
         ProxyTrustTokenLifetime                    = $targetResource.ProxyTrustTokenLifetime
@@ -524,10 +526,6 @@ function Set-TargetResource
         $CertificateThresholdMultiplier,
 
         [Parameter()]
-        [System.String]
-        $ContactPerson,
-
-        [Parameter()]
         [System.Boolean]
         $EnableOAuthDeviceFlow,
 
@@ -571,10 +569,6 @@ function Set-TargetResource
         [Parameter()]
         [System.Boolean]
         $NtlmOnlySupportedClientAtProxy,
-
-        [Parameter()]
-        [System.String]
-        $OrganizationInfo,
 
         [Parameter()]
         [System.Boolean]
@@ -836,10 +830,6 @@ function Test-TargetResource
         $CertificateThresholdMultiplier,
 
         [Parameter()]
-        [System.String]
-        $ContactPerson,
-
-        [Parameter()]
         [System.Boolean]
         $EnableOAuthDeviceFlow,
 
@@ -883,10 +873,6 @@ function Test-TargetResource
         [Parameter()]
         [System.Boolean]
         $NtlmOnlySupportedClientAtProxy,
-
-        [Parameter()]
-        [System.String]
-        $OrganizationInfo,
 
         [Parameter()]
         [System.Boolean]

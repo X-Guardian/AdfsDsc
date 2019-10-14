@@ -43,7 +43,6 @@ try
             CertificatePromotionThreshold              = 5
             CertificateRolloverInterval                = 720
             CertificateThresholdMultiplier             = 1440
-            ContactPerson                              = 'Bob Smith'
             EnableOAuthDeviceFlow                      = $true
             HostName                                   = 'sts.contoso.com'
             HttpPort                                   = 80
@@ -55,7 +54,6 @@ try
             MonitoringInterval                         = 1440
             NetTcpPort                                 = 1501
             NtlmOnlySupportedClientAtProxy             = $false
-            OrganizationInfo                           = 'Contoso'
             PreventTokenReplays                        = $false
             ExtendedProtectionTokenCheck               = 'Allow'
             ProxyTrustTokenLifetime                    = 21600
@@ -109,7 +107,6 @@ try
             CertificatePromotionThreshold              = 10
             CertificateRolloverInterval                = 14400
             CertificateThresholdMultiplier             = 2880
-            ContactPerson                              = 'Bob Jones'
             EnableOAuthDeviceFlow                      = $false
             HostName                                   = 'sts.fabrikam.com'
             HttpPort                                   = 81
@@ -121,7 +118,6 @@ try
             MonitoringInterval                         = 2880
             NetTcpPort                                 = 1502
             NtlmOnlySupportedClientAtProxy             = $true
-            OrganizationInfo                           = 'Fabrikam'
             PreventTokenReplays                        = $true
             ExtendedProtectionTokenCheck               = 'None'
             ProxyTrustTokenLifetime                    = 21800
@@ -176,7 +172,6 @@ try
             CertificatePromotionThreshold              = $mockResource.CertificatePromotionThreshold
             CertificateRolloverInterval                = $mockResource.CertificateRolloverInterval
             CertificateThresholdMultiplier             = $mockResource.CertificateThresholdMultiplier
-            ContactPerson                              = $mockResource.ContactPerson
             EnableOAuthDeviceFlow                      = $mockResource.EnableOAuthDeviceFlow
             HostName                                   = $mockResource.HostName
             HttpPort                                   = $mockResource.HttpPort
@@ -188,7 +183,6 @@ try
             MonitoringInterval                         = $mockResource.MonitoringInterval
             NetTcpPort                                 = $mockResource.NetTcpPort
             NtlmOnlySupportedClientAtProxy             = $mockResource.NtlmOnlySupportedClientAtProxy
-            OrganizationInfo                           = $mockResource.OrganizationInfo
             PreventTokenReplays                        = $mockResource.PreventTokenReplays
             ExtendedProtectionTokenCheck               = $mockResource.ExtendedProtectionTokenCheck
             ProxyTrustTokenLifetime                    = $mockResource.ProxyTrustTokenLifetime
@@ -209,6 +203,8 @@ try
             LoopDetectionMaximumTokensIssuedInInterval = $mockResource.LoopDetectionMaximumTokensIssuedInInterval
             EnableLoopDetection                        = $mockResource.EnableLoopDetection
             ExtranetLockoutThreshold                   = $mockResource.ExtranetLockoutThreshold
+            ExtranetLockoutThresholdFamiliarLocation   = $mockResource.ExtranetLockoutThresholdFamiliarLocation
+            ExtranetLockoutMode                        = $mockResource.ExtranetLockoutMode
             EnableExtranetLockout                      = $mockResource.EnableExtranetLockout
             ExtranetObservationWindow                  = $mockResource.ExtranetObservationWindow
             ExtranetLockoutRequirePDC                  = $mockResource.ExtranetLockoutRequirePDC
@@ -246,7 +242,6 @@ try
                 CertificatePromotionThreshold              = $mockResource.CertificatePromotionThreshold
                 CertificateRolloverInterval                = $mockResource.CertificateRolloverInterval
                 CertificateThresholdMultiplier             = $mockResource.CertificateThresholdMultiplier
-                ContactPerson                              = $mockResource.ContactPerson
                 IntranetUseLocalClaimsProvider             = $mockResource.IntranetUseLocalClaimsProvider
                 ExtendedProtectionTokenCheck               = $mockResource.ExtendedProtectionTokenCheck
                 HostName                                   = $mockResource.HostName
@@ -259,7 +254,6 @@ try
                 MonitoringInterval                         = $mockResource.MonitoringInterval
                 NetTcpPort                                 = $mockResource.NetTcpPort
                 NtlmOnlySupportedClientAtProxy             = $mockResource.NtlmOnlySupportedClientAtProxy
-                OrganizationInfo                           = $mockResource.OrganizationInfo
                 PreventTokenReplays                        = $mockResource.PreventTokenReplays
                 ProxyTrustTokenLifetime                    = $mockResource.ProxyTrustTokenLifetime
                 ReplayCacheExpirationInterval              = $mockResource.ReplayCacheExpirationInterval
@@ -342,7 +336,6 @@ try
                 CertificatePromotionThreshold              = $mockChangedResource.CertificatePromotionThreshold
                 CertificateRolloverInterval                = $mockChangedResource.CertificateRolloverInterval
                 CertificateThresholdMultiplier             = $mockChangedResource.CertificateThresholdMultiplier
-                ContactPerson                              = $mockChangedResource.ContactPerson
                 EnableOAuthDeviceFlow                      = $mockChangedResource.EnableOAuthDeviceFlow
                 HostName                                   = $mockChangedResource.HostName
                 HttpPort                                   = $mockChangedResource.HttpPort
@@ -354,7 +347,6 @@ try
                 MonitoringInterval                         = $mockChangedResource.MonitoringInterval
                 NetTcpPort                                 = $mockChangedResource.NetTcpPort
                 NtlmOnlySupportedClientAtProxy             = $mockChangedResource.NtlmOnlySupportedClientAtProxy
-                OrganizationInfo                           = $mockChangedResource.OrganizationInfo
                 PreventTokenReplays                        = $mockChangedResource.PreventTokenReplays
                 ExtendedProtectionTokenCheck               = $mockChangedResource.ExtendedProtectionTokenCheck
                 ProxyTrustTokenLifetime                    = $mockChangedResource.ProxyTrustTokenLifetime
