@@ -152,7 +152,11 @@
         Write - String
         Allowed values: Present, Absent
         Specifies whether to remove or add the relying party trust.
-#>
+
+    .NOTES
+        Todo:
+            - SamlEndpoint Parameter
+    #>
 
 Set-StrictMode -Version Latest
 
@@ -454,6 +458,7 @@ function Set-TargetResource
                     $Name, $property.ParameterName, ($property.Expected -join ', '))
                 if ($property.ParameterName -eq 'ClaimAccepted')
                 {
+                    # Custom processing for 'ClaimAccepted' property
                     $ClaimAcceptedDescriptions = @()
                     foreach ($claim in $property.Expected)
                     {
@@ -461,12 +466,28 @@ function Set-TargetResource
                     }
                     $SetParameters.Add($property.ParameterName, $ClaimAcceptedDescriptions)
                 }
+                elseif ($property.ParameterName -eq 'Enabled')
+                {
+                    # Custom processing for 'Enabled' property
+                    if ($property.Expected -eq $true)
+                    {
+                        Enable-AdfsRelyingPartyTrust -TargetName $Name
+                    }
+                    else
+                    {
+                        Disable-AdfsRelyingPartyTrust -TargetName $Name
+                    }
+                }
                 else
                 {
                     $SetParameters.Add($property.ParameterName, $property.Expected)
                 }
             }
-            Set-AdfsRelyingPartyTrust -TargetName $Name @SetParameters
+
+            if ($setParameters.count -gt 0)
+            {
+                Set-AdfsRelyingPartyTrust -TargetName $Name @SetParameters
+            }
         }
         else
         {
