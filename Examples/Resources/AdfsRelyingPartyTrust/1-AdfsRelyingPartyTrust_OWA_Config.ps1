@@ -40,6 +40,7 @@ Configuration AdfsRelyingPartyTrust_OWA_Config
 $ConfigurationData = @{
     AllNodes = @(
         @{
+            NodeName = 'localhost'
             IssuanceAuthorizationRules = @'
 @RuleTemplate = "AllowAllAuthzRule"
  => issue(Type = "http://schemas.microsoft.com/authorization/claims/permit", Value = "true");
