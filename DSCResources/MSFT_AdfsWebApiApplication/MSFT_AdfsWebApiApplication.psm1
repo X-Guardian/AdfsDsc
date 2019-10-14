@@ -309,9 +309,9 @@ function Set-TargetResource
     )
 
     # Remove any parameters not used in Splats
-    [HashTable]$Parameters = $PSBoundParameters
-    $Parameters.Remove('Ensure')
-    $Parameters.Remove('Verbose')
+    [HashTable]$parameters = $PSBoundParameters
+    $parameters.Remove('Ensure')
+    $parameters.Remove('Verbose')
 
     $GetTargetResourceParms = @{
         ApplicationGroupIdentifier = $ApplicationGroupIdentifier
@@ -327,7 +327,7 @@ function Set-TargetResource
         {
             # Resource exists
             $propertiesNotInDesiredState = (
-                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
+                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters |
                     Where-Object -Property InDesiredState -eq $false)
 
             if ($propertiesNotInDesiredState |
@@ -338,24 +338,24 @@ function Set-TargetResource
                 Remove-AdfsWebApiApplication -TargetName $Name
                 Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f
                     $Name, $ApplicationGroupIdentifier)
-                Add-AdfsWebApiApplication @Parameters -Verbose:$false
+                Add-AdfsWebApiApplication @parameters -Verbose:$false
                 break
             }
-            $SetParameters = @{ }
+            $setParameters = @{ }
             foreach ($property in $propertiesNotInDesiredState)
             {
                 Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f
                     $Name, $property.ParameterName, ($property.Expected -join ', '))
-                $SetParameters.add($property.ParameterName, $property.Expected)
+                $setParameters.add($property.ParameterName, $property.Expected)
             }
-            Set-AdfsWebApiApplication -TargetName $Name @SetParameters
+            Set-AdfsWebApiApplication -TargetName $Name @setParameters
         }
         else
         {
             # Resource does not exist
             Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f
                 $Name, $ApplicationGroupIdentifier)
-            Add-AdfsWebApiApplication @Parameters -Verbose:$false
+            Add-AdfsWebApiApplication @parameters -Verbose:$false
         }
     }
     else
@@ -471,8 +471,8 @@ function Test-TargetResource
         $RequestMFAFromClaimsProviders
     )
 
-    [HashTable]$Parameters = $PSBoundParameters
-    $Parameters.Remove('Ensure')
+    [HashTable]$parameters = $PSBoundParameters
+    $parameters.Remove('Ensure')
 
     $GetTargetResourceParms = @{
         Name                       = $Name
@@ -488,7 +488,7 @@ function Test-TargetResource
         {
             # Resource should exist
             $propertiesNotInDesiredState = (
-                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $Parameters |
+                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters |
                     Where-Object -Property InDesiredState -eq $false)
             if ($propertiesNotInDesiredState)
             {

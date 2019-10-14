@@ -127,9 +127,9 @@ function Set-TargetResource
     )
 
     # Remove any parameters not used in Splats
-    $Parameters = $PSBoundParameters
-    $Parameters.Remove('Ensure')
-    $Parameters.Remove('Verbose')
+    $parameters = $PSBoundParameters
+    $parameters.Remove('Ensure')
+    $parameters.Remove('Verbose')
 
     $GetTargetResourceParms = @{
         Name = $Name
@@ -143,7 +143,7 @@ function Set-TargetResource
         {
             # Resource exists
             $propertiesNotInDesiredState = (
-                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
+                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters |
                     Where-Object -Property InDesiredState -eq $false)
 
             $SetParameters = New-Object -TypeName System.Collections.Hashtable
@@ -160,7 +160,7 @@ function Set-TargetResource
         {
             # Resource does not exist
             Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f $Name)
-            New-AdfsApplicationGroup @Parameters
+            New-AdfsApplicationGroup @parameters
         }
     }
     else

@@ -176,9 +176,9 @@ function Set-TargetResource
     )
 
     # Remove any parameters not used in Splats
-    [HashTable]$Parameters = $PSBoundParameters
-    $Parameters.Remove('Ensure')
-    $Parameters.Remove('Verbose')
+    [HashTable]$parameters = $PSBoundParameters
+    $parameters.Remove('Ensure')
+    $parameters.Remove('Verbose')
 
     $GetTargetResourceParms = @{
         Name                       = $Name
@@ -194,7 +194,7 @@ function Set-TargetResource
         {
             # Resource exists
             $propertiesNotInDesiredState = (
-                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
+                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters |
                     Where-Object -Property InDesiredState -eq $false)
 
             if ($propertiesNotInDesiredState |
@@ -205,7 +205,7 @@ function Set-TargetResource
                 Remove-AdfsNativeClientApplication -TargetName $Name
                 Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f
                     $Name, $ApplicationGroupIdentifier)
-                Add-AdfsNativeClientApplication @Parameters -Verbose:$false
+                Add-AdfsNativeClientApplication @parameters -Verbose:$false
                 break
             }
 
@@ -223,7 +223,7 @@ function Set-TargetResource
             # Resource does not exist
             Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f
                 $Name, $ApplicationGroupIdentifier)
-            Add-AdfsNativeClientApplication @Parameters -Verbose:$false
+            Add-AdfsNativeClientApplication @parameters -Verbose:$false
         }
     }
     else
@@ -285,8 +285,8 @@ function Test-TargetResource
         $Ensure = 'Present'
     )
 
-    [HashTable]$Parameters = $PSBoundParameters
-    $Parameters.Remove('Ensure')
+    [HashTable]$parameters = $PSBoundParameters
+    $parameters.Remove('Ensure')
 
     $GetTargetResourceParms = @{
         Name                       = $Name
@@ -302,7 +302,7 @@ function Test-TargetResource
         {
             # Resource should exist
             $propertiesNotInDesiredState = (
-                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $Parameters |
+                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters |
                     Where-Object -Property InDesiredState -eq $false)
             if ($propertiesNotInDesiredState)
             {

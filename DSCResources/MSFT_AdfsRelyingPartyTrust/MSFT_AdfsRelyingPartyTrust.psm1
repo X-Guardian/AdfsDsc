@@ -448,7 +448,7 @@ function Set-TargetResource
         {
             # Resource exists
             $propertiesNotInDesiredState = (
-                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
+                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters |
                     Where-Object -Property InDesiredState -eq $false)
 
             $SetParameters = New-Object -TypeName System.Collections.Hashtable
@@ -486,7 +486,7 @@ function Set-TargetResource
 
             if ($setParameters.count -gt 0)
             {
-                Set-AdfsRelyingPartyTrust -TargetName $Name @SetParameters
+                Set-AdfsRelyingPartyTrust -TargetName $Name @setParameters
             }
         }
         else
