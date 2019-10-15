@@ -156,10 +156,12 @@ function Set-TargetResource
             $FederationServiceName, $property.ParameterName, ($property.Expected -join ', '))
     }
 
-    try {
+    try
+    {
         $contactPerson = New-AdfsContactPerson @parameters
     }
-    catch {
+    catch
+    {
         $errorMessage = $script:localizedData.NewAdfsContactPersonError -f $FederationServiceName
         New-InvalidOperationException -Message $errorMessage -Error $_
     }
