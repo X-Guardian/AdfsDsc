@@ -21,7 +21,34 @@
     Specifies the thumbprint of the certificate to use.
 
 .PARAMETER RemoteCredential
-    Required - String
+    Write - String
     Specifies the credential to use to connect to WinRM on all the members of the ADFS farm.
+
+.EXAMPLE 1
+
+This configuration will ...
+
+Configuration AdfsSslCertificate_Config
+{
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [System.Management.Automation.PSCredential]
+        $Credential
+    )
+
+    Import-DscResource -ModuleName AdfsDsc
+
+    Node localhost
+    {
+        AdfsSslCertificate SslCertificate
+        {
+            CertificateType  = 'Https-Binding'
+            Thumbprint       = 'cb779e674ae6921682d01d055a4315c786160a7b'
+            RemoteCredential = $Credential
+        }
+    }
+}
 
 

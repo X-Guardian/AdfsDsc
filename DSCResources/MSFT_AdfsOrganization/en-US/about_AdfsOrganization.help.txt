@@ -1,0 +1,44 @@
+.NAME
+    AdfsOrganization
+
+.DESCRIPTION
+    The AdfsOrganization DSC resource manages the ADFS Organization information that is published in
+    the federation metadata for the Federation Service.
+
+.PARAMETER FederationServiceName
+    Key - String
+    Specifies the name of the Federation Service.
+
+.PARAMETER Name
+    Required - String
+    Specifies the name of the organization.
+
+.PARAMETER DisplayName
+    Required - String
+    Specifies the display name of the organization.
+
+.PARAMETER OrganizationUrl
+    Required - String
+    Specifies the URL of the organization.
+
+.EXAMPLE 1
+
+This configuration will ...
+
+Configuration AdfsOrganization_Config
+{
+    Import-DscResource -ModuleName AdfsDsc
+
+    Node localhost
+    {
+        AdfsOrganization Organization
+        {
+            FederationServiceName = 'sts.contoso.com'
+            DisplayName           = 'Contoso Inc.'
+            Name                  = 'Contoso'
+            OrganizationUrl       = 'https://www.contoso.com'
+        }
+    }
+}
+
+

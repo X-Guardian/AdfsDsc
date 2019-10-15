@@ -1,0 +1,53 @@
+.NAME
+    AdfsContactPerson
+
+.DESCRIPTION
+    The AdfsContactPerson DSC resource manages the ADFS contact information for support isssues.
+
+.PARAMETER FederationServiceName
+    Key - String
+    Specifies the name of the Federation Service.
+
+.PARAMETER Company
+    Write - String
+    Specifies the company name of the contact person.
+
+.PARAMETER EmailAddress
+    Write - String
+    Specifies an array of e-mail addresses of the contact person.
+
+.PARAMETER GivenName
+    Write - String
+    Specifies the given name of the contact person.
+
+.PARAMETER Surname
+    Write - String
+    Specifies the surname, or last name, of the contact person.
+
+.PARAMETER TelephoneNumber
+    Write - String
+    Specifies an array of telephone numbers of the contact person.
+
+.EXAMPLE 1
+
+This configuration will ...
+
+Configuration AdfsContactPerson_Config
+{
+    Import-DscResource -ModuleName AdfsDsc
+
+    Node localhost
+    {
+        AdfsContactPerson ContactPerson
+        {
+            FederationServiceName = 'sts.contoso.com'
+            Company               = 'Contoso'
+            EmailAddress          = 'support@contoso.com'
+            GivenName             = 'Bob'
+            Surname               = 'Smith'
+            TelephoneNumber       = '+1 555 12345678'
+        }
+    }
+}
+
+

@@ -14,4 +14,22 @@
     Required - String
     Specifies the thumbprint of the certificate to use.
 
+.EXAMPLE 1
+
+This configuration will ...
+
+Configuration AdfsCertificate_Config
+{
+    Import-DscResource -ModuleName AdfsDsc
+
+    Node localhost
+    {
+        AdfsCertificate Certificates
+        {
+            CertificateType = 'Token-Signing'
+            Thumbprint      = 'cb779e674ae6921682d01d055a4315c786160a7b'
+        }
+    }
+}
+
 
