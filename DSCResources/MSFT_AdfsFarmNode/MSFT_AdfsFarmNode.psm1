@@ -149,7 +149,7 @@ function Get-TargetResource
 
         if ($adfsService)
         {
-            $ServiceAccountName = ($adfsService.StartName -split '\\')[1]
+            $ServiceAccountName = $adfsService.StartName
         }
         else
         {
