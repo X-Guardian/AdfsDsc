@@ -23,11 +23,12 @@ try
         # Import ADFS Stub Module
         Import-Module (Join-Path -Path $PSScriptRoot -ChildPath "Stubs\$($Global:PSModuleName)Stub.psm1") -Force
 
-        $mockUserName = 'DummyUser'
+        $mockUserName = 'CONTOSO\AdfsSmsa'
+        $mockPassword = 'DummyPassword'
 
         $mockCredential = New-Object -TypeName 'System.Management.Automation.PSCredential' -ArgumentList @(
             $mockUserName,
-            (ConvertTo-SecureString -String 'DummyPassword' -AsPlainText -Force)
+            (ConvertTo-SecureString -String $mockPassword -AsPlainText -Force)
         )
 
         $mockMSFTCredential = New-CimCredentialInstance -UserName $mockUserName
@@ -95,9 +96,14 @@ try
                     DisplayName = $mockGsaResource.FederationServiceDisplayName
                 }
 
-                $mockGetCimInstanceServiceRunningResult = @{
+                $mockGetCimInstanceServiceGsaRunningResult = @{
                     State     = 'Running'
                     StartName = $mockGsaResource.GroupServiceAccountIdentifier
+                }
+
+                $mockGetCimInstanceServiceSaRunningResult = @{
+                    State     = 'Running'
+                    StartName = $mockSaResource.ServiceAccountCredential.UserName
                 }
 
                 $mockGetCimInstanceSecurityTokenServiceResult = @{
@@ -115,7 +121,7 @@ try
 
                 Mock -CommandName Get-CimInstance `
                     -ParameterFilter { $ClassName -eq 'Win32_Service' } `
-                    -MockWith { $mockGetCimInstanceServiceRunningResult }
+                    -MockWith { $mockGetCimInstanceServiceGsaRunningResult }
                 Mock -CommandName Get-CimInstance `
                     -ParameterFilter { `
                         $Namespace -eq 'root/ADFS' -and `
@@ -204,15 +210,27 @@ try
 
                 Context 'When the Service Account is not a group managed service account' {
                     BeforeAll {
-                        Mock -CommandName 'Assert-GroupServiceAccount' -MockWith { $false }
+                        Mock -CommandName Get-CimInstance `
+                            -ParameterFilter { $ClassName -eq 'Win32_Service' } `
+                            -MockWith { $mockGetCimInstanceServiceSaRunningResult }
+                        Mock -CommandName Assert-GroupServiceAccount -MockWith { $false }
 
                         $result = Get-TargetResource @getTargetResourceParameters
                     }
 
                     foreach ($property in $mockSaResource.Keys)
                     {
-                        It "Should return the correct $property property" {
-                            $result.$property | Should -Be $mockSaResource.$property
+                        if ($property -eq 'ServiceAccountCredential')
+                        {
+                            It "Should return the correct $property property" {
+                                $result.ServiceAccountCredential.UserName | Should -Be $mockSaResource.ServiceAccountCredential.UserName
+                            }
+                        }
+                        else
+                        {
+                            It "Should return the correct $property property" {
+                                $result.$property | Should -Be $mockSaResource.$property
+                            }
                         }
                     }
                 }
