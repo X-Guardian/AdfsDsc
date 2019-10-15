@@ -1,0 +1,10 @@
+
+[ClassVersion("1.0.0.0"), FriendlyName("AdfsOrganization")]
+class MSFT_AdfsOrganization : OMI_BaseResource
+{
+    [Key, Description("Specifies the name of the Federation Service.")] String FederationServiceName;
+    [Required, Description("Specifies the name of the organization.")] String Name;
+    [Required, Description("Specifies the display name of the organization.")] String DisplayName;
+    [Required, Description("Specifies the URL of the organization.")] String OrganizationUrl;
+};
+
