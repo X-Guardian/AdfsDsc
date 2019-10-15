@@ -1262,6 +1262,27 @@ InModuleScope 'AdfsDsc.Common' {
                 }
             }
 
+            Context 'When the ADFS service is not running' {
+                BeforeAll {
+                    Mock -CommandName Get-Service -MockWith { $mockGetServiceNotRunningResult }
+                }
+
+                It 'Should throw the correct error' {
+                    { Assert-AdfsService } | Should -Throw $script:localizedData.AdfsServiceNotRunningError
+                }
+
+                It 'Should call the correct mocks' {
+                    Assert-MockCalled -CommandName Get-CimInstance `
+                        -ParameterFilter { $ClassName -eq 'Win32_OperatingSystem' } `
+                        -Exactly -Times 1
+                    Assert-MockCalled -CommandName Get-Date -Exactly -Times 10
+                    Assert-MockCalled -CommandName Get-Service `
+                        -ParameterFilter { $Name -eq $script:adfsServiceName } `
+                        -Exactly -Times 10
+                    Assert-MockCalled -CommandName Start-Sleep -Exactly -Times 10
+                }
+            }
+
             Context 'When Get-Service throws an error' {
                 BeforeAll {
                     Mock -CommandName Get-Service -MockWith { Throw 'Error' }
