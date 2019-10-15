@@ -341,6 +341,7 @@
 Set-StrictMode -Version Latest
 
 $script:dscModuleName = 'AdfsDsc'
+$script:PSModuleName = 'ADFS'
 $script:dscResourceName = [System.IO.Path]::GetFileNameWithoutExtension($MyInvocation.MyCommand.Name)
 
 $script:resourceModulePath = Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
@@ -372,7 +373,7 @@ function Get-TargetResource
     )
 
     # Check of the ADFS PowerShell module is installed
-    Assert-Module -ModuleName 'ADFS'
+    Assert-Module -ModuleName $script:PSModuleName
 
     # Check if the ADFS Service is present and running
     Assert-AdfsService -Verbose
@@ -730,9 +731,9 @@ function Set-TargetResource
     )
 
     # Remove any parameters not used in Splats
-    [HashTable]$Parameters = $PSBoundParameters
-    $Parameters.Remove('FederationServiceName')
-    $Parameters.Remove('Verbose')
+    [HashTable]$parameters = $PSBoundParameters
+    $parameters.Remove('FederationServiceName')
+    $parameters.Remove('Verbose')
 
     $GetTargetResourceParms = @{
         FederationServiceName = $FederationServiceName
@@ -740,21 +741,21 @@ function Set-TargetResource
     $targetResource = Get-TargetResource @GetTargetResourceParms
 
     $propertiesNotInDesiredState = (
-        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
+        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters |
             Where-Object -Property InDesiredState -eq $false)
 
-    $SetParameters = New-Object -TypeName System.Collections.Hashtable
+    $setParameters = New-Object -TypeName System.Collections.Hashtable
     foreach ($property in $propertiesNotInDesiredState)
     {
         Write-Verbose -Message (
             $script:localizedData.SettingResourceMessage -f
             $FederationServiceName, $property.ParameterName, ($property.Expected -join ', '))
-        $SetParameters.add($property.ParameterName, $property.Expected)
+        $setParameters.add($property.ParameterName, $property.Expected)
     }
 
     try
     {
-        Set-AdfsProperties @SetParameters
+        Set-AdfsProperties @setParameters
     }
     catch
     {
@@ -1033,8 +1034,8 @@ function Test-TargetResource
         $PromptLoginFallbackAuthenticationType
     )
 
-    [HashTable]$Parameters = $PSBoundParameters
-    $Parameters.Remove('FederationServiceName')
+    [HashTable]$parameters = $PSBoundParameters
+    $parameters.Remove('FederationServiceName')
 
     $GetTargetResourceParms = @{
         FederationServiceName = $FederationServiceName
@@ -1042,7 +1043,7 @@ function Test-TargetResource
     $targetResource = Get-TargetResource @GetTargetResourceParms
 
     $propertiesNotInDesiredState = (
-        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $Parameters |
+        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters |
             Where-Object -Property InDesiredState -eq $false)
 
     if ($propertiesNotInDesiredState)
