@@ -1,0 +1,12 @@
+
+[ClassVersion("1.0.0.0"), FriendlyName("AdfsContactPerson")]
+class MSFT_AdfsContactPerson : OMI_BaseResource
+{
+    [Key, Description("Specifies the name of the Federation Service.")] String FederationServiceName;
+    [Write, Description("Specifies the company name of the contact person.")] String Company;
+    [Write, Description("Specifies an array of e-mail addresses of the contact person.")] String EmailAddress[];
+    [Write, Description("Specifies the given name of the contact person.")] String GivenName;
+    [Write, Description("Specifies the surname, or last name, of the contact person.")] String Surname;
+    [Write, Description("Specifies an array of telephone numbers of the contact person.")] String TelephoneNumber[];
+};
+
