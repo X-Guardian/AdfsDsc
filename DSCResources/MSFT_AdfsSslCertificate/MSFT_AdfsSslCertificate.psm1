@@ -123,8 +123,8 @@ function Set-TargetResource
     $Parameters.Remove('RemoteCredential')
 
     $GetTargetResourceParms = @{
-        CertificateType  = $CertificateType
-        Thumbprint       = $Thumbprint
+        CertificateType = $CertificateType
+        Thumbprint      = $Thumbprint
     }
     $targetResource = Get-TargetResource @GetTargetResourceParms
 
@@ -143,7 +143,7 @@ function Set-TargetResource
 
     if ($PSBoundParameters.ContainsKey('RemoteCredential'))
     {
-        $setParameters.Add('RemoteCredential',$RemoteCredential)
+        $setParameters.Add('RemoteCredential', $RemoteCredential)
     }
 
     try
@@ -187,8 +187,8 @@ function Test-TargetResource
     $parameters.Remove('RemoteCredential')
 
     $GetTargetResourceParms = @{
-        CertificateType  = $CertificateType
-        Thumbprint       = $Thumbprint
+        CertificateType = $CertificateType
+        Thumbprint      = $Thumbprint
     }
     $targetResource = Get-TargetResource @GetTargetResourceParms
 
@@ -203,7 +203,9 @@ function Test-TargetResource
         {
             Write-Verbose -Message (
                 $script:localizedData.ResourcePropertyNotInDesiredStateMessage -f
-                $targetResource.CertificateType, $property.ParameterName)
+                $targetResource.CertificateType, $property.ParameterName,
+                $property.Expected, $property.Actual)
+
         }
         $inDesiredState = $false
     }
