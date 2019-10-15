@@ -181,7 +181,8 @@ function Test-TargetResource
         {
             Write-Verbose -Message (
                 $script:localizedData.ResourcePropertyNotInDesiredStateMessage -f
-                $targetResource.CertificateType, $property.ParameterName)
+                $targetResource.CertificateType, $property.ParameterName,
+                $property.Expected, $property.Actual)
         }
         $inDesiredState = $false
     }

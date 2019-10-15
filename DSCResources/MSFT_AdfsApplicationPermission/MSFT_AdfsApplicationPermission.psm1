@@ -272,7 +272,7 @@ function Test-TargetResource
                 {
                     Write-Verbose -Message ($script:localizedData.ResourcePropertyNotInDesiredStateMessage -f
                         $targetResource.ClientRoleIdentifier, $targetResource.ServerRoleIdentifier, `
-                            $property.ParameterName)
+                            $property.ParameterName, $property.Expected, $property.Actual)
                 }
                 $inDesiredState = $false
             }

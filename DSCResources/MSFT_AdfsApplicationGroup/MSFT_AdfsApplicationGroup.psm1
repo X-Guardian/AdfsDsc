@@ -223,9 +223,11 @@ function Test-TargetResource
                 # Resource is not in desired state
                 foreach ($property in $propertiesNotInDesiredState)
                 {
-                    Write-Verbose -Message ($script:localizedData.ResourcePropertyNotInDesiredStateMessage -f
-                        $targetResource.Name, $property.ParameterName)
-                }
+                    Write-Verbose -Message (
+                        $script:localizedData.ResourcePropertyNotInDesiredStateMessage -f
+                        $targetResource.Name, $property.ParameterName, `
+                            $property.Expected, $property.Actual)
+                        }
                 $inDesiredState = $false
             }
             else

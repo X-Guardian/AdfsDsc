@@ -294,7 +294,8 @@ function Test-TargetResource
         {
             Write-Verbose -Message (
                 $script:localizedData.ResourcePropertyNotInDesiredStateMessage -f
-                $FederationServiceName, $property.ParameterName)
+                $targetResource.FederationServiceName, $property.ParameterName, `
+                    $property.Expected, $property.Actual)
         }
         $inDesiredState = $false
     }
