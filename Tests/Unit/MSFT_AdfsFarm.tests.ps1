@@ -75,59 +75,63 @@ try
         }
 
         Describe '$Global:DSCResourceName\Get-TargetResource' -Tag 'Get' {
-            $getTargetResourceParameters = @{
-                FederationServiceName = $mockGsaResource.FederationServiceName
-                CertificateThumbprint = $mockGsaResource.CertificateThumbprint
-                Credential            = $mockCredential
-            }
-
-            $mockGetAdfsSslCertificateResult = @(
-                @{
-                    Hostname        = 'sts.contoso.com'
-                    PortNumber      = 443
-                    CertificateHash = $mockGsaResource.CertificateThumbprint
+            BeforeAll {
+                $getTargetResourceParameters = @{
+                    FederationServiceName = $mockGsaResource.FederationServiceName
+                    CertificateThumbprint = $mockGsaResource.CertificateThumbprint
+                    Credential            = $mockCredential
                 }
-            )
 
-            $mockGetAdfsPropertiesResult = @{
-                HostName    = $mockGsaResource.FederationServiceName
-                DisplayName = $mockGsaResource.FederationServiceDisplayName
+                $mockGetAdfsSslCertificateResult = @(
+                    @{
+                        Hostname        = 'sts.contoso.com'
+                        PortNumber      = 443
+                        CertificateHash = $mockGsaResource.CertificateThumbprint
+                    }
+                )
+
+                $mockGetAdfsPropertiesResult = @{
+                    HostName    = $mockGsaResource.FederationServiceName
+                    DisplayName = $mockGsaResource.FederationServiceDisplayName
+                }
+
+                $mockGetCimInstanceServiceRunningResult = @{
+                    State     = 'Running'
+                    StartName = $mockGsaResource.GroupServiceAccountIdentifier
+                }
+
+                $mockGetCimInstanceSecurityTokenServiceResult = @{
+                    ConfigurationDatabaseConnectionString = $sqlConnectionString
+                }
+
+                $mockExceptionErrorMessage = 'UnknownException'
+                $mockException = New-Object -TypeName 'System.Exception' -ArgumentList $mockExceptionErrorMessage
+                $mockErrorRecord = New-Object -TypeName 'System.Management.Automation.ErrorRecord' `
+                    -ArgumentList @($mockException, $null, 'InvalidOperation', $null)
+
+                Mock -CommandName Assert-Module
+                Mock -CommandName Assert-DomainMember
+                Mock -CommandName "Assert-$($Global:PSModuleName)Service"
+
+                Mock -CommandName Get-CimInstance `
+                    -ParameterFilter { $ClassName -eq 'Win32_Service' } `
+                    -MockWith { $mockGetCimInstanceServiceRunningResult }
+                Mock -CommandName Get-CimInstance `
+                    -ParameterFilter { `
+                        $Namespace -eq 'root/ADFS' -and `
+                        $ClassName -eq 'SecurityTokenService' } `
+                    -MockWith { $mockGetCimInstanceSecurityTokenServiceResult }
+                Mock -CommandName Get-AdfsSslCertificate -MockWith { $mockGetAdfsSslCertificateResult }
+                Mock -CommandName Get-AdfsProperties -MockWith { $mockGetAdfsPropertiesResult }
+                Mock -CommandName Assert-GroupServiceAccount -MockWith { $true }
             }
-
-            $mockGetCimInstanceServiceRunningResult = @{
-                State     = 'Running'
-                StartName = $mockGsaResource.GroupServiceAccountIdentifier
-            }
-
-            $mockGetCimInstanceSecurityTokenServiceResult = @{
-                ConfigurationDatabaseConnectionString = $sqlConnectionString
-            }
-
-            $mockExceptionErrorMessage = 'UnknownException'
-            $mockException = New-Object -TypeName 'System.Exception' -ArgumentList $mockExceptionErrorMessage
-            $mockErrorRecord = New-Object -TypeName 'System.Management.Automation.ErrorRecord' `
-                -ArgumentList @($mockException, $null, 'InvalidOperation', $null)
-
-            Mock -CommandName Assert-Module
-            Mock -CommandName Assert-DomainMember
-            Mock -CommandName "Assert-$($Global:PSModuleName)Service"
-
-            Mock -CommandName Get-CimInstance `
-                -ParameterFilter { $ClassName -eq 'Win32_Service' } `
-                -MockWith { $mockGetCimInstanceServiceRunningResult }
-            Mock -CommandName Get-CimInstance `
-                -ParameterFilter { `
-                    $Namespace -eq 'root/ADFS' -and `
-                    $ClassName -eq 'SecurityTokenService' } `
-                -MockWith { $mockGetCimInstanceSecurityTokenServiceResult }
-            Mock -CommandName Get-AdfsSslCertificate -MockWith { $mockGetAdfsSslCertificateResult }
-            Mock -CommandName Get-AdfsProperties -MockWith { $mockGetAdfsPropertiesResult }
-            Mock -CommandName Assert-GroupServiceAccount -MockWith { $true }
 
             Context 'When the ADFS Farm is Present' {
-                Mock -CommandName Get-AdfsConfigurationStatus -MockWith { 'Configured' }
+                BeforeAll {
+                    Mock -CommandName Get-AdfsConfigurationStatus -MockWith { 'Configured' }
 
-                $result = Get-TargetResource @getTargetResourceParameters
+                    $result = Get-TargetResource @getTargetResourceParameters
+                }
 
                 foreach ($property in $mockGsaResource.Keys)
                 {
@@ -162,7 +166,9 @@ try
                 }
 
                 Context 'When Get-AdfsSslCertificate throws an exception' {
-                    Mock Get-AdfsSslCertificate -MockWith { throw $mockExceptionErrorMessage }
+                    BeforeAll {
+                        Mock Get-AdfsSslCertificate -MockWith { throw $mockExceptionErrorMessage }
+                    }
 
                     It 'Should throw the correct exception' {
                         { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
@@ -172,7 +178,9 @@ try
                 }
 
                 Context 'When Get-AdfsSslCertificate returns an empty result' {
-                    Mock Get-AdfsSslCertificate
+                    BeforeAll {
+                        Mock Get-AdfsSslCertificate
+                    }
 
                     It 'Should throw the correct exception' {
                         { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
@@ -182,8 +190,10 @@ try
                 }
 
                 Context 'When Get-CimInstance -ClassName Win32_Service returns an empty result' {
-                    Mock -CommandName Get-CimInstance `
-                        -ParameterFilter { $ClassName -eq 'Win32_Service' }
+                    BeforeAll {
+                        Mock -CommandName Get-CimInstance `
+                            -ParameterFilter { $ClassName -eq 'Win32_Service' }
+                    }
 
                     It 'Should throw the correct exception' {
                         { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
@@ -193,9 +203,11 @@ try
                 }
 
                 Context 'When the Service Account is not a group managed service account' {
-                    Mock -CommandName 'Assert-GroupServiceAccount' -MockWith { $false }
+                    BeforeAll {
+                        Mock -CommandName 'Assert-GroupServiceAccount' -MockWith { $false }
 
-                    $result = Get-TargetResource @getTargetResourceParameters
+                        $result = Get-TargetResource @getTargetResourceParameters
+                    }
 
                     foreach ($property in $mockSaResource.Keys)
                     {
@@ -206,11 +218,13 @@ try
                 }
 
                 Context 'When Get-CimInstance -ClassName SecurityTokenService throws an exception' {
-                    Mock -CommandName Get-CimInstance `
-                        -ParameterFilter { `
-                            $Namespace -eq 'root/ADFS' -and `
-                            $ClassName -eq 'SecurityTokenService' } `
-                        -MockWith { throw $mockExceptionErrorMessage }
+                    BeforeAll {
+                        Mock -CommandName Get-CimInstance `
+                            -ParameterFilter { `
+                                $Namespace -eq 'root/ADFS' -and `
+                                $ClassName -eq 'SecurityTokenService' } `
+                            -MockWith { throw $mockExceptionErrorMessage }
+                    }
 
                     It 'Should throw the correct exception' {
                         { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
@@ -220,7 +234,9 @@ try
                 }
 
                 Context 'When Get-AdfsProperties throws an exception' {
-                    Mock Get-AdfsProperties -MockWith { throw $mockExceptionErrorMessage }
+                    BeforeAll {
+                        Mock Get-AdfsProperties -MockWith { throw $mockExceptionErrorMessage }
+                    }
 
                     It 'Should throw the correct exception' {
                         { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
@@ -231,9 +247,11 @@ try
             }
 
             Context 'When the ADFS Farm is Absent' {
-                Mock -CommandName Get-AdfsConfigurationStatus -MockWith { 'NotConfigured' }
+                BeforeAll {
+                    Mock -CommandName Get-AdfsConfigurationStatus -MockWith { 'NotConfigured' }
 
-                $result = Get-TargetResource @getTargetResourceParameters
+                    $result = Get-TargetResource @getTargetResourceParameters
+                }
 
                 foreach ($property in $mockGsaResource.Keys)
                 {
@@ -259,33 +277,37 @@ try
         }
 
         Describe '$Global:DSCResourceName\Set-TargetResource' -Tag 'Set' {
-            $setTargetResourceParameters = @{
-                FederationServiceName         = $mockGsaResource.FederationServiceName
-                CertificateThumbprint         = $mockGsaResource.CertificateThumbprint
-                Credential                    = $mockCredential
-                GroupServiceAccountIdentifier = $mockGsaResource.GroupServiceAccountIdentifier
+            BeforeAll {
+                $setTargetResourceParameters = @{
+                    FederationServiceName         = $mockGsaResource.FederationServiceName
+                    CertificateThumbprint         = $mockGsaResource.CertificateThumbprint
+                    Credential                    = $mockCredential
+                    GroupServiceAccountIdentifier = $mockGsaResource.GroupServiceAccountIdentifier
+                }
+
+                $mockInstallAdfsFarmSuccessResult = @{
+                    Message = 'The configuration completed successfully.'
+                    Context = 'DeploymentSucceeded'
+                    Status  = 'Success'
+                }
+
+                $mockInstallAdfsFarmErrorResult = @{
+                    Message = 'The configuration did not complete successfully.'
+                    Context = 'DeploymentTask'
+                    Status  = 'Error'
+                }
+
+                $mockNewCertificateThumbprint = '6F7E9F5543505B943FEEA49E651EDDD8D9D45014'
+                $mockNewFederationServiceDisplayName = 'Fabrikam ADFS Service'
+
+                Mock -CommandName Install-AdfsFarm -MockWith { $mockInstallAdfsFarmSuccessResult }
             }
-
-            $mockInstallAdfsFarmSuccessResult = @{
-                Message = 'The configuration completed successfully.'
-                Context = 'DeploymentSucceeded'
-                Status  = 'Success'
-            }
-
-            $mockInstallAdfsFarmErrorResult = @{
-                Message = 'The configuration did not complete successfully.'
-                Context = 'DeploymentTask'
-                Status  = 'Error'
-            }
-
-            $mockNewCertificateThumbprint = '6F7E9F5543505B943FEEA49E651EDDD8D9D45014'
-            $mockNewFederationServiceDisplayName = 'Fabrikam ADFS Service'
-
-            Mock -CommandName Install-AdfsFarm -MockWith { $mockInstallAdfsFarmSuccessResult }
 
             Context 'When both credential parameters have been specified' {
-                $setTargetResourceBothCredentialParameters = $setTargetResourceParameters.Clone()
-                $setTargetResourceBothCredentialParameters.Add('ServiceAccountCredential', $mockCredential)
+                BeforeAll {
+                    $setTargetResourceBothCredentialParameters = $setTargetResourceParameters.Clone()
+                    $setTargetResourceBothCredentialParameters.Add('ServiceAccountCredential', $mockCredential)
+                }
 
                 It 'Should throw the correct error' {
                     { Set-TargetResource @setTargetResourceBothCredentialParameters } |
@@ -295,8 +317,10 @@ try
             }
 
             Context 'When neither credential parameters have been specified' {
-                $setTargetResourceBothCredentialParameters = $setTargetResourceParameters.Clone()
-                $setTargetResourceBothCredentialParameters.Remove('GroupServiceAccountIdentifier')
+                BeforeAll {
+                    $setTargetResourceBothCredentialParameters = $setTargetResourceParameters.Clone()
+                    $setTargetResourceBothCredentialParameters.Remove('GroupServiceAccountIdentifier')
+                }
 
                 It 'Should throw the correct error' {
                     { Set-TargetResource @setTargetResourceBothCredentialParameters } |
@@ -306,11 +330,13 @@ try
             }
 
             Context 'When the ADFS Service is not installed' {
-                $mockGetTargetResourceAbsentResult = @{
-                    Ensure = 'Absent'
-                }
+                BeforeAll {
+                    $mockGetTargetResourceAbsentResult = @{
+                        Ensure = 'Absent'
+                    }
 
-                Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
+                    Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
+                }
 
                 It 'Should not throw' {
                     { Set-TargetResource @setTargetResourceParameters } | Should -Not -Throw
@@ -323,7 +349,9 @@ try
                 }
 
                 Context 'When Install-AdfsFarm throws System.IO.FileNotFoundException' {
-                    Mock Install-AdfsFarm -MockWith { throw New-Object System.IO.FileNotFoundException }
+                    BeforeAll {
+                        Mock Install-AdfsFarm -MockWith { throw New-Object System.IO.FileNotFoundException }
+                    }
 
                     It 'Should not throw' {
                         { Set-TargetResource @setTargetResourceParameters } | Should -Not -Throw
@@ -337,7 +365,9 @@ try
                 }
 
                 Context 'When Install-AdfsFarm throws an exception' {
-                    Mock Install-AdfsFarm -MockWith { throw $mockExceptionErrorMessage }
+                    BeforeAll {
+                        Mock Install-AdfsFarm -MockWith { throw $mockExceptionErrorMessage }
+                    }
 
                     It 'Should throw the correct error' {
                         { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
@@ -346,7 +376,9 @@ try
                 }
 
                 Context 'When Install-AdfsFarm returns a result with a status of "Error"' {
-                    Mock Install-AdfsFarm -MockWith { $mockInstallAdfsFarmErrorResult }
+                    BeforeAll {
+                        Mock Install-AdfsFarm -MockWith { $mockInstallAdfsFarmErrorResult }
+                    }
 
                     It 'Should throw the correct error' {
                         { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
@@ -356,7 +388,9 @@ try
             }
 
             Context 'When the ADFS Service is installed' {
-                Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceResult }
+                BeforeAll {
+                    Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceResult }
+                }
 
                 It 'Should not throw' {
                     { Set-TargetResource @setTargetResourceParameters } | Should -Not -Throw
@@ -365,14 +399,18 @@ try
         }
 
         Describe '$Global:DSCResourceName\Test-TargetResource' -Tag 'Test' {
-            $testTargetResourceParameters = @{
-                FederationServiceName = $mockGsaResource.FederationServiceName
-                CertificateThumbprint = $mockGsaResource.CertificateThumbprint
-                Credential            = $mockCredential
+            BeforeAll {
+                $testTargetResourceParameters = @{
+                    FederationServiceName = $mockGsaResource.FederationServiceName
+                    CertificateThumbprint = $mockGsaResource.CertificateThumbprint
+                    Credential            = $mockCredential
+                }
             }
 
             Context 'When the ADFS role is configured' {
-                Mock Get-TargetResource -MockWith { $mockGetTargetResourceResult }
+                BeforeAll {
+                    Mock Get-TargetResource -MockWith { $mockGetTargetResourceResult }
+                }
 
                 It 'Should return $true' {
                     Test-TargetResource @testTargetResourceParameters | Should -BeTrue
@@ -388,10 +426,12 @@ try
             }
 
             Context 'When the ADFS role is not configured' {
-                $mockGetTargetResourceAbsentResult = $mockGetTargetResourceResult.Clone()
-                $mockGetTargetResourceAbsentResult.Ensure = 'Absent'
+                BeforeAll {
+                    $mockGetTargetResourceAbsentResult = $mockGetTargetResourceResult.Clone()
+                    $mockGetTargetResourceAbsentResult.Ensure = 'Absent'
 
-                Mock Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
+                    Mock Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
+                }
 
                 It 'Should return $false' {
                     Test-TargetResource @testTargetResourceParameters | Should -BeFalse
