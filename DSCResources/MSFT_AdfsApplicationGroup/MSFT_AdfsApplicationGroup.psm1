@@ -30,6 +30,7 @@
 Set-StrictMode -Version 2.0
 
 $script:dscModuleName = 'AdfsDsc'
+$script:psModuleName = 'ADFS'
 $script:dscResourceName = [System.IO.Path]::GetFileNameWithoutExtension($MyInvocation.MyCommand.Name)
 
 $script:resourceModulePath = Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
@@ -60,11 +61,11 @@ function Get-TargetResource
         $Name
     )
 
-    # Check of the ADFS PowerShell module is installed
-    Assert-Module -ModuleName 'ADFS'
+    # Check of the Resource PowerShell module is installed
+    Assert-Module -ModuleName $script:psModuleName
 
     # Check if the Get-AdfsApplicationGroup command is available
-    Assert-Command -Module 'ADFS' -Command 'Get-AdfsApplicationGroup'
+    Assert-Command -Module $script:psModuleName -Command 'Get-AdfsApplicationGroup'
 
     # Check if the ADFS Service is present and running
     Assert-AdfsService -Verbose
@@ -94,7 +95,6 @@ function Get-TargetResource
 
     $returnValue
 }
-
 
 function Set-TargetResource
 {
@@ -228,7 +228,7 @@ function Test-TargetResource
                         $script:localizedData.ResourcePropertyNotInDesiredStateMessage -f
                         $targetResource.Name, $property.ParameterName, `
                             $property.Expected, $property.Actual)
-                        }
+                }
                 $inDesiredState = $false
             }
             else

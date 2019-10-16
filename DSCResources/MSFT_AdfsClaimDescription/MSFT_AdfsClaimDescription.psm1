@@ -1,7 +1,7 @@
 Set-StrictMode -Version 2.0
 
 $script:dscModuleName = 'AdfsDsc'
-$script:PSModuleName = 'ADFS'
+$script:psModuleName = 'ADFS'
 $script:dscResourceName = [System.IO.Path]::GetFileNameWithoutExtension($MyInvocation.MyCommand.Name)
 
 $script:resourceModulePath = Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
@@ -37,7 +37,7 @@ function Get-TargetResource
     )
 
     # Check of the Resource PowerShell module is installed
-    Assert-Module -ModuleName $script:PSModuleName
+    Assert-Module -ModuleName $script:psModuleName
 
     # Check if the ADFS Service is present and running
     Assert-AdfsService -Verbose
