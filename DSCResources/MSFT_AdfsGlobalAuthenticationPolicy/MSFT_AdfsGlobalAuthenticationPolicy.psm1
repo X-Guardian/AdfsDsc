@@ -275,16 +275,13 @@ function Test-TargetResource
         $WindowsIntegratedFallbackEnabled
     )
 
-    [HashTable]$Parameters = $PSBoundParameters
-    $Parameters.Remove('FederationServiceName')
-
-    $GetTargetResourceParms = @{
+    $getTargetResourceParms = @{
         FederationServiceName = $FederationServiceName
     }
-    $targetResource = Get-TargetResource @GetTargetResourceParms
+    $targetResource = Get-TargetResource @getTargetResourceParms
 
     $propertiesNotInDesiredState = (
-        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $Parameters |
+        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
             Where-Object -Property InDesiredState -eq $false)
 
     if ($propertiesNotInDesiredState)

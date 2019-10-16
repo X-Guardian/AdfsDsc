@@ -432,18 +432,14 @@ function Test-TargetResource
         $SignInPageAdditionalAuthenticationDescriptionText
     )
 
-    [HashTable]$Parameters = $PSBoundParameters
-    $Parameters.Remove('FederationServiceName')
-    $Parameters.Remove('Locale')
-
-    $GetTargetResourceParms = @{
+    $getTargetResourceParms = @{
         FederationServiceName = $FederationServiceName
         Locale                = $Locale
     }
-    $targetResource = Get-TargetResource @GetTargetResourceParms
+    $targetResource = Get-TargetResource @getTargetResourceParms
 
     $propertiesNotInDesiredState = (
-        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $Parameters |
+        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
             Where-Object -Property InDesiredState -eq $false)
 
     if ($propertiesNotInDesiredState)

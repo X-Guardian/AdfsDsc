@@ -94,7 +94,6 @@ function Get-TargetResource
     $returnValue
 }
 
-
 function Set-TargetResource
 {
     <#
@@ -176,7 +175,6 @@ function Set-TargetResource
     }
 }
 
-
 function Test-TargetResource
 {
     <#
@@ -213,16 +211,13 @@ function Test-TargetResource
         $TelephoneNumber
     )
 
-    [HashTable]$parameters = $PSBoundParameters
-    $parameters.Remove('FederationServiceName')
-
-    $GetTargetResourceParms = @{
+    $getTargetResourceParms = @{
         FederationServiceName = $FederationServiceName
     }
-    $targetResource = Get-TargetResource @GetTargetResourceParms
+    $targetResource = Get-TargetResource @getTargetResourceParms
 
     $propertiesNotInDesiredState = (
-        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters |
+        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
             Where-Object -Property InDesiredState -eq $false)
 
     if ($propertiesNotInDesiredState)

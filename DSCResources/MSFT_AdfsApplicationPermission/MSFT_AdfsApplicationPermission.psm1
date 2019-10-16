@@ -155,11 +155,11 @@ function Set-TargetResource
     $parameters.Remove('ClientRoleIdentifier')
     $parameters.Remove('ServerRoleIdentifier')
 
-    $GetTargetResourceParms = @{
+    $getTargetResourceParms = @{
         ClientRoleIdentifier = $ClientRoleIdentifier
         ServerRoleIdentifier = $ServerRoleIdentifier
     }
-    $targetResource = Get-TargetResource @GetTargetResourceParms
+    $targetResource = Get-TargetResource @getTargetResourceParms
 
     if ($Ensure -eq 'Present')
     {
@@ -250,11 +250,11 @@ function Test-TargetResource
         $Ensure = 'Present'
     )
 
-    $targetResource = Get-TargetResource `
-        -ClientRoleIdentifier $ClientRoleIdentifier `
-        -ServerRoleIdentifier $ServerRoleIdentifier
-
-    $inDesiredState = $true
+    $getTargetResourceParms = @{
+        ClientRoleIdentifier = $ClientRoleIdentifier
+        ServerRoleIdentifier = $ServerRoleIdentifier
+    }
+    $targetResource = Get-TargetResource @getTargetResourceParms
 
     if ($targetResource.Ensure -eq 'Present')
     {

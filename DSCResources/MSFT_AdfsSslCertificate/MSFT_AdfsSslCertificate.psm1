@@ -182,18 +182,16 @@ function Test-TargetResource
         $RemoteCredential
     )
 
-    [HashTable]$parameters = $PSBoundParameters
-    $parameters.Remove('CertificateType')
-    $parameters.Remove('RemoteCredential')
+    $PSBoundParameters.Remove('RemoteCredential') | Out-Null
 
-    $GetTargetResourceParms = @{
+    $getTargetResourceParms = @{
         CertificateType = $CertificateType
         Thumbprint      = $Thumbprint
     }
-    $targetResource = Get-TargetResource @GetTargetResourceParms
+    $targetResource = Get-TargetResource @getTargetResourceParms
 
     $propertiesNotInDesiredState = (
-        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters |
+        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
             Where-Object -Property InDesiredState -eq $false)
 
     if ($propertiesNotInDesiredState)

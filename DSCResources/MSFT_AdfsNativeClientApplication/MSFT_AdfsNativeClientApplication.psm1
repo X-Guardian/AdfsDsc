@@ -285,15 +285,12 @@ function Test-TargetResource
         $Ensure = 'Present'
     )
 
-    [HashTable]$parameters = $PSBoundParameters
-    $parameters.Remove('Ensure')
-
-    $GetTargetResourceParms = @{
+    $getTargetResourceParms = @{
         Name                       = $Name
         ApplicationGroupIdentifier = $ApplicationGroupIdentifier
         Identifier                 = $Identifier
     }
-    $targetResource = Get-TargetResource @GetTargetResourceParms
+    $targetResource = Get-TargetResource @getTargetResourceParms
 
     if ($targetResource.Ensure -eq 'Present')
     {
@@ -302,7 +299,7 @@ function Test-TargetResource
         {
             # Resource should exist
             $propertiesNotInDesiredState = (
-                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters |
+                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
                     Where-Object -Property InDesiredState -eq $false)
             if ($propertiesNotInDesiredState)
             {

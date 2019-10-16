@@ -202,20 +202,16 @@ function Test-TargetResource
         $OrganizationUrl
     )
 
-    [HashTable]$parameters = $PSBoundParameters
-    $parameters.Remove('FederationServiceName')
-
-    $GetTargetResourceParms = @{
+    $getTargetResourceParms = @{
         FederationServiceName = $FederationServiceName
         DisplayName           = $DisplayName
         Name                  = $Name
         OrganizationUrl       = $OrganizationUrl
-
     }
-    $targetResource = Get-TargetResource @GetTargetResourceParms
+    $targetResource = Get-TargetResource @getTargetResourceParms
 
     $propertiesNotInDesiredState = (
-        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters |
+        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
             Where-Object -Property InDesiredState -eq $false)
 
     if ($propertiesNotInDesiredState)

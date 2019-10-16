@@ -205,9 +205,10 @@ function Test-TargetResource
         $Ensure = 'Present'
     )
 
-    $targetResource = Get-TargetResource -Name $Name
-
-    $inDesiredState = $true
+    $getTargetResourceParms = @{
+            Name = $Name
+    }
+    $targetResource = Get-TargetResource @getTargetResourceParms
 
     if ($targetResource.Ensure -eq 'Present')
     {

@@ -393,12 +393,12 @@ function Test-TargetResource
 
     Write-Verbose -Message ($script:localizedData.TestingResourceMessage -f $FederationServiceName)
 
-    $GetTargetResourceParms = @{
+    $getTargetResourceParms = @{
         FederationServiceName = $FederationServiceName
         CertificateThumbprint = $CertificateThumbprint
         Credential            = $Credential
     }
-    $targetResource = Get-TargetResource @GetTargetResourceParms
+    $targetResource = Get-TargetResource @getTargetResourceParms
 
     if ($targetResource.Ensure -eq 'Present')
     {
