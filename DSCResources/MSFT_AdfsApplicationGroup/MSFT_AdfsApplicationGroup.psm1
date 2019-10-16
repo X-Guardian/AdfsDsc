@@ -27,7 +27,7 @@
         Specifies whether the Application Group should be present or absent. Default value is 'Present'.
 #>
 
-Set-StrictMode -Version Latest
+Set-StrictMode -Version 2.0
 
 $script:dscModuleName = 'AdfsDsc'
 $script:dscResourceName = [System.IO.Path]::GetFileNameWithoutExtension($MyInvocation.MyCommand.Name)
@@ -102,7 +102,7 @@ function Set-TargetResource
     .SYNOPSIS
         Set-TargetResource
 
-        .NOTES
+    .NOTES
         Used Resource PowerShell Cmdlets:
         - New-AdfsApplicationGroup    - https://docs.microsoft.com/en-us/powershell/module/adfs/new-adfsapplicationgroup
         - Set-AdfsApplicationGroup    - https://docs.microsoft.com/en-us/powershell/module/adfs/set-adfsapplicationgroup
@@ -264,7 +264,6 @@ function Test-TargetResource
             $inDesiredState = $true
         }
     }
-
 
     $inDesiredState
 }

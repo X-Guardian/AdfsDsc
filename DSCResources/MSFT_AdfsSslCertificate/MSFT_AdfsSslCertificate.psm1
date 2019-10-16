@@ -26,7 +26,7 @@
         Specifies the credential to use to connect to WinRM on all the members of the ADFS farm.
 #>
 
-Set-StrictMode -Version Latest
+Set-StrictMode -Version 2.0
 
 $script:dscModuleName = 'AdfsDsc'
 $script:dscResourceName = [System.IO.Path]::GetFileNameWithoutExtension($MyInvocation.MyCommand.Name)

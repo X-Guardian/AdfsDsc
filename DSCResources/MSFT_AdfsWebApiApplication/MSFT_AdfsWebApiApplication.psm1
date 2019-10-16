@@ -97,7 +97,7 @@
         Indicates that the request MFA from claims providers option is used.
 #>
 
-Set-StrictMode -Version Latest
+Set-StrictMode -Version 2.0
 
 $script:dscModuleName = 'AdfsDsc'
 $script:dscResourceName = [System.IO.Path]::GetFileNameWithoutExtension($MyInvocation.MyCommand.Name)

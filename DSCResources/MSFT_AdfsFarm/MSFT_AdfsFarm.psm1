@@ -52,7 +52,7 @@
         The state of the ADFS Farm.
 #>
 
-Set-StrictMode -Version Latest
+Set-StrictMode -Version 2.0
 
 $script:dscModuleName = 'AdfsDsc'
 $script:dscResourceName = [System.IO.Path]::GetFileNameWithoutExtension($MyInvocation.MyCommand.Name)
