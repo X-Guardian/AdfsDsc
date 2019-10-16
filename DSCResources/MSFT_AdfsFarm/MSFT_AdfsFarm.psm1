@@ -122,19 +122,17 @@ function Get-TargetResource
 
         try
         {
-            $adfsSslCertificate = Get-AdfsSslCertificate
+            $adfsSslCertificate = Get-AdfsSslCertificate | Select-Object -First 1
         }
         catch
         {
             $errorMessage = $script:localizedData.GettingAdfsSslCertificateError -f $FederationServiceName
             New-InvalidOperationException -Message $errorMessage -ErrorRecord $_
-
         }
 
-        $sslCertificate = $adfsSslCertificate | Select-Object -First 1
-        if ($sslCertificate)
+        if ($adfsSslCertificate)
         {
-            $certificateThumbprint = $sslCertificate.CertificateHash
+            $certificateThumbprint = $adfsSslCertificate.CertificateHash
         }
         else
         {
@@ -199,7 +197,7 @@ function Get-TargetResource
 
         $returnValue = @{
             FederationServiceName         = $FederationServiceName
-            CertificateThumbprint         = $null
+            CertificateThumbprint         = $CertificateThumbprint
             FederationServiceDisplayName  = $null
             GroupServiceAccountIdentifier = $null
             ServiceAccountCredential      = $null
@@ -341,7 +339,6 @@ function Set-TargetResource
             [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "",
                 Justification = 'Set LCM DSCMachineStatus to indicate reboot required')]
             $global:DSCMachineStatus = 1
-            return
         }
         else
         {
@@ -353,8 +350,8 @@ function Set-TargetResource
 function Test-TargetResource
 {
     <#
-    .SYNOPSIS
-        Test-TargetResource
+        .SYNOPSIS
+            Test-TargetResource
     #>
 
     [CmdletBinding()]
