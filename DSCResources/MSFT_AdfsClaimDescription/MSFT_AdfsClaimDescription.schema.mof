@@ -1,0 +1,14 @@
+
+[ClassVersion("1.0.0.0"), FriendlyName("AdfsClaimDescription")]
+class MSFT_AdfsClaimDescription : OMI_BaseResource
+{
+    [Key, Description("Specifies a friendly name for the claim description.")] String Name;
+    [Required, Description("Specifies the claim type URN or URI of the claim.")] String ClaimType;
+    [Write, Description("Indicates whether the claim is published in federation metadata as a claim that the Federation Service accepts.")] Boolean IsAccepted;
+    [Write, Description("Indicates whether the claim is published in federation metadata as a claim that the Federation Service offers.")] Boolean IsOffered;
+    [Write, Description("Indicates whether the claim is published in federation metadata as a claim that the Federation Service requires.")] Boolean IsRequired;
+    [Write, Description("Specifies text that describes the purpose of the claim description.")] String Notes;
+    [Write, Description("Specifies a short name for the claim description.")] String ShortName;
+    [Write, Description("Specifies whether the claim description should be present or absent. Default value is 'Present'."), ValueMap{"Present","Absent"}, Values{"Present","Absent"}] String Ensure;
+};
+
