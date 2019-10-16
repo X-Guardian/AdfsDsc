@@ -103,8 +103,8 @@ function Set-TargetResource
 
     .NOTES
         Used Resource PowerShell Cmdlets:
-        - New-AdfsContactPerson -
-        - Set-AdfsProperties - https://docs.microsoft.com/en-us/powershell/module/adfs/set-adfsproperties
+        - New-AdfsContactPerson - https://docs.microsoft.com/en-us/powershell/module/adfs/new-adfscontactperson
+        - Set-AdfsProperties    - https://docs.microsoft.com/en-us/powershell/module/adfs/set-adfsproperties
     #>
 
     [CmdletBinding()]

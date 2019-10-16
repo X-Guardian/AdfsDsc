@@ -45,7 +45,7 @@ function Get-TargetResource
 
     .NOTES
         Used Resource PowerShell Cmdlets:
-        - Get-AdfsProperties
+        - Get-AdfsProperties - https://docs.microsoft.com/en-us/powershell/module/adfs/get-adfsproperties
     #>
 
     [CmdletBinding()]
@@ -105,8 +105,8 @@ function Set-TargetResource
 
     .NOTES
         Used Resource PowerShell Cmdlets:
-        - New-AdfsOrganization
-        - Set-AdfsProperties
+        - New-AdfsOrganization - https://docs.microsoft.com/en-us/powershell/module/adfs/new-adfsorganization
+        - Set-AdfsProperties   - https://docs.microsoft.com/en-us/powershell/module/adfs/set-adfsproperties
     #>
 
     [CmdletBinding()]
@@ -176,6 +176,11 @@ function Set-TargetResource
 
 function Test-TargetResource
 {
+    <#
+    .SYNOPSIS
+        Test-TargetResource
+    #>
+
     [CmdletBinding()]
     [OutputType([System.Boolean])]
     param

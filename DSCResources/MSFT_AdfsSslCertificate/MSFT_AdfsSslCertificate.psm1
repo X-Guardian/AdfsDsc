@@ -98,7 +98,7 @@ function Set-TargetResource
 
     .NOTES
         Used Resource PowerShell Cmdlets:
-        - Set-AdfsSslCertificate    - https://docs.microsoft.com/en-us/powershell/module/adfs/set-adfssslcertificate
+        - Set-AdfsSslCertificate - https://docs.microsoft.com/en-us/powershell/module/adfs/set-adfssslcertificate
     #>
 
     [CmdletBinding()]
