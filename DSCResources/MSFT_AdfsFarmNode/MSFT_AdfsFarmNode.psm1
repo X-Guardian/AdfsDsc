@@ -17,7 +17,7 @@
         Specifies the DNS name of the federation service.
 
     .PARAMETER CertificateThumbprint
-        Write - String
+        Required - String
         Specifies the value of the certificate thumbprint of the certificate that should be used in the SSL binding of
         the Default Web Site in IIS. This value should match the thumbprint of a valid certificate in the Local
         Computer certificate store.
@@ -100,6 +100,10 @@ function Get-TargetResource
         [Parameter(Mandatory = $true)]
         [System.String]
         $FederationServiceName,
+
+        [Parameter(Mandatory = $true)]
+        [System.String]
+        $CertificateThumbprint,
 
         [Parameter(Mandatory = $true)]
         [System.Management.Automation.PSCredential]
@@ -245,12 +249,12 @@ function Set-TargetResource
         $FederationServiceName,
 
         [Parameter(Mandatory = $true)]
-        [System.Management.Automation.PSCredential]
-        $Credential,
-
-        [Parameter()]
         [System.String]
         $CertificateThumbprint,
+
+        [Parameter(Mandatory = $true)]
+        [System.Management.Automation.PSCredential]
+        $Credential,
 
         [Parameter()]
         [System.String]
@@ -306,6 +310,7 @@ function Set-TargetResource
 
     $GetTargetResourceParms = @{
         FederationServiceName = $FederationServiceName
+        CertificateThumbprint = $CertificateThumbprint
         Credential            = $Credential
     }
     $targetResource = Get-TargetResource @GetTargetResourceParms
@@ -402,12 +407,12 @@ function Test-TargetResource
         $FederationServiceName,
 
         [Parameter(Mandatory = $true)]
-        [System.Management.Automation.PSCredential]
-        $Credential,
-
-        [Parameter()]
         [System.String]
         $CertificateThumbprint,
+
+        [Parameter(Mandatory = $true)]
+        [System.Management.Automation.PSCredential]
+        $Credential,
 
         [Parameter()]
         [System.String]
@@ -443,6 +448,7 @@ function Test-TargetResource
 
     $GetTargetResourceParms = @{
         FederationServiceName = $FederationServiceName
+        CertificateThumbprint = $CertificateThumbprint
         Credential            = $Credential
     }
     $targetResource = Get-TargetResource @GetTargetResourceParms
