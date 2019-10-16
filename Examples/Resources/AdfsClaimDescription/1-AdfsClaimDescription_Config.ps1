@@ -22,7 +22,7 @@
         This configuration will add the claim description named Role for a custom claim that has the specified claim type.
 #>
 
-Configuration AdfsContactPerson_Config
+Configuration AdfsClaimDescription_Config
 {
     Import-DscResource -ModuleName AdfsDsc
 
