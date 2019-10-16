@@ -1,4 +1,4 @@
-Set-StrictMode -Version Latest
+Set-StrictMode -Version 2.0
 
 function Get-LocalizedData
 {
