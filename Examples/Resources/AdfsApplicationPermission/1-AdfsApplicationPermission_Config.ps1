@@ -19,7 +19,7 @@
 
 <#
     .DESCRIPTION
-        This configuration will ...
+        This configuration will grant application permission in Active Directory Federation Services (AD FS).
 #>
 
 Configuration AdfsApplicationPermission_Config
@@ -30,8 +30,8 @@ Configuration AdfsApplicationPermission_Config
     {
         AdfsApplicationPermission AppPermission1
         {
-            ClientRoleIdentifier = 'c28bcb5d-ef46-47ed-b520-4f5ac605a082'
-            ServerRoleIdentifier = 'c28bcb5d-ef46-47ed-b520-4f5ac605a082'
+            ClientRoleIdentifier = 'NativeApp1'
+            ServerRoleIdentifier = 'https://nativeapp1.contoso.com'
             Description          = "This is the AppPermission1 Description"
             ScopeNames           = 'openid'
         }

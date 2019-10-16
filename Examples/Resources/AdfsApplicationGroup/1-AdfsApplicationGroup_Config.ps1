@@ -19,7 +19,7 @@
 
 <#
     .DESCRIPTION
-        This configuration will ...
+        This configuration will create an application group in Active Directory Federation Services (AD FS).
 #>
 
 Configuration AdfsApplicationGroup_Config

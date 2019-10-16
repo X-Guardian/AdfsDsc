@@ -19,7 +19,7 @@
 
 <#
     .DESCRIPTION
-        This configuration will ...
+        This configuration will set the contact information in Active Directory Federation Services (AD FS).
 #>
 
 Configuration AdfsContactPerson_Config

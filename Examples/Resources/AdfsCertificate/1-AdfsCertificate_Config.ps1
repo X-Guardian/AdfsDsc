@@ -19,7 +19,8 @@
 
 <#
     .DESCRIPTION
-        This configuration will ...
+        This configuration will set the primary token-signing certificate in Active Directory Federation Services (AD FS)
+        to the certificate with the specified thumbprint.
 #>
 
 Configuration AdfsCertificate_Config
@@ -31,7 +32,7 @@ Configuration AdfsCertificate_Config
         AdfsCertificate Certificates
         {
             CertificateType = 'Token-Signing'
-            Thumbprint      = 'cb779e674ae6921682d01d055a4315c786160a7b'
+            Thumbprint      = 'fedd995b45e633d4ef30fcbc8f3a48b627e9a28b'
         }
     }
 }

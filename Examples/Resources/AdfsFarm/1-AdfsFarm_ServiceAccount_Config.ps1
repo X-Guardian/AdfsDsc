@@ -19,7 +19,15 @@
 
 <#
     .DESCRIPTION
-        This configuration will ...
+        This configuration will create the first node in an Active Directory Federation Services (AD FS) server farm
+        using the Windows Internal Database (WID) on the local server computer.
+
+        The certificate with the specified thumbprint will be used as the SSL certificate and the service
+        communications certificate. Automatically generated, self-signed certificates will be used for the token
+        signing and token decryption certificates.
+
+        The standard user account specified in the ServiceAccountCredential parameter will be used for the service
+        account.
 #>
 
 Configuration AdfsFarm_ServiceAccount_Config
@@ -46,12 +54,11 @@ Configuration AdfsFarm_ServiceAccount_Config
             Name = 'ADFS-Federation'
         }
 
-        AdfsFarm Fabrikam
+        AdfsFarm Contoso
         {
-            FederationServiceName        = 'sts.fabrikam.com'
-            FederationServiceDisplayName = 'Fabrikam ADFS Service'
-            CertificateThumbprint        = '933D8ACDD49CEF529EB159504C4095575E3496BB'
-            SQLConnectionString          = 'Data Source=SQL01;Integrated Security=True'
+            FederationServiceName        = 'fs.corp.contoso.com'
+            FederationServiceDisplayName = 'Contoso ADFS Service'
+            CertificateThumbprint        = '8169c52b4ec6e77eb2ae17f028fe5da4e35c0bed'
             ServiceAccountCredential     = $ServiceAccountCredential
             Credential                   = $DomainAdminCredential
         }

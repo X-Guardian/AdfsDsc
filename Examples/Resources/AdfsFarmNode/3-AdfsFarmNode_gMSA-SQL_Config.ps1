@@ -19,7 +19,16 @@
 
 <#
     .DESCRIPTION
-        This configuration will ...
+        This configuration will add the computer as a node in an existing Active Directory Federation Services (AD FS)
+        server farm using using a Microsoft SQL Server database on a remote computer named SQLHost and whose primary
+        node is installed on a computer named PrimaryWIDHost.
+
+        The certificate with the specified thumbprint will be used as the SSL certificate and the service
+        communications certificate. Automatically generated, self-signed certificates will be used for the token
+        signing and token decryption certificates.
+
+        The group Managed Service Account specified in the GroupServiceAccountIdentifier parameter will be used for the
+        service account.
 #>
 
 Configuration AdfsFarmNode_gMSA-SQL_Config
@@ -41,14 +50,14 @@ Configuration AdfsFarmNode_gMSA-SQL_Config
             Name = 'ADFS-Federation'
         }
 
-        AdfsFarmNode ADFS02
+        AdfsFarmNode SecondWIDHost
         {
             FederationServiceName         = 'sts.contoso.com'
             CertificateThumbprint         = '933D8ACDD49CEF529EB159504C4095575E3496BB'
-            GroupServiceAccountIdentifier = 'contoso\adfs-gmsa$'
+            GroupServiceAccountIdentifier = 'contoso\adfsgmsa$'
             SQLConnectionString           = 'Data Source=SQL01;Integrated Security=True'
             Credential                    = $DomainAdminCredential
-            PrimaryComputerName           = 'ADFS01'
+            PrimaryComputerName           = 'PrimaryWIDHost'
         }
     }
 }

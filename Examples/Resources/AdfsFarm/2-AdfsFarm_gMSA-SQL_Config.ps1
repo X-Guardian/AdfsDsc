@@ -19,7 +19,15 @@
 
 <#
     .DESCRIPTION
-        This configuration will ...
+        This configuration will create the first node in an Active Directory Federation Services (AD FS) server farm
+        using using a Microsoft SQL Server database on a remote computer named SQLHost.
+
+        The certificate with the specified thumbprint will be used as the SSL certificate and the service
+        communications certificate. Automatically generated, self-signed certificates will be used for the token
+        signing and token decryption certificates.
+
+        The group Managed Service Account specified in the GroupServiceAccountIdentifier parameter will be used for the
+        service account.
 #>
 
 Configuration AdfsFarm_gMSA-SQL_Config
@@ -43,11 +51,11 @@ Configuration AdfsFarm_gMSA-SQL_Config
 
         AdfsFarm Contoso
         {
-            FederationServiceName         = 'sts.contoso.com'
+            FederationServiceName         = 'fs.corp.contoso.com'
             FederationServiceDisplayName  = 'Contoso ADFS Service'
-            CertificateThumbprint         = '933D8ACDD49CEF529EB159504C4095575E3496BB'
-            GroupServiceAccountIdentifier = 'contoso\adfs-gmsa$'
-            SQLConnectionString           = 'Data Source=SQL01;Integrated Security=True'
+            CertificateThumbprint         = '8169c52b4ec6e77eb2ae17f028fe5da4e35c0bed'
+            GroupServiceAccountIdentifier = 'contoso\adfsgmsa$'
+            SQLConnectionString           = 'Data Source=SQLHost;Integrated Security=True'
             Credential                    = $DomainAdminCredential
         }
     }
