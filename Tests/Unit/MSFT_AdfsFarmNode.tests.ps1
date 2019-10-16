@@ -1,7 +1,7 @@
-
 $Global:DSCModuleName = 'AdfsDsc'
 $Global:PSModuleName = 'ADFS'
-$Global:DSCResourceName = 'MSFT_AdfsFarmNode'
+$Global:DscResourceFriendlyName = 'AdfsFarmNode'
+$Global:DSCResourceName = "MSFT_$Global:DscResourceFriendlyName"
 
 $moduleRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $Script:MyInvocation.MyCommand.Path))
 if ( (-not (Test-Path -Path (Join-Path -Path $moduleRoot -ChildPath 'DSCResource.Tests'))) -or `
@@ -21,8 +21,15 @@ $TestEnvironment = Initialize-TestEnvironment `
 try
 {
     InModuleScope $Global:DSCResourceName {
-        # Import ADFS Stub Module
+        # Import Stub Module
         Import-Module (Join-Path -Path $PSScriptRoot -ChildPath "Stubs\$($Global:PSModuleName)Stub.psm1") -Force
+
+        # Define Resource Commands
+        $ResourceCommand = @{
+            Get       = 'Get-AdfsConfigurationStatus'
+            Install   = 'Add-AdfsFarmNode'
+            Uninstall = 'Remove-AdfsFarmNode'
+        }
 
         $mockUserName = 'CONTOSO\AdfsSmsa'
         $mockPassword = 'DummyPassword'
@@ -36,30 +43,29 @@ try
 
         $sqlConnectionString = 'TBC'
 
-        $mockGsaResource = @{
+        $mockResource = @{
             FederationServiceName         = 'sts.contoso.com'
             CertificateThumbprint         = '6F7E9F5543505B943FEEA49E651EDDD8D9D45011'
-            GroupServiceAccountIdentifier = 'CONTOSO\AdfsGmsa'
-            ServiceAccountCredential      = $null
             PrimaryComputerName           = 'adfs01'
             PrimaryComputerPort           = 80
             SQLConnectionString           = $SQLConnectionString
             Ensure                        = 'Present'
         }
 
-        $mockSaResource = @{
-            FederationServiceName         = 'sts.contoso.com'
-            CertificateThumbprint         = '6F7E9F5543505B943FEEA49E651EDDD8D9D45011'
+        $mockGsaResource = $mockResource.Clone()
+        $mockGsaResource += @{
+            GroupServiceAccountIdentifier = 'CONTOSO\AdfsGmsa'
+            ServiceAccountCredential      = $null
+        }
+
+        $mockSaResource = $mockResource.Clone()
+        $mockSaResource += @{
             GroupServiceAccountIdentifier = $null
             ServiceAccountCredential      = $mockMSFTCredential
-            PrimaryComputerName           = 'adfs01'
-            PrimaryComputerPort           = 80
-            SQLConnectionString           = $SQLConnectionString
-            Ensure                        = 'Present'
         }
 
         $mockAbsentResource = @{
-            FederationServiceName         = 'sts.contoso.com'
+            FederationServiceName         = $mockResource.FederationServiceName
             CertificateThumbprint         = $null
             GroupServiceAccountIdentifier = $null
             ServiceAccountCredential      = $null
@@ -86,22 +92,23 @@ try
         $mockGetTargetResourceAbsentResult.Ensure = 'Absent'
 
         $getTargetResourceParameters = @{
-            FederationServiceName = $mockGsaResource.FederationServiceName
+            FederationServiceName = $mockResource.FederationServiceName
+            CertificateThumbprint = $mockResource.CertificateThumbprint
             Credential            = $mockCredential
         }
 
-        Describe '$Global:DSCResourceName\Get-TargetResource' -Tag 'Get' {
+        Describe "$Global:DSCResourceName\Get-TargetResource" -Tag 'Get' {
             $mockGetAdfsSslCertificateResult = @(
                 @{
                     Hostname        = 'sts.contoso.com'
                     PortNumber      = 443
-                    CertificateHash = $mockGsaResource.CertificateThumbprint
+                    CertificateHash = $mockResource.CertificateThumbprint
                 }
             )
 
             $mockGetAdfsSyncProperties = @{
-                PrimaryComputerName = $mockGsaResource.PrimaryComputerName
-                PrimaryComputerPort = $mockGsaResource.PrimaryComputerPort
+                PrimaryComputerName = $mockResource.PrimaryComputerName
+                PrimaryComputerPort = $mockResource.PrimaryComputerPort
             }
 
             $mockGetCimInstanceServiceGsaRunningResult = @{
@@ -133,9 +140,9 @@ try
             Mock -CommandName Get-AdfsSyncProperties -MockWith { $mockGetAdfsSyncProperties }
             Mock -CommandName Assert-GroupServiceAccount -MockWith { $true }
 
-            Context 'When the ADFS service is configured' {
+            Context "When the $($Global:DscResourceFriendlyName) Resource is configured" {
                 BeforeAll {
-                    Mock -CommandName Get-AdfsConfigurationStatus -MockWith { 'Configured' }
+                    Mock -CommandName $ResourceCommand.Get -MockWith { 'Configured' }
 
                     $result = Get-TargetResource @getTargetResourceParameters
                 }
@@ -153,6 +160,7 @@ try
                         -Exactly -Times 1
                     Assert-MockCalled -CommandName Assert-DomainMember -Exactly -Times 1
                     Assert-MockCalled -CommandName Assert-AdfsService -Exactly -Times 1
+                    Assert-MockCalled -CommandName $ResourceCommand.Get -Exactly -Times 1
                     Assert-MockCalled -CommandName Get-CimInstance `
                         -ParameterFilter {
                         $ClassName -eq 'Win32_Service' -and `
@@ -176,7 +184,7 @@ try
                     It 'Should throw the correct exception' {
                         { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
                             $script:localizedData.GettingAdfsSslCertificateError -f
-                            $mockGsaResource.FederationServiceName)
+                            $mockResource.FederationServiceName)
                     }
                 }
 
@@ -188,7 +196,7 @@ try
                     It 'Should throw the correct exception' {
                         { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
                             $script:localizedData.GettingAdfsSslCertificateError -f
-                            $mockGsaResource.FederationServiceName)
+                            $mockResource.FederationServiceName)
                     }
                 }
 
@@ -201,7 +209,7 @@ try
                     It 'Should throw the correct exception' {
                         { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
                             $script:localizedData.GettingAdfsServiceError -f
-                            $mockGsaResource.FederationServiceName)
+                            $mockResource.FederationServiceName)
                     }
                 }
 
@@ -244,7 +252,7 @@ try
                     It 'Should throw the correct exception' {
                         { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
                             $script:localizedData.GettingAdfsSecurityTokenServiceError -f
-                            $mockGsaResource.FederationServiceName)
+                            $mockResource.FederationServiceName)
                     }
                 }
 
@@ -256,14 +264,14 @@ try
                     It 'Should throw the correct exception' {
                         { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
                             $script:localizedData.GettingAdfsSyncPropertiesError -f
-                            $mockGsaResource.FederationServiceName)
+                            $mockResource.FederationServiceName)
                     }
                 }
             }
 
-            Context 'When the ADFS service is not configured' {
+            Context "When the $($Global:DscResourceFriendlyName) Resource is not configured" {
                 BeforeAll {
-                    Mock -CommandName Get-AdfsConfigurationStatus -MockWith { 'NotConfigured' }
+                    Mock -CommandName $ResourceCommand.Get -MockWith { 'NotConfigured' }
 
                     $result = Get-TargetResource @getTargetResourceParameters
                 }
@@ -291,7 +299,7 @@ try
             }
         }
 
-        Describe '$Global:DSCResourceName\Set-TargetResource' -Tag 'Set' {
+        Describe "$Global:DSCResourceName\Set-TargetResource" -Tag 'Set' {
             BeforeAll {
                 $setTargetResourceParameters = @{
                     FederationServiceName         = $mockGsaResource.FederationServiceName
@@ -320,8 +328,8 @@ try
                     Status  = 'Error'
                 }
 
-                Mock -CommandName Add-AdfsFarmNode -MockWith { $mockAddAdfsFarmNodeSuccessResult }
-                Mock -CommandName Remove-AdfsFarmNode
+                Mock -CommandName $ResourceCommand.Install -MockWith { $mockAddAdfsFarmNodeSuccessResult }
+                Mock -CommandName $ResourceCommand.Uninstall
             }
 
             Context 'When both credential parameters have been specified' {
@@ -350,9 +358,9 @@ try
                 }
             }
 
-            Context 'When the ADFS Service should be installed' {
+            Context "When the $($Global:DscResourceFriendlyName) Resource should be installed" {
 
-                Context 'When the ADFS Service is not installed' {
+                Context "When the $($Global:DscResourceFriendlyName) Resource is not installed" {
                     BeforeAll {
                         $mockGetTargetResourceAbsentResult = @{
                             Ensure = 'Absent'
@@ -366,16 +374,16 @@ try
                     }
 
                     It 'Should call the expected mocks' {
-                        Assert-MockCalled -CommandName Add-AdfsFarmNode `
+                        Assert-MockCalled -CommandName $ResourceCommand.Install `
                             -ParameterFilter { `
                                 $CertificateThumbprint -eq $setTargetResourcePresentParameters.CertificateThumbprint } `
                             -Exactly -Times 1
-                        Assert-MockCalled -CommandName Remove-AdfsFarmNode -Exactly -Times 0
+                        Assert-MockCalled -CommandName $ResourceCommand.Uninstall -Exactly -Times 0
                     }
 
-                    Context 'When Add-AdfsFarmNode throws System.IO.FileNotFoundException' {
+                    Context "When $($ResourceCommand.Install) throws System.IO.FileNotFoundException" {
                         BeforeAll {
-                            Mock Add-AdfsFarmNode -MockWith { throw New-Object System.IO.FileNotFoundException }
+                            Mock $ResourceCommand.Install -MockWith { throw New-Object System.IO.FileNotFoundException }
                         }
 
                         It 'Should not throw' {
@@ -383,16 +391,16 @@ try
                         }
 
                         It 'Should call the expected mocks' {
-                            Assert-MockCalled -CommandName Add-AdfsFarmNode `
+                            Assert-MockCalled -CommandName $ResourceCommand.Install `
                                 -ParameterFilter { `
                                     $CertificateThumbprint -eq $setTargetResourcePresentParameters.CertificateThumbprint } `
                                 -Exactly -Times 1
                         }
                     }
 
-                    Context 'When Add-AdfsFarmNode throws an exception' {
+                    Context "When $($ResourceCommand.Install) throws an exception" {
                         BeforeAll {
-                            Mock Add-AdfsFarmNode -MockWith { throw $mockExceptionErrorMessage }
+                            Mock $ResourceCommand.Install -MockWith { throw $mockExceptionErrorMessage }
                         }
 
                         It 'Should throw the correct error' {
@@ -402,9 +410,9 @@ try
                         }
                     }
 
-                    Context 'When Add-AdfsFarmNode returns a result with a status of "Error"' {
+                    Context "When $($ResourceCommand.Install) returns a result with a status of 'Error'" {
                         BeforeAll {
-                            Mock Add-AdfsFarmNode -MockWith { $mockAddAdfsFarmNodeErrorResult }
+                            Mock $ResourceCommand.Install -MockWith { $mockAddAdfsFarmNodeErrorResult }
                         }
 
                         It 'Should throw the correct error' {
@@ -414,7 +422,7 @@ try
                     }
                 }
 
-                Context 'When the ADFS Service is installed' {
+                Context "When the $($Global:DscResourceFriendlyName) Resource is installed" {
                     BeforeAll {
                         Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourcePresentResult }
                     }
@@ -425,9 +433,9 @@ try
                 }
             }
 
-            Context 'When the ADFS Service should not be installed' {
+            Context "When the $($Global:DscResourceFriendlyName) Resource should not be installed" {
 
-                Context 'When the ADFS Service is installed' {
+                Context "When the $($Global:DscResourceFriendlyName) Resource is installed" {
                     BeforeAll {
                         Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourcePresentResult }
                     }
@@ -437,13 +445,13 @@ try
                     }
 
                     It 'Should call the expected mocks' {
-                        Assert-MockCalled -CommandName Remove-AdfsFarmNode -Exactly -Times 1
-                        Assert-MockCalled -CommandName Add-AdfsFarmNode -Exactly -Times 0
+                        Assert-MockCalled -CommandName $ResourceCommand.Uninstall -Exactly -Times 1
+                        Assert-MockCalled -CommandName $ResourceCommand.Install -Exactly -Times 0
                     }
 
-                    Context 'When Remove-AdfsFarmNode throws an exception' {
+                    Context "When $($ResourceCommand.Uninstall) throws an exception" {
                         BeforeAll {
-                            Mock Remove-AdfsFarmNode -MockWith { throw $mockExceptionErrorMessage }
+                            Mock $ResourceCommand.Uninstall -MockWith { throw $mockExceptionErrorMessage }
                         }
 
                         It 'Should throw the correct error' {
@@ -454,7 +462,7 @@ try
                     }
                 }
 
-                Context 'When the ADFS Service is not installed' {
+                Context "When the $($Global:DscResourceFriendlyName) Resource is not installed" {
                     BeforeAll {
                         Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
                     }
@@ -464,14 +472,14 @@ try
                     }
 
                     It 'Should call the expected mocks' {
-                        Assert-MockCalled -CommandName Remove-AdfsFarmNode -Exactly -Times 0
-                        Assert-MockCalled -CommandName Add-AdfsFarmNode -Exactly -Times 0
+                        Assert-MockCalled -CommandName $ResourceCommand.Uninstall -Exactly -Times 0
+                        Assert-MockCalled -CommandName $ResourceCommand.Install -Exactly -Times 0
                     }
                 }
             }
         }
 
-        Describe '$Global:DSCResourceName\Test-TargetResource' -Tag 'Test' {
+        Describe "$Global:DSCResourceName\Test-TargetResource" -Tag 'Test' {
             BeforeAll {
                 $testTargetResourceParameters = @{
                     FederationServiceName         = $mockGsaResource.FederationServiceName
@@ -489,12 +497,12 @@ try
                 $testTargetResourceAbsentParameters.Ensure = 'Absent'
             }
 
-            Context 'When the ADFS Farm Node is installed' {
+            Context "When the $($Global:DscResourceFriendlyName) Resource is installed" {
                 BeforeAll {
                     Mock Get-TargetResource -MockWith { $mockGetTargetResourcePresentResult }
                 }
 
-                Context 'When the ADFS Farm Node should be installed' {
+                Context "When the $($Global:DscResourceFriendlyName) Resource should be installed" {
                     It 'Should return true' {
                         Test-TargetResource @testTargetResourcePresentParameters | Should -BeTrue
                     }
@@ -508,7 +516,7 @@ try
                     }
                 }
 
-                Context 'When the ADFS Farm Node should not be installed' {
+                Context "When the $($Global:DscResourceFriendlyName) Resource should not be installed" {
                     It 'Should return false' {
                         Test-TargetResource @testTargetResourceAbsentParameters | Should -BeFalse
                     }
@@ -522,12 +530,12 @@ try
                 }
             }
 
-            Context 'When the ADFS Farm Node is not installed' {
+            Context "When the $($Global:DscResourceFriendlyName) Resource is not installed" {
                 BeforeAll {
                     Mock Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
                 }
 
-                Context 'When the ADFS Farm Node should not be installed' {
+                Context "When the $($Global:DscResourceFriendlyName) Resource should not be installed" {
                     It 'Should return $false' {
                         Test-TargetResource @testTargetResourceAbsentParameters | Should -Be $true
                     }
@@ -540,7 +548,7 @@ try
                     }
                 }
 
-                Context 'When the ADFS Farm Node should be installed' {
+                Context "When the $($Global:DscResourceFriendlyName) Resource should be installed" {
                     It 'Should return $false' {
                         Test-TargetResource @testTargetResourcePresentParameters | Should -Be $false
                     }
