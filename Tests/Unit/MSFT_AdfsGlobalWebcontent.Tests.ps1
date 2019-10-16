@@ -154,9 +154,9 @@ try
                 Assert-MockCalled -CommandName $ResourceCommand.Get -Exactly -Times 1
             }
 
-            Context 'When Get-AdfsGlobalWebContent throws an exception' {
+            Context "When $($ResourceCommand.Get) throws an exception" {
                 BeforeAll {
-                    Mock -CommandName Get-AdfsGlobalWebContent -MockWith { Throw 'Error' }
+                    Mock -CommandName $ResourceCommand.Get -MockWith { Throw 'Error' }
                 }
 
                 It 'Should throw the correct exception' {
@@ -220,9 +220,9 @@ try
                 }
             }
 
-            Context 'When Set-AdfsGlobalWebContent throws an exception' {
+            Context "When $($ResourceCommand.Set) throws an exception" {
                 BeforeAll {
-                    Mock -CommandName Set-AdfsGlobalWebContent -MockWith { Throw 'Error' }
+                    Mock -CommandName $ResourceCommand.Set -MockWith { Throw 'Error' }
                 }
 
                 It 'Should throw the correct exception' {

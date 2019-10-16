@@ -78,8 +78,10 @@ try
                 Assert-MockCalled -CommandName $ResourceCommand.Get -Exactly -Times 1
             }
 
-            Context 'When Get-AdfsCertificate throws an exception' {
-                Mock -CommandName $ResourceCommand.Get -MockWith { Throw 'Error' }
+            Context "When $($ResourceCommand.Get) throws an exception" {
+                BeforeAll {
+                    Mock -CommandName $ResourceCommand.Get -MockWith { Throw 'Error' }
+                }
 
                 It 'Should throw the correct exception' {
                     { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
@@ -124,7 +126,7 @@ try
                 }
             }
 
-            Context 'When Set-AdfsCertificate throws an exception' {
+            Context "When $($ResourceCommand.Set) throws an exception" {
                 BeforeAll {
                     $setTargetResourceParametersChangedProperty = $setTargetResourceParameters.Clone()
                     $setTargetResourceParametersChangedProperty.Thumbprint = $mockChangedResource.Thumbprint

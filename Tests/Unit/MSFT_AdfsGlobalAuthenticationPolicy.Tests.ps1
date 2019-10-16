@@ -107,9 +107,9 @@ try
                 Assert-MockCalled -CommandName $ResourceCommand.Get -Exactly -Times 1
             }
 
-            Context 'When Get-AdfsGlobalAuthenticationPolicy throws an exception' {
+            Context "When $($ResourceCommand.Get) throws an exception" {
                 BeforeAll {
-                    Mock -CommandName Get-AdfsGlobalAuthenticationPolicy -MockWith { Throw 'Error' }
+                    Mock -CommandName $ResourceCommand.Get -MockWith { Throw 'Error' }
                 }
 
                 It 'Should throw the correct exception' {
@@ -160,14 +160,15 @@ try
                 }
             }
 
-            Context 'When Set-AdfsGlobalAuthenticationPolicy throws an exception' {
+            Context "When $($ResourceCommand.Set) throws an exception" {
                 BeforeAll {
-                    Mock -CommandName Set-AdfsGlobalAuthenticationPolicy -MockWith { Throw 'Error' }
+                    Mock -CommandName $ResourceCommand.Set -MockWith { Throw 'Error' }
                 }
 
                 It 'Should throw the correct exception' {
                     { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
-                        $script:localizedData.SettingResourceError -f $setTargetResourceParameters.FederationServiceName )
+                        $script:localizedData.SettingResourceError -f
+                        $setTargetResourceParameters.FederationServiceName )
                 }
             }
         }
