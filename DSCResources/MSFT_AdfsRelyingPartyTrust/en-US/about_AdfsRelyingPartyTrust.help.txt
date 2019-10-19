@@ -10,21 +10,15 @@
 
 .PARAMETER AdditionalAuthenticationRules
     Write - String
-    Specifies the additional authorization rules to require additional authentication based on user, device and
-    location attributes after the completion of the first step of authentication. Note: These rules must only be
-    configured after there is at least one authentication provider enabled for additional authentication.
+    Specifies the additional authorization rules to require additional authentication based on user, device and location attributes after the completion of the first step of authentication. Note: These rules must only be configured after there is at least one authentication provider enabled for additional authentication.
 
 .PARAMETER AdditionalWSFedEndpoint
     Write - String
-    Specifies an array of alternate return addresses for the application. This is typically used when the
-    application wants to indicate to AD FS what the return URL should be on successful token generation. AD FS
-    requires that all acceptable URLs are entered as trusted information by the administrator.
+    Specifies an array of alternate return addresses for the application. This is typically used when the application wants to indicate to AD FS what the return URL should be on successful token generation. AD FS requires that all acceptable URLs are entered as trusted information by the administrator.
 
 .PARAMETER AutoUpdateEnabled
     Write - Boolean
-    Indicates whether changes to the federation metadata by the MetadataURL parameter apply automatically to the
-    configuration of the trust relationship. If this parameter has a value of True, partner claims, certificates,
-    and endpoints are updated automatically.
+    Indicates whether changes to the federation metadata by the MetadataURL parameter apply automatically to the configuration of the trust relationship. If this parameter has a value of True, partner claims, certificates, and endpoints are updated automatically.
 
 .PARAMETER ClaimAccepted
     Write - String
@@ -44,8 +38,7 @@
 
 .PARAMETER EnableJWT
     Write - Boolean
-    Indicates whether the JSON Web Token (JWT) format should be used to issue a token on a WS-Federation request.
-    By default, SAML tokens are issued over WS-Federation.
+    Indicates whether the JSON Web Token (JWT) format should be used to issue a token on a WS-Federation request. By default, SAML tokens are issued over WS-Federation.
 
 .PARAMETER EncryptClaims
     Write - Boolean
@@ -55,24 +48,14 @@
     Write - Boolean
     Indicates whether the relying party requires that the NameID claim be encrypted.
 
-.PARAMETER EncryptionCertificate
-    Write - String
-    Specifies the certificate to be used for encrypting claims that are issued to this relying party. Encrypting
-    claims is optional.
-
 .PARAMETER EncryptionCertificateRevocationCheck
     Write - String
-    Allowed values: None, CheckEndCert, CheckEndCertCacheOnly, CheckChain, CheckChainCacheOnly,
-                    CheckChainExcludingRoot, CheckChainExcludingRootCacheOnly
-                    
-    Specifies the type of validation that should occur for the encryption certificate it is used for encrypting
-    claims to the relying party.
+    Allowed values: None, CheckEndCert, CheckEndCertCacheOnly, CheckChain, CheckChainCacheOnly, CheckChainExcludingRoot, CheckChainExcludingRootCacheOnly
+    Specifies the type of validation that should occur for the encryption certificate it is used for encrypting claims to the relying party.
 
 .PARAMETER Identifier
     Write - String
-    Specifies the unique identifiers for this relying party trust. No other trust can use an identifier from this
-    list. Uniform Resource Identifiers (URIs) are often used as unique identifiers for a relying party trust, but
-    you can use any string of characters.
+    Specifies the unique identifiers for this relying party trust. No other trust can use an identifier from this list. Uniform Resource Identifiers (URIs) are often used as unique identifiers for a relying party trust, but you can use any string of characters.
 
 .PARAMETER ImpersonationAuthorizationRules
     Write - String
@@ -92,8 +75,7 @@
 
 .PARAMETER MonitoringEnabled
     Write - Boolean
-    Indicates whether periodic monitoring of this relying party federation metadata is enabled. The MetadataUrl
-    parameter specifies the URL of the relying party federation metadata.
+    Indicates whether periodic monitoring of this relying party federation metadata is enabled. The MetadataUrl parameter specifies the URL of the relying party federation metadata.
 
 .PARAMETER NotBeforeSkew
     Write - Sint32
@@ -108,14 +90,6 @@
     Allowed values: SAML, WsFederation, WsFed-SAML
     Specifies which protocol profiles the relying party supports.
 
-.PARAMETER RequestSigningCertificate
-    Write - String
-    Specifies an array of certificates to be used to verify the signature on a request from the relying party.
-
-.PARAMETER SamlEndpoint
-    Write - String
-    Specifies an array of Security Assertion Markup Language (SAML) protocol endpoints for this relying party.
-
 .PARAMETER SamlResponseSignature
     Write - String
     Allowed values: AssertionOnly, MessageAndAssertion, MessageOnly
@@ -128,16 +102,12 @@
 
 .PARAMETER SignedSamlRequestsRequired
     Write - Boolean
-    Indicates whether the Federation Service requires signed SAML protocol requests from the relying party. If you
-    specify a value of True, the Federation Service rejects unsigned SAML protocol requests.
+    Indicates whether the Federation Service requires signed SAML protocol requests from the relying party. If you specify a value of True, the Federation Service rejects unsigned SAML protocol requests.
 
 .PARAMETER SigningCertificateRevocationCheck
     Write - String
-    Allowed values: None, CheckEndCert, CheckEndCertCacheOnly, CheckChain, CheckChainCacheOnly,
-                    CheckChainExcludingRoot, CheckChainExcludingRootCacheOnly
-                    
-    Specifies the type of certificate validation that occur when signatures on requests from the relying party are
-    verified.
+    Allowed values: None, CheckEndCert, CheckEndCertCacheOnly, CheckChain, CheckChainCacheOnly, CheckChainExcludingRoot, CheckChainExcludingRootCacheOnly
+    Specifies the type of certificate validation that occur when signatures on requests from the relying party are verified.
 
 .PARAMETER TokenLifetime
     Write - Sint32
@@ -154,8 +124,29 @@
 
 .EXAMPLE 1
 
+This configuration will add a relying party trust named Fabrikam for federation using the federation metadata
+document published at the specified URL.
 
-Configuration OwaRelyingPartyTrust_Config
+Configuration AdfsRelyingPartyTrust_Metadata_Config
+{
+
+    Import-DscResource -Module AdfsDsc
+
+    Node localhost
+    {
+        AdfsRelyingPartyTrust OwaInternal
+        {
+            Name        = 'Fabrikam'
+            MetadataURL = 'https://fabrikam.com/federationmetadata/2007-06/federationmetadata.xml'
+        }
+    }
+}
+
+.EXAMPLE 2
+
+This configuration will ...
+
+Configuration AdfsRelyingPartyTrust_OWA_Config
 {
 
     Import-DscResource -Module AdfsDsc
@@ -175,9 +166,10 @@ Configuration OwaRelyingPartyTrust_Config
     }
 }
 
-$ConfigData = @{
+$ConfigurationData = @{
     AllNodes = @(
         @{
+            NodeName = 'localhost'
             IssuanceAuthorizationRules = @'
 @RuleTemplate = "AllowAllAuthzRule"
  => issue(Type = "http://schemas.microsoft.com/authorization/claims/permit", Value = "true");

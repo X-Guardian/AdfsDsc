@@ -24,8 +24,7 @@
 
 .PARAMETER RedirectUri
     Write - String
-    Specifies an array of redirection URIs for the OAuth 2.0 client to register with AD FS. The redirection URI is
-    specified by the OAuth 2.0 client when it requests authorization to access a resource in ADFS.
+    Specifies an array of redirection URIs for the OAuth 2.0 client to register with AD FS. The redirection URI is specified by the OAuth 2.0 client when it requests authorization to access a resource in ADFS.
 
 .PARAMETER Description
     Write - String
@@ -33,9 +32,7 @@
 
 .PARAMETER LogoutUri
     Write - String
-    Specifies the logout URI for the OAuth 2.0 client to register with the AD FS. When AD FS initiates a logout it
-    redirects the client's user-agent to this URI by rendering this URI in an iframe. The value of this parameter
-    must be an absolute URI, may include a query component, and must not include a fragment component.
+    Specifies the logout URI for the OAuth 2.0 client to register with the AD FS. When AD FS initiates a logout it redirects the client's user-agent to this URI by rendering this URI in an iframe. The value of this parameter must be an absolute URI, may include a query component, and must not include a fragment component.
 
 .PARAMETER Ensure
     Write - String
@@ -44,7 +41,8 @@
 
 .EXAMPLE 1
 
-This configuration will ...
+This configuration will add a native client application role to an application in Active Directory Federation
+Services (AD FS).
 
 Configuration AdfsNativeClientApplication_Config
 {

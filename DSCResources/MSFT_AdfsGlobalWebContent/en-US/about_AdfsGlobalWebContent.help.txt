@@ -15,8 +15,7 @@
 
 .PARAMETER CompanyName
     Write - String
-    Specifies the company name. AD FS displays the company name in the sign-in pages when you have not set a logo
-    on the active web theme.
+    Specifies the company name. AD FS displays the company name in the sign-in pages when you have not set a logo on the active web theme.
 
 .PARAMETER HelpDeskLink
     Write - String
@@ -56,13 +55,11 @@
 
 .PARAMETER CertificatePageDescriptionText
     Write - String
-    Specifies the text on the certificate page. Active Directory Federation Services (AD FS) displays the text that
-    you specify when it prompts the user for a certificate.
+    Specifies the text on the certificate page. Active Directory Federation Services (AD FS) displays the text that you specify when it prompts the user for a certificate.
 
 .PARAMETER SignInPageDescriptionText
     Write - String
-    Specifies the description to display when a user signs in to applications by using AD FS. When you use
-    Integrated Windows Authentication in the intranet, users do not see this page.
+    Specifies the description to display when a user signs in to applications by using AD FS. When you use Integrated Windows Authentication in the intranet, users do not see this page.
 
 .PARAMETER SignOutPageDescriptionText
     Write - String
@@ -70,24 +67,19 @@
 
 .PARAMETER ErrorPageDescriptionText
     Write - String
-    Specifies an error message to display when a user encounters any generic errors that occur for a token request.
-    This string can be an HTML fragment.
+    Specifies an error message to display when a user encounters any generic errors that occur for a token request. This string can be an HTML fragment.
 
 .PARAMETER ErrorPageGenericErrorMessage
     Write - String
-    Specifies an error message to display for any generic errors that occur for a token request. This string can be
-    an HTML fragment.
+    Specifies an error message to display for any generic errors that occur for a token request. This string can be an HTML fragment.
 
 .PARAMETER ErrorPageAuthorizationErrorMessage
     Write - String
-    Specifies an error message to display when a user encounters any authorization errors that occur for a token
-    request. This string can be an HTML fragment.
+    Specifies an error message to display when a user encounters any authorization errors that occur for a token request. This string can be an HTML fragment.
 
 .PARAMETER ErrorPageDeviceAuthenticationErrorMessage
     Write - String
-    Specifies an error message to display for any device authentication errors that occur for a token request.
-    Device authentication errors occur when the user presents an expired user@device certificate to AD FS, a
-    certificate is not found in AD DS, or a certificate is disabled in AD DS. This string can be an HTML fragment.
+    Specifies an error message to display for any device authentication errors that occur for a token request. Device authentication errors occur when the user presents an expired user@device certificate to AD FS, a certificate is not found in AD DS, or a certificate is disabled in AD DS. This string can be an HTML fragment.
 
 .PARAMETER ErrorPageSupportEmail
     Write - String
@@ -99,14 +91,14 @@
 
 .PARAMETER SignInPageAdditionalAuthenticationDescriptionText
     Write - String
-    Specifies the description to display when an application prompts a user for additional authentication. The
-    sign-in page can also display a description that is provided by the additional authentication provider.
+    Specifies the description to display when an application prompts a user for additional authentication. The sign-in page can also display a description that is provided by the additional authentication provider.
 
 .EXAMPLE 1
 
-This configuration will ...
+This configuration will the company name of the global web content for the invariant locale. If there is no
+logo, the sign-in page displays the company name Contoso.
 
-Configuration AdfsGlobalWebContent_Config
+Configuration AdfsGlobalWebContent_CompanyName_Config
 {
     param()
 
@@ -117,9 +109,78 @@ Configuration AdfsGlobalWebContent_Config
         AdfsGlobalWebContent ContosoGlobalWebContent
         {
             FederationServiceName = 'sts.contoso.com'
-            Locale                = 'en-US'
+            Locale                = ''
             CompanyName           = 'Contoso'
-            HelpDeskLink          = 'https://helpdesk.contoso.com'
+        }
+    }
+}
+
+.EXAMPLE 2
+
+This configuration will set the text to display in the sign-in pages for AD FS for the en-us locale.
+
+Configuration AdfsGlobalWebContent_SigninPage_Config
+{
+    param()
+
+    Import-DscResource -ModuleName AdfsDsc
+
+    Node localhost
+    {
+        AdfsGlobalWebContent ContosoGlobalWebContent
+        {
+            FederationServiceName             = 'sts.contoso.com'
+            Locale                            = 'en-US'
+            CompanyName                       = 'Contoso'
+            HelpDeskLink                      = 'http://helpdesklink'
+            HelpDeskLinkText                  = 'Help desk'
+            CopyrightText                     = 'Copy right'
+            HomeLink                          = 'http://homelink'
+            HomeLinkText                      = 'Home'
+            PrivacyLink                       = 'http://privacylink'
+            PrivacyLinkText                   = 'Privacy statement'
+            ContactLink                       = 'http://contactlink'
+            ContactLinkText                   = 'Contact'
+            SignInPageDescriptionText         = 'Sign in here'
+            SignOutPageDescriptionText        = 'Sign out here'
+            ErrorPageGenericErrorMessage      = 'An error occurred.'
+            ErrorPageSupportEmail             = 'support@contoso.com'
+            ErrorPageSupportEmailText         = 'Email'
+            UpdatePasswordPageDescriptionText = 'Update password here'
+            UpdatePasswordPageLink            = 'http://updatepasswordlink'
+            UpdatePasswordPageLinkText        = 'Update password'
+        }
+    }
+}
+
+.EXAMPLE 3
+
+This configuration will set the text and links to display when an application prompts a user prompted for a
+certificate for the en-us locale.
+
+Configuration AdfsGlobalWebContent_CertificatePage_Config
+{
+    param()
+
+    Import-DscResource -ModuleName AdfsDsc
+
+    Node localhost
+    {
+        AdfsGlobalWebContent ContosoGlobalWebContent
+        {
+            FederationServiceName             = 'sts.contoso.com'
+            Locale                            = 'en-us'
+            CompanyName                       = 'Contoso'
+            HomeLink                          = 'http://homelink'
+            HomeLinkText                      = 'Home'
+            PrivacyLink                       = 'http://privaylink'
+            PrivacyLinkText                   = 'Privacy statement'
+            SignInPageDescriptionText         = '<p>Sign-in to Contoso requires device registration. Click <A href=''http://fs1.contoso.com/deviceregistration/''>here</A> for more information.</p>'
+            SignOutPageDescriptionText        = 'Sign out here'
+            ErrorPageGenericErrorMessage      = 'An error occurred.'
+            ErrorPageSupportEmail             = 'support@contoso.com'
+            UpdatePasswordPageDescriptionText = 'Update password here'
+            CertificatePageDescriptionText    = 'Sign in with your Smartcard'
         }
     }
 }

@@ -15,21 +15,16 @@
 
 .PARAMETER AllowAdditionalAuthenticationAsPrimary
     Write - Boolean
-    Specifying this parameter configures an external authentication provider for second stage authentication in the
-    global policy.
+    Specifying this parameter configures an external authentication provider for second stage authentication in the global policy.
 
 .PARAMETER ClientAuthenticationMethods
     Write - String
-    Allowed values: ClientSecretPostAuthentication, ClientSecretBasicAuthentication,
-                    PrivateKeyJWTBearerAuthentication, WindowsIntegratedAuthentication, None
-                    
-    Specifying this parameter configures an external authentication provider, for second stage authentication, in
-    the global policy
+    Allowed values: ClientSecretPostAuthentication, ClientSecretBasicAuthentication, PrivateKeyJWTBearerAuthentication, WindowsIntegratedAuthentication, None
+    Specifying this parameter configures an external authentication provider, for second stage authentication, in the global policy
 
 .PARAMETER EnablePaginatedAuthenticationPages
     Write - Boolean
-    Enable the paginated authentication sign-in experience. This is only supported on Windows Server 2019 and
-    above.
+    Enable the paginated authentication sign-in experience. This is only supported on Windows Server 2019 and above.
 
 .PARAMETER DeviceAuthenticationEnabled
     Write - Boolean
@@ -38,8 +33,7 @@
 .PARAMETER DeviceAuthenticationMethod
     Write - String
     Allowed values: All, ClientTLS, SignedToken
-    Specifying this parameter configures an external authentication provider, for second stage authentication, in
-    the global policy.
+    Specifying this parameter configures an external authentication provider, for second stage authentication, in the global policy.
 
 .PARAMETER PrimaryExtranetAuthenticationProvider
     Write - String

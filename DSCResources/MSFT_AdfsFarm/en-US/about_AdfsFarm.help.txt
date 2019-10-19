@@ -10,13 +10,11 @@
 
 .PARAMETER FederationServiceName
     Key - String
-    Specifies the DNS name of the federation service. This value must match the subject name of the specified
-    certificate.
+    Specifies the DNS name of the federation service. This value must match the subject name of the specified certificate.
 
 .PARAMETER CertificateThumbprint
     Required - String
-    Specifies the thumbprint of the certificate to use for HTTPS bindings and service communication for ADFS. This
-    value should match the thumbprint of a valid certificate in the Local Computer certificate store.
+    Specifies the thumbprint of the certificate to use for HTTPS bindings and service communication for ADFS. This value should match the thumbprint of a valid certificate in the Local Computer certificate store.
 
 .PARAMETER Credential
     Required - String
@@ -28,23 +26,19 @@
 
 .PARAMETER GroupServiceAccountIdentifier
     Write - String
-    Specifies the Group Managed Service Account under which the Active Directory Federation Services (AD FS)
-    service runs.
+    Specifies the Group Managed Service Account under which the Active Directory Federation Services (AD FS) service runs.
 
 .PARAMETER OverwriteConfiguration
     Write - Boolean
-    This parameter must be used to remove an existing Active Directory Federation Services (AD FS) configuration
-    database and overwrite it with a new database.
+    This parameter must be used to remove an existing Active Directory Federation Services (AD FS) configuration database and overwrite it with a new database.
 
 .PARAMETER ServiceAccountCredential
     Write - String
-    Specifies the Active Directory account under which the AD FS service runs in the form: <domain name>\\<user
-    name>.
+    Specifies the Active Directory account under which the AD FS service runs in the form: <domain name>\\<user name>.
 
 .PARAMETER SQLConnectionString
     Write - String
-    Specifies the SQL Server database that will store the AD FS configuration settings. If not specified, the AD FS
-    installer uses the Windows Internal Database to store configuration settings.
+    Specifies the SQL Server database that will store the AD FS configuration settings. If not specified, the AD FS installer uses the Windows Internal Database to store configuration settings.
 
 .PARAMETER Ensure
     Read - String
@@ -52,56 +46,29 @@
 
 .EXAMPLE 1
 
-This configuration will ...
+This configuration will create the first node in an Active Directory Federation Services (AD FS) server farm
+using the Windows Internal Database (WID) on the local server computer.
 
-Configuration AdfsFarmwithServiceAccount_Config
+The certificate with the specified thumbprint will be used as the SSL certificate and the service
+communications certificate. Automatically generated, self-signed certificates will be used for the token
+signing and token decryption certificates.
+
+The standard user account specified in the ServiceAccountCredential parameter will be used for the service
+account.
+
+Configuration AdfsFarm_ServiceAccount_Config
 {
     Param
     (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCredential]
-        $AdfsCred,
+        $ServiceAccountCredential,
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCredential]
-        $DomainCred
-    )
-
-    Import-DscResource -ModuleName AdfsDsc
-
-    Node localhost
-    {
-        WindowsFeature InstallAdfs
-        {
-            Name = 'ADFS-Federation'
-        }
-
-        AdfsFarm Fabrikam
-        {
-            FederationServiceName        = 'sts.fabrikam.com'
-            FederationServiceDisplayName = 'Fabrikam ADFS Service'
-            CertificateThumbprint        = '933D8ACDD49CEF529EB159504C4095575E3496BB'
-            SQLConnectionString          = 'Data Source=SQL01;Integrated Security=True'
-            ServiceAccountCredential     = $AdfsCred
-            Credential                   = $DomainCred
-        }
-    }
-}
-
-.EXAMPLE 2
-
-This configuration will ...
-
-Configuration AdfsFarmWithGroupManagedServiceAccount_Config
-{
-    Param
-    (
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [System.Management.Automation.PSCredential]
-        $DomainCred
+        $DomainAdminCredential
     )
 
     Import-DscResource -ModuleName AdfsDsc
@@ -115,12 +82,96 @@ Configuration AdfsFarmWithGroupManagedServiceAccount_Config
 
         AdfsFarm Contoso
         {
-            FederationServiceName         = 'sts.contoso.com'
+            FederationServiceName        = 'fs.corp.contoso.com'
+            FederationServiceDisplayName = 'Contoso ADFS Service'
+            CertificateThumbprint        = '8169c52b4ec6e77eb2ae17f028fe5da4e35c0bed'
+            ServiceAccountCredential     = $ServiceAccountCredential
+            Credential                   = $DomainAdminCredential
+        }
+    }
+}
+
+.EXAMPLE 2
+
+This configuration will create the first node in an Active Directory Federation Services (AD FS) server farm
+using using a Microsoft SQL Server database on a remote computer named SQLHost.
+
+The certificate with the specified thumbprint will be used as the SSL certificate and the service
+communications certificate. Automatically generated, self-signed certificates will be used for the token
+signing and token decryption certificates.
+
+The group Managed Service Account specified in the GroupServiceAccountIdentifier parameter will be used for the
+service account.
+
+Configuration AdfsFarm_gMSA-SQL_Config
+{
+    Param
+    (
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [System.Management.Automation.PSCredential]
+        $DomainAdminCredential
+    )
+
+    Import-DscResource -ModuleName AdfsDsc
+
+    Node localhost
+    {
+        WindowsFeature InstallAdfs
+        {
+            Name = 'ADFS-Federation'
+        }
+
+        AdfsFarm Contoso
+        {
+            FederationServiceName         = 'fs.corp.contoso.com'
             FederationServiceDisplayName  = 'Contoso ADFS Service'
-            CertificateThumbprint         = '933D8ACDD49CEF529EB159504C4095575E3496BB'
-            SQLConnectionString           = 'Data Source=SQL01;Integrated Security=True'
-            GroupServiceAccountIdentifier = 'contoso\adfs-gmsa$'
-            Credential                    = $DomainCred
+            CertificateThumbprint         = '8169c52b4ec6e77eb2ae17f028fe5da4e35c0bed'
+            GroupServiceAccountIdentifier = 'contoso\adfsgmsa$'
+            SQLConnectionString           = 'Data Source=SQLHost;Integrated Security=True'
+            Credential                    = $DomainAdminCredential
+        }
+    }
+}
+
+.EXAMPLE 3
+
+This configuration will create the first node in an Active Directory Federation Services (AD FS) server farm
+using the Windows Internal Database (WID) on the local server computer.
+
+The certificate with the specified thumbprint will be used as the SSL certificate and the service
+communications certificate. Automatically generated, self-signed certificates will be used for the token
+signing and token decryption certificates.
+
+The group Managed Service Account specified in the GroupServiceAccountIdentifier parameter will be used for the
+service account.
+
+Configuration AdfsFarm_gMSA_Config
+{
+    Param
+    (
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [System.Management.Automation.PSCredential]
+        $DomainAdminCredential
+    )
+
+    Import-DscResource -ModuleName AdfsDsc
+
+    Node localhost
+    {
+        WindowsFeature InstallAdfs
+        {
+            Name = 'ADFS-Federation'
+        }
+
+        AdfsFarm Contoso
+        {
+            FederationServiceName         = 'fs.corp.contoso.com'
+            FederationServiceDisplayName  = 'Contoso ADFS Service'
+            CertificateThumbprint         = '8169c52b4ec6e77eb2ae17f028fe5da4e35c0bed'
+            GroupServiceAccountIdentifier = 'contoso\adfsgmsa$'
+            Credential                    = $DomainAdminCredential
         }
     }
 }

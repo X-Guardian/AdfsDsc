@@ -36,8 +36,7 @@
 
 .PARAMETER ClaimsProviderName
     Write - String
-    Specifies an array of claims provider names that you can configure for a relying party trust for Home Realm
-    Discovery (HRD) scenario.
+    Specifies an array of claims provider names that you can configure for a relying party trust for Home Realm Discovery (HRD) scenario.
 
 .PARAMETER IssuanceAuthorizationRules
     Write - String
@@ -73,9 +72,7 @@
 
 .PARAMETER AlwaysRequireAuthentication
     Write - Boolean
-    Indicates that this Web API application role always requires authentication, even if it previously
-    authenticated credentials for access. Specify this parameter to require users to always supply credentials to
-    access sensitive resources.
+    Indicates that this Web API application role always requires authentication, even if it previously authenticated credentials for access. Specify this parameter to require users to always supply credentials to access sensitive resources.
 
 .PARAMETER AllowedClientTypes
     Write - String
@@ -97,13 +94,29 @@
 
 .EXAMPLE 1
 
-This configuration will ...
+This configuration will add a Web API application role to an application in Active Directory Federation
+Services (AD FS).
 
 Configuration AdfsWebApiApplication_Config
 {
     param()
 
     Import-DscResource -ModuleName AdfsDsc
+
+    $LdapClaimsTransformRule = @'
+@RuleTemplate = "LdapClaims"
+@RuleName = "LDAP Email Address"
+c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"]
+ => issue(store = "Active Directory", types = ("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"), query = ";mail;{0}", param = c.Value);
+
+'@
+
+$EmitGroupClaimsTransformRule = @'
+@RuleTemplate = "EmitGroupClaims"
+@RuleName = "IDscan Users SRV EU-West-1"
+c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/groupsid", Value == "S-1-5-21-2624039266-918686060-4041204886-1128", Issuer == "AD AUTHORITY"]
+ => issue(Type = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role", Value = "IDScan User", Issuer = c.Issuer, OriginalIssuer = c.OriginalIssuer, ValueType = c.ValueType);
+'@
 
     Node localhost
     {
@@ -114,13 +127,12 @@ Configuration AdfsWebApiApplication_Config
             Identifier                           = 'e7bfb303-c5f6-4028-a360-b6293d41338c'
             Description                          = 'App1 Web Api'
             AccessControlPolicyName              = 'Permit everyone'
-            IssuanceTransformRules               = $ADEmailAddressTransformRule
+            IssuanceTransformRules               = $LdapClaimsTransformRule + $EmitGroupClaimsTransformRule
             AllowedAuthenticationClassReferences = ''
             ClaimsProviderName                   = ''
             IssuanceAuthorizationRules           = ''
             DelegationAuthorizationRules         = ''
             ImpersonationAuthorizationRules      = ''
-            IssuanceTransformRules               = ''
             AdditionalAuthenticationRules        = ''
             NotBeforeSkew                        = 5
             TokenLifetime                        = 90

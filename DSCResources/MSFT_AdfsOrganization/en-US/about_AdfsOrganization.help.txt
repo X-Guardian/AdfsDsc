@@ -23,7 +23,8 @@
 
 .EXAMPLE 1
 
-This configuration will ...
+This configuration will set organization information that is published in the federation metadata for the
+Federation Service.
 
 Configuration AdfsOrganization_Config
 {
