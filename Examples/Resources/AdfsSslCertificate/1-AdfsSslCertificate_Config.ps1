@@ -19,7 +19,8 @@
 
 <#
     .DESCRIPTION
-        This configuration will ...
+        This configuration will set the specified certificate for HTTPS bindings for AD FS using the remote credential
+        to connect to all the federation servers in the farm.
 #>
 
 Configuration AdfsSslCertificate_Config
@@ -39,7 +40,7 @@ Configuration AdfsSslCertificate_Config
         AdfsSslCertificate SslCertificate
         {
             CertificateType  = 'Https-Binding'
-            Thumbprint       = 'cb779e674ae6921682d01d055a4315c786160a7b'
+            Thumbprint       = 'FC85DDB0FC58E63D8CB52654F22E4BE7900FE349'
             RemoteCredential = $Credential
         }
     }

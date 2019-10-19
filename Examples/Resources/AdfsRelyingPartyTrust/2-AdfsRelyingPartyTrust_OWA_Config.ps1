@@ -17,6 +17,11 @@
 
 #Requires -module AdfsDsc
 
+<#
+    .DESCRIPTION
+        This configuration will ...
+#>
+
 Configuration AdfsRelyingPartyTrust_OWA_Config
 {
 

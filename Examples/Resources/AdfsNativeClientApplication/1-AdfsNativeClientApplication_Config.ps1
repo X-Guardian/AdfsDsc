@@ -19,7 +19,8 @@
 
 <#
     .DESCRIPTION
-        This configuration will ...
+        This configuration will add a native client application role to an application in Active Directory Federation
+        Services (AD FS).
 #>
 
 Configuration AdfsNativeClientApplication_Config

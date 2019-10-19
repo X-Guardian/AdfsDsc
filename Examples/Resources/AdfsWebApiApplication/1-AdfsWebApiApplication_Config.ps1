@@ -19,10 +19,17 @@
 
 <#
     .DESCRIPTION
-        This configuration will ...
+        This configuration will add a Web API application role to an application in Active Directory Federation
+        Services (AD FS).
 #>
 
-$LdapClaimsTransformRule = @'
+Configuration AdfsWebApiApplication_Config
+{
+    param()
+
+    Import-DscResource -ModuleName AdfsDsc
+
+    $LdapClaimsTransformRule = @'
 @RuleTemplate = "LdapClaims"
 @RuleName = "LDAP Email Address"
 c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"]
@@ -30,18 +37,12 @@ c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccou
 
 '@
 
-$EmitGroupClaimsTransformRule = @'
+    $EmitGroupClaimsTransformRule = @'
 @RuleTemplate = "EmitGroupClaims"
 @RuleName = "IDscan Users SRV EU-West-1"
 c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/groupsid", Value == "S-1-5-21-2624039266-918686060-4041204886-1128", Issuer == "AD AUTHORITY"]
  => issue(Type = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role", Value = "IDScan User", Issuer = c.Issuer, OriginalIssuer = c.OriginalIssuer, ValueType = c.ValueType);
 '@
-
-Configuration AdfsWebApiApplication_Config
-{
-    param()
-
-    Import-DscResource -ModuleName AdfsDsc
 
     Node localhost
     {
