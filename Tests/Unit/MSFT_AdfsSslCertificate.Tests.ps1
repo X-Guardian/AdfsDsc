@@ -20,7 +20,7 @@ $TestEnvironment = Initialize-TestEnvironment `
 try
 {
     InModuleScope $Global:DSCResourceName {
-        # Import ADFS Stub Module
+        # Import Stub Module
         Import-Module (Join-Path -Path $PSScriptRoot -ChildPath "Stubs\$($Global:PSModuleName)Stub.psm1") -Force
 
         $mockUserName = 'DummyUser'
