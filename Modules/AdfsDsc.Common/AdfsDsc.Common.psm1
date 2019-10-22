@@ -882,14 +882,14 @@ function Assert-Command
     }
 }
 
-Function Get-ADObjectBySamAccountName
+Function Get-ADObjectByQualifiedName
 {
     <#
         .SYNOPSIS
-            Gets an Active Directory object by SamAccountName.
+            Gets an Active Directory object by qualified name.
 
         .PARAMETER Name
-            Specifies SamAccountName to search for.
+            Specifies the qualified name to search for.
     #>
 
     [CmdletBinding()]
@@ -900,8 +900,33 @@ Function Get-ADObjectBySamAccountName
         $Name
     )
 
-    [System.DirectoryServices.DirectorySearcher]::new($null, "SamAccountName=$Name*", `
-            'ObjectCategory').FindOne()
+    $root = [System.DirectoryServices.DirectoryEntry]::new('LDAP://RootDSE')
+    $searchRoot = [System.DirectoryServices.DirectoryEntry]::new(
+        "LDAP://CN=Partitions," + $root.configurationNamingContext)
+
+    if ($Name -like '*\*')
+    {
+        # Legacy name format
+        $netBiosName = ($Name.Split('\'))[0]
+        $samAccountName = ($Name.Split('\'))[1]
+        $domain = [System.DirectoryServices.DirectorySearcher]::new(
+            $searchRoot, "(&(objectcategory=crossRef)(nETBIOSName=$netBiosName))").FindOne()
+        $searchResult = [System.DirectoryServices.DirectorySearcher]::new(
+            $domain.ncname, "SamAccountName=$samAccountName", 'ObjectCategory').FindOne()
+    }
+    elseif ($Name -like '*@*')
+    {
+        # UPN format
+        $searchFilter = "userPrincipalName=$Name"
+        $searchResult = [System.DirectoryServices.DirectorySearcher]::new(
+            "userPrincipalName=$Name", 'ObjectCategory').FindOne()
+    }
+    else {
+        $errorMessage = $script:localizedData.UnknownNameFormat
+        New-InvalidArgumentException -Message $errorMessage -ArgumentName $Name
+    }
+
+    $searchResult
 }
 
 function Assert-GroupServiceAccount
@@ -922,7 +947,7 @@ function Assert-GroupServiceAccount
         $Name
     )
 
-    $adObject = Get-ADObjectbySamAccountName -Name $Name
+    $adObject = Get-ADObjectbyQualifiedName -Name $Name
 
     if ($adObject)
     {
