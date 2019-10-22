@@ -744,7 +744,7 @@ function Set-TargetResource
         Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters |
             Where-Object -Property InDesiredState -eq $false)
 
-    $setParameters = New-Object -TypeName System.Collections.Hashtable
+    $setParameters = @{ }
     foreach ($property in $propertiesNotInDesiredState)
     {
         Write-Verbose -Message (

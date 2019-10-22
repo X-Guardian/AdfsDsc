@@ -210,7 +210,7 @@ function Set-TargetResource
                 break
             }
 
-            $SetParameters = New-Object -TypeName System.Collections.Hashtable
+            $SetParameters = @{ }
             foreach ($property in $propertiesNotInDesiredState)
             {
                 Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f
