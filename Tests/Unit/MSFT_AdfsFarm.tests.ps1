@@ -315,13 +315,13 @@ try
                     GroupServiceAccountIdentifier = $mockGsaResource.GroupServiceAccountIdentifier
                 }
 
-                $mockInstallAdfsFarmSuccessResult = @{
+                $mockInstallResourceSuccessResult = @{
                     Message = 'The configuration completed successfully.'
                     Context = 'DeploymentSucceeded'
                     Status  = 'Success'
                 }
 
-                $mockInstallAdfsFarmErrorResult = @{
+                $mockInstallResourceErrorResult = @{
                     Message = 'The configuration did not complete successfully.'
                     Context = 'DeploymentTask'
                     Status  = 'Error'
@@ -330,7 +330,7 @@ try
                 $mockNewCertificateThumbprint = '6F7E9F5543505B943FEEA49E651EDDD8D9D45014'
                 $mockNewFederationServiceDisplayName = 'Fabrikam ADFS Service'
 
-                Mock -CommandName $ResourceCommand.Install -MockWith { $mockInstallAdfsFarmSuccessResult }
+                Mock -CommandName $ResourceCommand.Install -MockWith { $mockInstallResourceSuccessResult }
             }
 
             Context 'When both credential parameters have been specified' {
@@ -407,12 +407,12 @@ try
 
                 Context "When $($ResourceCommand.Install) returns a result with a status of 'Error'" {
                     BeforeAll {
-                        Mock $ResourceCommand.Install -MockWith { $mockInstallAdfsFarmErrorResult }
+                        Mock $ResourceCommand.Install -MockWith { $mockInstallResourceErrorResult }
                     }
 
                     It 'Should throw the correct error' {
                         { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
-                            $mockInstallAdfsFarmErrorResult.Message)
+                            $mockInstallResourceErrorResult.Message)
                     }
                 }
             }
