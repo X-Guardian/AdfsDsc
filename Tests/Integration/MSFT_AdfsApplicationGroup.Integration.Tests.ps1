@@ -17,6 +17,13 @@
         if possible.
 #>
 
+
+if ($env:APPVEYOR -eq $true)
+{
+    Write-Warning -Message 'Integration test is not supported in AppVeyor.'
+    return
+}
+
 $script:dscModuleName = 'AdfsDsc'
 $script:dscResourceFriendlyName = 'AdfsApplicationGroup'
 $script:dscResourceName = "MSFT_$($script:dscResourceFriendlyName)"
