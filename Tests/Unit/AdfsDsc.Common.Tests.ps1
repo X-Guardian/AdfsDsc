@@ -1420,7 +1420,7 @@ InModuleScope 'AdfsDsc.Common' {
 
         Context 'When the account is a Group Managed Service Account' {
             BeforeAll {
-                Mock -CommandName Get-ADObjectBySamAccountName -MockWith { $mockGetADObjectByNameGmsaResult }
+                Mock -CommandName Get-ADObjectByQualifiedName -MockWith { $mockGetADObjectByNameGmsaResult }
             }
 
             It 'Should return true' {
@@ -1430,7 +1430,7 @@ InModuleScope 'AdfsDsc.Common' {
 
         Context 'When the account is a Standalone Managed Service Account' {
             BeforeAll {
-                Mock -CommandName Get-ADObjectBySamAccountName -MockWith { $mockGetADObjectByNameSmsaResult }
+                Mock -CommandName Get-ADObjectByQualifiedName -MockWith { $mockGetADObjectByNameSmsaResult }
             }
 
             It 'Should return false' {
@@ -1440,7 +1440,7 @@ InModuleScope 'AdfsDsc.Common' {
 
         Context 'When the account is a User Account' {
             BeforeAll {
-                Mock -CommandName Get-ADObjectBySamAccountName -MockWith { $mockGetADObjectByNameUserResult }
+                Mock -CommandName Get-ADObjectByQualifiedName -MockWith { $mockGetADObjectByNameUserResult }
             }
 
             It 'Should return false' {
@@ -1450,7 +1450,7 @@ InModuleScope 'AdfsDsc.Common' {
 
         Context 'When the account is not a User/Service Account' {
             BeforeAll {
-                Mock -CommandName Get-ADObjectBySamAccountName -MockWith { $mockGetADObjectByNameComputerResult }
+                Mock -CommandName Get-ADObjectByQualifiedName -MockWith { $mockGetADObjectByNameComputerResult }
             }
 
             It 'Should throw the correct error' {
@@ -1462,7 +1462,7 @@ InModuleScope 'AdfsDsc.Common' {
 
         Context 'When the account is not found' {
             BeforeAll {
-                Mock -CommandName Get-ADObjectBySamAccountName
+                Mock -CommandName Get-ADObjectByQualifiedName
             }
 
             It 'Should throw the correct error' {
