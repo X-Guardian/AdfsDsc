@@ -922,7 +922,7 @@ Function Get-ADObjectByQualifiedName
             "userPrincipalName=$Name", 'ObjectCategory').FindOne()
     }
     else {
-        $errorMessage = $script:localizedData.UnknownNameFormat
+        $errorMessage = $script:localizedData.UnknownNameFormatError
         New-InvalidArgumentException -Message $errorMessage -ArgumentName $Name
     }
 
