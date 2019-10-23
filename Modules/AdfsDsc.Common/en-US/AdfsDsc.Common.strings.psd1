@@ -18,5 +18,6 @@ ConvertFrom-StringData @'
     ServiceAccountNotFoundError            = Service account {0} not found. (ADFSCOMMON0015)
     ConfigurationStatusNotFoundError       = The ADFS configuration status registry entry does not exist. (ADFSCOMMON0016)
     UnknownConfigurationStatusError        = The ADFS configuration status registry entry contains an unknown value {0}. (ADFSCOMMON0017)
-    UnknownNameFormatError                 = The Active Directory account name is in an unknown format. (ADFSCOMMON0018)
+    UnknownNetBiosNameError                = The Active Directory NetBIOS name is unknown (ADFSCOMMON0018)
+    UnknownNameFormatError                 = The Active Directory account name is in an unknown format. (ADFSCOMMON0019)
 '@

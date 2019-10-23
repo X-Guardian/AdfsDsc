@@ -911,17 +911,25 @@ Function Get-ADObjectByQualifiedName
         $samAccountName = ($Name.Split('\'))[1]
         $domain = [System.DirectoryServices.DirectorySearcher]::new(
             $searchRoot, "(&(objectcategory=crossRef)(nETBIOSName=$netBiosName))").FindOne()
-        $searchResult = [System.DirectoryServices.DirectorySearcher]::new(
-            $domain.ncname, "SamAccountName=$samAccountName", 'ObjectCategory').FindOne()
+        if ($domain)
+        {
+            $searchResult = [System.DirectoryServices.DirectorySearcher]::new(
+                "LDAP://$($domain.Properties.ncname)", "SamAccountName=$samAccountName", 'ObjectCategory').FindOne()
+        }
+        else
+        {
+            $errorMessage = $script:localizedData.UnknownNetBiosNameError
+            New-InvalidArgumentException -Message $errorMessage -ArgumentName $netBiosName
+        }
     }
     elseif ($Name -like '*@*')
     {
         # UPN format
-        $searchFilter = "userPrincipalName=$Name"
         $searchResult = [System.DirectoryServices.DirectorySearcher]::new(
             "userPrincipalName=$Name", 'ObjectCategory').FindOne()
     }
-    else {
+    else
+    {
         $errorMessage = $script:localizedData.UnknownNameFormatError
         New-InvalidArgumentException -Message $errorMessage -ArgumentName $Name
     }
@@ -1008,13 +1016,16 @@ function Get-AdfsConfigurationStatus
     switch ($fsConfigurationStatus)
     {
         '0'
-        { $ReturnValue = 'NotConfigured'
+        {
+            $ReturnValue = 'NotConfigured'
         }
         '1'
-        { $ReturnValue = 'NotConfigured'
+        {
+            $ReturnValue = 'NotConfigured'
         }
         '2'
-        { $ReturnValue = 'Configured'
+        {
+            $ReturnValue = 'Configured'
         }
         default
         {
