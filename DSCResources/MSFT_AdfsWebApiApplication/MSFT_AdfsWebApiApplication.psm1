@@ -752,10 +752,10 @@ function Get-AdGroupName
     return $groupObject.Name
 }
 
-Function Compare-IssuanceTransformRules
+function Compare-IssuanceTransformRules
 {
     [CmdletBinding()]
-    [OutputType([System.Collections.Hashtable[]])]
+    [OutputType([System.Collections.Hashtable])]
     param
     (
         [Parameter(Mandatory = $true)]
@@ -777,15 +777,12 @@ Function Compare-IssuanceTransformRules
     {
         if ($DesiredValue.TemplateName -eq 'LdapClaims')
         {
-
         }
         elseif ($DesiredValue.TemplateName -eq 'EmitGroupClaims')
         {
-
         }
         elseif ($DesiredValue.TemplateName -eq 'CustomClaim')
         {
-
         }
         else
         {
