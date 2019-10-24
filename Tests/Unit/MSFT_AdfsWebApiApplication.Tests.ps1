@@ -31,6 +31,47 @@ try
             Remove = 'Remove-AdfsWebApiApplication'
         }
 
+        $MSFT_AdfsLdapMappingProperties = @{
+            LdapAttribute     = 'emailaddress'
+            OutgoingClaimType = 'mail'
+        }
+
+        $mockLdapMapping = @(
+            New-CimInstance -ClassName MSFT_KeyValuePair `
+                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                -Property $MSFT_AdfsLdapMappingProperties -ClientOnly
+        )
+
+        $mockMSFT_AdfsIssuanceTransformRuleProperties = @{
+            TemplateName   = 'LdapClaims'
+            Name           = 'Test'
+            AttributeStore = 'Active Directory'
+            LdapMapping    = $mockLdapMapping
+        }
+
+        $mockMSFT_AdfsIssuanceTransformRuleProperties = @{
+            TemplateName   = 'LdapClaims'
+            Name           = 'Test'
+            AttributeStore = 'Active Directory'
+            LdapMapping    = @{
+                LdapAttribute     = 'emailaddress'
+                OutgoingClaimType = 'mail'
+            }
+        }
+
+        $mockIssuanceTransformRules = @(
+            New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
+                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                -Property $mockMSFT_AdfsIssuanceTransformRuleProperties -ClientOnly
+        )
+
+        $mockLdapClaimsTransformRule = @'
+@RuleTemplate = "LdapClaims"
+@RuleName = "test"
+c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"]
+=> issue(store = "Active Directory", types = ("test", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"), query = ";test,mail,givenName,sn;{0}", param = c.Value);
+'@
+
         $mockResource = @{
             Name                                 = 'AppGroup1 - Web API'
             ApplicationGroupIdentifier           = 'AppGroup1'
@@ -42,7 +83,7 @@ try
             IssuanceAuthorizationRules           = 'rule'
             DelegationAuthorizationRules         = 'rule'
             ImpersonationAuthorizationRules      = 'rule'
-            IssuanceTransformRules               = 'rule'
+            IssuanceTransformRules               = $mockIssuanceTransformRules
             AdditionalAuthenticationRules        = 'rule'
             NotBeforeSkew                        = 5
             TokenLifetime                        = 90
@@ -77,6 +118,19 @@ try
             Ensure                               = 'Absent'
         }
 
+        $mockMSFT_AdfsIssuanceTransformChangedRuleProperties = @{
+            TemplateName   = 'LdapClaims'
+            Name           = 'Test2'
+            AttributeStore = 'ActiveDirectory'
+            #            LdapMapping     = $mockLdapMapping
+        }
+
+        $mockIssuanceTransformChangedRules = @(
+            New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
+                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                -Property $mockMSFT_AdfsIssuanceTransformChangedRuleProperties -ClientOnly
+        )
+
         $mockChangedResource = @{
             Identifier                           = 'e7bfb303-c5f6-4028-a360-b6293d41338d'
             Description                          = 'App2 Web Api'
@@ -86,7 +140,7 @@ try
             IssuanceAuthorizationRules           = 'changedrule'
             DelegationAuthorizationRules         = 'changedrule'
             ImpersonationAuthorizationRules      = 'changedrule'
-            IssuanceTransformRules               = 'changedrule'
+            IssuanceTransformRules               = $mockIssuanceTransformChangedRules
             AdditionalAuthenticationRules        = 'changedrule'
             NotBeforeSkew                        = 10
             TokenLifetime                        = 180
@@ -146,7 +200,7 @@ try
                     IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
                     DelegationAuthorizationRules         = $mockResource.DelegationAuthorizationRules
                     ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
-                    IssuanceTransformRules               = $mockResource.IssuanceTransformRules
+                    IssuanceTransformRules               = $mockLdapClaimsTransformRule
                     AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
                     NotBeforeSkew                        = $mockResource.NotBeforeSkew
                     TokenLifetime                        = $mockResource.TokenLifetime
@@ -166,7 +220,7 @@ try
                 BeforeAll {
                     Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
 
-                    $result = Get-TargetResource @getTargetResourceParameters
+                    $result = Get-TargetResource @getTargetResourceParameters -Verbose
                 }
 
                 foreach ($property in $mockResource.Keys)
@@ -268,7 +322,7 @@ try
                         }
 
                         It 'Should not throw' {
-                            { Set-TargetResource @setTargetResourcePresentAGIChangedParameters } | Should -Not -Throw
+                            { Set-TargetResource @setTargetResourcePresentAGIChangedParameters -Verbose } | Should -Not -Throw
                         }
 
                         It 'Should call the expected mocks' {
@@ -340,7 +394,7 @@ try
 
                 Context 'When the Resource should be Present' {
                     It 'Should not throw' {
-                        { Set-TargetResource @setTargetResourcePresentParameters } | Should -Not -Throw
+                        { Set-TargetResource @setTargetResourcePresentParameters -Verbose } | Should -Not -Throw
                     }
 
                     It 'Should call the expected mocks' {
