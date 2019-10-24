@@ -31,47 +31,6 @@ try
             Remove = 'Remove-AdfsWebApiApplication'
         }
 
-        $MSFT_AdfsLdapMappingProperties = @{
-            LdapAttribute     = 'emailaddress'
-            OutgoingClaimType = 'mail'
-        }
-
-        $mockLdapMapping = @(
-            New-CimInstance -ClassName MSFT_KeyValuePair `
-                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
-                -Property $MSFT_AdfsLdapMappingProperties -ClientOnly
-        )
-
-        $mockMSFT_AdfsIssuanceTransformRuleProperties = @{
-            TemplateName   = 'LdapClaims'
-            Name           = 'Test'
-            AttributeStore = 'Active Directory'
-            LdapMapping    = $mockLdapMapping
-        }
-
-        $mockMSFT_AdfsIssuanceTransformRuleProperties = @{
-            TemplateName   = 'LdapClaims'
-            Name           = 'Test'
-            AttributeStore = 'Active Directory'
-            LdapMapping    = @{
-                LdapAttribute     = 'emailaddress'
-                OutgoingClaimType = 'mail'
-            }
-        }
-
-        $mockIssuanceTransformRules = @(
-            New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
-                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
-                -Property $mockMSFT_AdfsIssuanceTransformRuleProperties -ClientOnly
-        )
-
-        $mockLdapClaimsTransformRule = @'
-@RuleTemplate = "LdapClaims"
-@RuleName = "test"
-c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"]
-=> issue(store = "Active Directory", types = ("test", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"), query = ";test,mail,givenName,sn;{0}", param = c.Value);
-'@
-
         $mockResource = @{
             Name                                 = 'AppGroup1 - Web API'
             ApplicationGroupIdentifier           = 'AppGroup1'
@@ -83,7 +42,7 @@ c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccou
             IssuanceAuthorizationRules           = 'rule'
             DelegationAuthorizationRules         = 'rule'
             ImpersonationAuthorizationRules      = 'rule'
-            IssuanceTransformRules               = $mockIssuanceTransformRules
+            IssuanceTransformRules               = 'rule'
             AdditionalAuthenticationRules        = 'rule'
             NotBeforeSkew                        = 5
             TokenLifetime                        = 90
@@ -118,19 +77,6 @@ c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccou
             Ensure                               = 'Absent'
         }
 
-        $mockMSFT_AdfsIssuanceTransformChangedRuleProperties = @{
-            TemplateName   = 'LdapClaims'
-            Name           = 'Test2'
-            AttributeStore = 'ActiveDirectory'
-            #            LdapMapping     = $mockLdapMapping
-        }
-
-        $mockIssuanceTransformChangedRules = @(
-            New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
-                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
-                -Property $mockMSFT_AdfsIssuanceTransformChangedRuleProperties -ClientOnly
-        )
-
         $mockChangedResource = @{
             Identifier                           = 'e7bfb303-c5f6-4028-a360-b6293d41338d'
             Description                          = 'App2 Web Api'
@@ -140,7 +86,7 @@ c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccou
             IssuanceAuthorizationRules           = 'changedrule'
             DelegationAuthorizationRules         = 'changedrule'
             ImpersonationAuthorizationRules      = 'changedrule'
-            IssuanceTransformRules               = $mockIssuanceTransformChangedRules
+            IssuanceTransformRules               = 'changedrule'
             AdditionalAuthenticationRules        = 'changedrule'
             NotBeforeSkew                        = 10
             TokenLifetime                        = 180
@@ -200,7 +146,7 @@ c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccou
                     IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
                     DelegationAuthorizationRules         = $mockResource.DelegationAuthorizationRules
                     ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
-                    IssuanceTransformRules               = $mockLdapClaimsTransformRule
+                    IssuanceTransformRules               = $mockResource.IssuanceTransformRules
                     AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
                     NotBeforeSkew                        = $mockResource.NotBeforeSkew
                     TokenLifetime                        = $mockResource.TokenLifetime
@@ -220,7 +166,7 @@ c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccou
                 BeforeAll {
                     Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
 
-                    $result = Get-TargetResource @getTargetResourceParameters -Verbose
+                    $result = Get-TargetResource @getTargetResourceParameters
                 }
 
                 foreach ($property in $mockResource.Keys)
@@ -322,7 +268,7 @@ c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccou
                         }
 
                         It 'Should not throw' {
-                            { Set-TargetResource @setTargetResourcePresentAGIChangedParameters -Verbose } | Should -Not -Throw
+                            { Set-TargetResource @setTargetResourcePresentAGIChangedParameters } | Should -Not -Throw
                         }
 
                         It 'Should call the expected mocks' {
@@ -394,7 +340,7 @@ c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccou
 
                 Context 'When the Resource should be Present' {
                     It 'Should not throw' {
-                        { Set-TargetResource @setTargetResourcePresentParameters -Verbose } | Should -Not -Throw
+                        { Set-TargetResource @setTargetResourcePresentParameters } | Should -Not -Throw
                     }
 
                     It 'Should call the expected mocks' {
