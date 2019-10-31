@@ -31,7 +31,7 @@
         service account.
 #>
 
-Configuration AdfsFarm_gMSA-SQL-Integrated_Config
+Configuration AdfsFarm_gMSA-SQL_Config
 {
     Param
     (
