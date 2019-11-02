@@ -21,7 +21,7 @@
     .DESCRIPTION
         This configuration will add the computer as a node in an existing Active Directory Federation Services (AD FS)
         server farm using the Windows Internal Database (WID) on the local server computer and whose primary node is
-        installed on a computer named PrimaryWIDHost.
+        installed on a computer named adfs01.contoso.com.
 
         The certificate with the specified thumbprint will be used as the SSL certificate and the service
         communications certificate. Automatically generated, self-signed certificates will be used for the token
@@ -56,7 +56,7 @@ Configuration AdfsFarmNode_gMSA_Config
             CertificateThumbprint         = '8169c52b4ec6e77eb2ae17f028fe5da4e35c0bed'
             GroupServiceAccountIdentifier = 'contoso\adfsgmsa$'
             Credential                    = $DomainAdminCredential
-            PrimaryComputerName           = 'PrimaryWIDHost'
+            PrimaryComputerName           = 'adfs01.contoso.com'
         }
     }
 }

@@ -1,6 +1,6 @@
 <#PSScriptInfo
 .VERSION 1.0.0
-.GUID e8c46129-6a35-4221-9bb5-886b493ad3f0
+.GUID e5ff26fc-ec8f-45b4-babc-532a39074e83
 .AUTHOR Microsoft Corporation
 .COMPANYNAME Microsoft Corporation
 .COPYRIGHT (c) Microsoft Corporation. All rights reserved.
@@ -19,9 +19,9 @@
 
 <#
     .DESCRIPTION
-        This configuration will add the computer as a node in an existing Active Directory Federation Services (AD FS)
-        server farm using using a Microsoft SQL Server database on a remote computer named SQLHost and whose primary
-        node is installed on a computer named PrimaryWIDHost.
+        This configuration will create the first node in an Active Directory Federation Services (AD FS) server farm
+        using using a Microsoft SQL Server database on a remote computer named sql01.contoso.com using Windows
+        Authentication.
 
         The certificate with the specified thumbprint will be used as the SSL certificate and the service
         communications certificate. Automatically generated, self-signed certificates will be used for the token
@@ -31,9 +31,9 @@
         service account.
 #>
 
-Configuration AdfsFarmNode_gMSA-SQL_Config
+Configuration AdfsFarm_gMSA-SQL-Integrated_Config
 {
-    param
+    Param
     (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
@@ -50,14 +50,14 @@ Configuration AdfsFarmNode_gMSA-SQL_Config
             Name = 'ADFS-Federation'
         }
 
-        AdfsFarmNode SecondWIDHost
+        AdfsFarm Contoso
         {
-            FederationServiceName         = 'sts.contoso.com'
-            CertificateThumbprint         = '933D8ACDD49CEF529EB159504C4095575E3496BB'
+            FederationServiceName         = 'fs.corp.contoso.com'
+            FederationServiceDisplayName  = 'Contoso ADFS Service'
+            CertificateThumbprint         = '8169c52b4ec6e77eb2ae17f028fe5da4e35c0bed'
             GroupServiceAccountIdentifier = 'contoso\adfsgmsa$'
-            SQLConnectionString           = 'Data Source=SQL01;Integrated Security=True'
+            SQLConnectionString           = 'Data Source=sql01.contoso.com;Integrated Security=True'
             Credential                    = $DomainAdminCredential
-            PrimaryComputerName           = 'PrimaryWIDHost'
         }
     }
 }

@@ -1,6 +1,6 @@
 <#PSScriptInfo
 .VERSION 1.0.0
-.GUID e8c46129-6a35-4221-9bb5-886b493ad3f0
+.GUID f9c62833-5b60-47a5-91da-711343d3ecf5
 .AUTHOR Microsoft Corporation
 .COMPANYNAME Microsoft Corporation
 .COPYRIGHT (c) Microsoft Corporation. All rights reserved.
@@ -19,31 +19,30 @@
 
 <#
     .DESCRIPTION
-        This configuration will add the computer as a node in an existing Active Directory Federation Services (AD FS)
-        server farm using the Windows Internal Database (WID) on the local server computer and whose primary node is
-        installed on a computer named adfs01.contoso.com.
+        This configuration will create the first node in an Active Directory Federation Services (AD FS) server farm
+        using using a Microsoft SQL Server database on a remote computer named sql01.contoso.com using SQL
+        Authentication.
 
         The certificate with the specified thumbprint will be used as the SSL certificate and the service
         communications certificate. Automatically generated, self-signed certificates will be used for the token
         signing and token decryption certificates.
 
-        The standard user account specified in the ServiceAccountCredential parameter will be used for the service
-        account.
+        The group Managed Service Account specified in the GroupServiceAccountIdentifier parameter will be used for the
+        service account.
 #>
 
-Configuration AdfsFarmNode_ServiceAccount_Config
+Configuration AdfsFarm_gMSA-SQL_Config
 {
-    param
+    Param
     (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCredential]
-        $ServiceAccountCredential,
-
+        $DomainAdminCredential,
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCredential]
-        $DomainAdminCredential
+        $SqlCredential
     )
 
     Import-DscResource -ModuleName AdfsDsc
@@ -52,16 +51,20 @@ Configuration AdfsFarmNode_ServiceAccount_Config
     {
         WindowsFeature InstallAdfs
         {
-            Name   = 'ADFS-Federation'
+            Name = 'ADFS-Federation'
         }
 
-        AdfsFarmNode SecondWIDHost
+        $SqlUserName = $SqlCredential.UserName
+        $SqlPassword = $SqlCredential.GetNetworkCredential().Password
+
+        AdfsFarm Contoso
         {
-            FederationServiceName    = 'fs.corp.contoso.com'
-            CertificateThumbprint    = '8169c52b4ec6e77eb2ae17f028fe5da4e35c0bed'
-            ServiceAccountCredential = $ServiceAccountCredential
-            Credential               = $DomainAdminCredential
-            PrimaryComputerName      = 'adfs01.contoso.com'
+            FederationServiceName         = 'fs.corp.contoso.com'
+            FederationServiceDisplayName  = 'Contoso ADFS Service'
+            CertificateThumbprint         = '8169c52b4ec6e77eb2ae17f028fe5da4e35c0bed'
+            GroupServiceAccountIdentifier = 'contoso\adfsgmsa$'
+            SQLConnectionString           = "Data Source=sql01.contoso.com;User ID=$SqlUserName;Password=$SqlPassword"
+            Credential                    = $DomainAdminCredential
         }
     }
 }

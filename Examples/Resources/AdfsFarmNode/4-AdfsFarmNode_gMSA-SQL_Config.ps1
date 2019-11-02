@@ -1,6 +1,6 @@
 <#PSScriptInfo
 .VERSION 1.0.0
-.GUID e5ff26fc-ec8f-45b4-babc-532a39074e83
+.GUID 5aeebe71-68eb-49d1-8712-ebb78786758a
 .AUTHOR Microsoft Corporation
 .COMPANYNAME Microsoft Corporation
 .COPYRIGHT (c) Microsoft Corporation. All rights reserved.
@@ -19,8 +19,9 @@
 
 <#
     .DESCRIPTION
-        This configuration will create the first node in an Active Directory Federation Services (AD FS) server farm
-        using using a Microsoft SQL Server database on a remote computer named SQLHost.
+        This configuration will add the computer as a node in an existing Active Directory Federation Services (AD FS)
+        server farm using using a Microsoft SQL Server database on a remote computer named sql01.contoso.com using
+        SQL Authentication and whose primary node is installed on a computer named adfs01.contoso.com.
 
         The certificate with the specified thumbprint will be used as the SSL certificate and the service
         communications certificate. Automatically generated, self-signed certificates will be used for the token
@@ -30,14 +31,18 @@
         service account.
 #>
 
-Configuration AdfsFarm_gMSA-SQL_Config
+Configuration AdfsFarmNode_gMSA-SQL_Config
 {
-    Param
+    param
     (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCredential]
-        $DomainAdminCredential
+        $DomainAdminCredential,
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [System.Management.Automation.PSCredential]
+        $SqlCredential
     )
 
     Import-DscResource -ModuleName AdfsDsc
@@ -49,14 +54,17 @@ Configuration AdfsFarm_gMSA-SQL_Config
             Name = 'ADFS-Federation'
         }
 
-        AdfsFarm Contoso
+        $SqlUserName = $SqlCredential.UserName
+        $SqlPassword = $SqlCredential.GetNetworkCredential().Password
+
+        AdfsFarmNode SecondWIDHost
         {
-            FederationServiceName         = 'fs.corp.contoso.com'
-            FederationServiceDisplayName  = 'Contoso ADFS Service'
-            CertificateThumbprint         = '8169c52b4ec6e77eb2ae17f028fe5da4e35c0bed'
+            FederationServiceName         = 'sts.contoso.com'
+            CertificateThumbprint         = '933D8ACDD49CEF529EB159504C4095575E3496BB'
             GroupServiceAccountIdentifier = 'contoso\adfsgmsa$'
-            SQLConnectionString           = 'Data Source=SQLHost;Integrated Security=True'
+            SQLConnectionString           = "Data Source=sql01.contoso.com;User ID=$SqlUserName;Password=$SqlPassword"
             Credential                    = $DomainAdminCredential
+            PrimaryComputerName           = 'adfs01.contoso.com'
         }
     }
 }
