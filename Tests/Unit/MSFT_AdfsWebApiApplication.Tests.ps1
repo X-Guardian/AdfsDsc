@@ -31,15 +31,24 @@ try
             Remove = 'Remove-AdfsWebApiApplication'
         }
 
-        $MSFT_AdfsLdapMappingProperties = @{
-            LdapAttribute     = 'mail'
-            OutgoingClaimType = 'emailaddress'
-        }
+        $MSFT_AdfsLdapMappingProperties = @(
+            @{
+                LdapAttribute     = 'mail'
+                OutgoingClaimType = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'
+            }
+            @{
+                LdapAttribute     = 'sn'
+                OutgoingClaimType = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'
+            }
+        )
 
         $mockLdapMapping = [CIMInstance[]]@(
             New-CimInstance -ClassName MSFT_AdfsLdapMapping `
                 -Namespace root/microsoft/Windows/DesiredStateConfiguration `
-                -Property $MSFT_AdfsLdapMappingProperties -ClientOnly
+                -Property $MSFT_AdfsLdapMappingProperties[0] -ClientOnly
+            New-CimInstance -ClassName MSFT_AdfsLdapMapping `
+                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                -Property $MSFT_AdfsLdapMappingProperties[1] -ClientOnly
         )
 
         $mockMSFT_AdfsIssuanceTransformRuleProperties = @{
@@ -59,7 +68,8 @@ try
 @RuleTemplate = "LdapClaims"
 @RuleName = "test"
 c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"]
-=> issue(store = "Active Directory", types = ("test", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"), query = ";test,mail,givenName,sn;{0}", param = c.Value);
+ => issue(store = "Active Directory", types = ("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"), query = ";mail,sn;{0}", param = c.Value);
+
 '@
 
         $mockResource = @{
@@ -123,7 +133,7 @@ c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccou
             TemplateName   = 'LdapClaims'
             Name           = 'Test2'
             AttributeStore = 'ActiveDirectory'
-            LdapMapping     = $mockLdapChangedMapping
+            LdapMapping    = $mockLdapChangedMapping
         }
 
         $mockIssuanceTransformChangedRules = [CIMInstance[]]@(
@@ -227,7 +237,7 @@ c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccou
                 foreach ($property in $mockResource.Keys)
                 {
                     It "Should return the correct $property property" {
-                        $result.$property | Should -Be $mockResource.$property
+                        $result.$property | ConvertTo-Json | Should -Be ($mockResource.$property | ConvertTo-Json)
                     }
                 }
 
@@ -323,7 +333,7 @@ c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccou
                         }
 
                         It 'Should not throw' {
-                            { Set-TargetResource @setTargetResourcePresentAGIChangedParameters -Verbose } | Should -Not -Throw
+                            { Set-TargetResource @setTargetResourcePresentAGIChangedParameters } | Should -Not -Throw
                         }
 
                         It 'Should call the expected mocks' {
@@ -395,7 +405,7 @@ c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccou
 
                 Context 'When the Resource should be Present' {
                     It 'Should not throw' {
-                        { Set-TargetResource @setTargetResourcePresentParameters -Verbose } | Should -Not -Throw
+                        { Set-TargetResource @setTargetResourcePresentParameters } | Should -Not -Throw
                     }
 
                     It 'Should call the expected mocks' {
