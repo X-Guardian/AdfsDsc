@@ -32,12 +32,12 @@ try
         }
 
         $MSFT_AdfsLdapMappingProperties = @{
-            LdapAttribute     = 'emailaddress'
-            OutgoingClaimType = 'mail'
+            LdapAttribute     = 'mail'
+            OutgoingClaimType = 'emailaddress'
         }
 
-        $mockLdapMapping = @(
-            New-CimInstance -ClassName MSFT_KeyValuePair `
+        $mockLdapMapping = [CIMInstance[]]@(
+            New-CimInstance -ClassName MSFT_AdfsLdapMapping `
                 -Namespace root/microsoft/Windows/DesiredStateConfiguration `
                 -Property $MSFT_AdfsLdapMappingProperties -ClientOnly
         )
@@ -49,17 +49,7 @@ try
             LdapMapping    = $mockLdapMapping
         }
 
-        $mockMSFT_AdfsIssuanceTransformRuleProperties = @{
-            TemplateName   = 'LdapClaims'
-            Name           = 'Test'
-            AttributeStore = 'Active Directory'
-            LdapMapping    = @{
-                LdapAttribute     = 'emailaddress'
-                OutgoingClaimType = 'mail'
-            }
-        }
-
-        $mockIssuanceTransformRules = @(
+        $mockIssuanceTransformRules = [CIMInstance[]]@(
             New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
                 -Namespace root/microsoft/Windows/DesiredStateConfiguration `
                 -Property $mockMSFT_AdfsIssuanceTransformRuleProperties -ClientOnly
@@ -118,14 +108,25 @@ c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccou
             Ensure                               = 'Absent'
         }
 
+        $mockMSFT_AdfsLdapMappingChangedProperties = @{
+            LdapAttribute     = 'givenname'
+            OutgoingClaimType = 'givenName'
+        }
+
+        $mockLdapChangedMapping = [CIMInstance[]]@(
+            New-CimInstance -ClassName MSFT_AdfsLdapMapping `
+                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                -Property $mockMSFT_AdfsLdapMappingChangedProperties -ClientOnly
+        )
+
         $mockMSFT_AdfsIssuanceTransformChangedRuleProperties = @{
             TemplateName   = 'LdapClaims'
             Name           = 'Test2'
             AttributeStore = 'ActiveDirectory'
-            #            LdapMapping     = $mockLdapMapping
+            LdapMapping     = $mockLdapChangedMapping
         }
 
-        $mockIssuanceTransformChangedRules = @(
+        $mockIssuanceTransformChangedRules = [CIMInstance[]]@(
             New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
                 -Namespace root/microsoft/Windows/DesiredStateConfiguration `
                 -Property $mockMSFT_AdfsIssuanceTransformChangedRuleProperties -ClientOnly

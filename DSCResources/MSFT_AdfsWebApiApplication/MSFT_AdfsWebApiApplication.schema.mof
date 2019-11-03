@@ -11,11 +11,12 @@ class MSFT_AdfsIssuanceTransformRule
     [Required,ValueMap{"LdapClaims","EmitGroupClaims","CustomClaims"},Values{"LdapClaims","EmitGroupClaims","CustomClaims"}] String TemplateName;
     [Required] String Name;
     [Write] String AttributeStore;
-    [Write, EmbeddedInstance("MSFT_KeyValuePair")]  String LdapMapping[];
+    [Write, EmbeddedInstance("MSFT_AdfsLdapMapping")]  String LdapMapping[];
     [Write] String GroupName;
     [Write] String OutgoingClaimType;
     [Write] String OutgoingNameIDFormat;
     [Write] String OutgoingClaimValue;
+    [Write] String CustomRule;
 };
 
 [ClassVersion("1.0.0.0"), FriendlyName("AdfsWebApiApplication")]

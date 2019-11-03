@@ -29,21 +29,6 @@ Configuration AdfsWebApiApplication_Config
 
     Import-DscResource -ModuleName AdfsDsc
 
-    $LdapClaimsTransformRule = @'
-@RuleTemplate = "LdapClaims"
-@RuleName = "LDAP Email Address"
-c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"]
- => issue(store = "Active Directory", types = ("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"), query = ";mail;{0}", param = c.Value);
-
-'@
-
-    $EmitGroupClaimsTransformRule = @'
-@RuleTemplate = "EmitGroupClaims"
-@RuleName = "IDscan Users SRV EU-West-1"
-c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/groupsid", Value == "S-1-5-21-2624039266-918686060-4041204886-1128", Issuer == "AD AUTHORITY"]
- => issue(Type = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role", Value = "IDScan User", Issuer = c.Issuer, OriginalIssuer = c.OriginalIssuer, ValueType = c.ValueType);
-'@
-
     Node localhost
     {
         AdfsWebApiApplication WebApiApp1
@@ -53,7 +38,6 @@ c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/groupsid", V
             Identifier                           = 'e7bfb303-c5f6-4028-a360-b6293d41338c'
             Description                          = 'App1 Web Api'
             AccessControlPolicyName              = 'Permit everyone'
-            IssuanceTransformRules               = $LdapClaimsTransformRule + $EmitGroupClaimsTransformRule
             AllowedAuthenticationClassReferences = ''
             ClaimsProviderName                   = ''
             IssuanceAuthorizationRules           = ''
