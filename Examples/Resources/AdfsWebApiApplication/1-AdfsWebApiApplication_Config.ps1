@@ -1,6 +1,6 @@
 <#PSScriptInfo
 .VERSION 1.0.0
-.GUID 124183ca-eddb-4ea8-8c9b-48e4000ccff8
+.GUID 56e909a1-5809-47e8-830d-5d367449c365
 .AUTHOR Microsoft Corporation
 .COMPANYNAME Microsoft Corporation
 .COPYRIGHT (c) Microsoft Corporation. All rights reserved.
@@ -38,19 +38,13 @@ Configuration AdfsWebApiApplication_Config
             Identifier                           = 'e7bfb303-c5f6-4028-a360-b6293d41338c'
             Description                          = 'App1 Web Api'
             AccessControlPolicyName              = 'Permit everyone'
-            AllowedAuthenticationClassReferences = ''
-            ClaimsProviderName                   = ''
-            IssuanceAuthorizationRules           = ''
-            DelegationAuthorizationRules         = ''
-            ImpersonationAuthorizationRules      = ''
-            AdditionalAuthenticationRules        = ''
-            NotBeforeSkew                        = 5
-            TokenLifetime                        = 90
             AlwaysRequireAuthentication          = $false
-            AllowedClientTypes                   = 'Public'
+            AllowedClientTypes                   = 'Public', 'Confidential'
             IssueOAuthRefreshTokensTo            = 'AllDevices'
+            NotBeforeSkew                        = 0
             RefreshTokenProtectionEnabled        = $true
-            RequestMFAFromClaimsProviders        = $true
+            RequestMFAFromClaimsProviders        = $false
+            TokenLifetime                        = 0
         }
     }
 }

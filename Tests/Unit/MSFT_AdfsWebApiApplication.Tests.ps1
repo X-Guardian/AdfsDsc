@@ -231,7 +231,7 @@ c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccou
                 BeforeAll {
                     Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
 
-                    $result = Get-TargetResource @getTargetResourceParameters -Verbose
+                    $result = Get-TargetResource @getTargetResourceParameters
                 }
 
                 foreach ($property in $mockResource.Keys)

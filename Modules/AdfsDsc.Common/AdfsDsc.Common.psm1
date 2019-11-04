@@ -1055,6 +1055,369 @@ function Get-ObjectType
     $Object.GetType().FullName
 }
 
+function ConvertTo-IssuanceTransformRule
+{
+    <#
+        $LdapClaimsTransformRule = @'
+@RuleTemplate = "LdapClaims"
+@RuleName = "test"
+c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"]
+ => issue(store = "Active Directory", types = ("test", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"), query = ";test,mail,givenName,sn;{0}", param = c.Value);
+'@
+
+    $EmitGroupClaimsTransformRule = @'
+@RuleTemplate = "EmitGroupClaims"
+@RuleName = "IDscan Users SRV EU-West-1"
+c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/groupsid", Value == "S-1-5-21-2624039266-918686060-4041204886-1128", Issuer == "AD AUTHORITY"]
+ => issue(Type = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role", Value = "IDScan User", Issuer = c.Issuer, OriginalIssuer = c.OriginalIssuer, ValueType = c.ValueType);
+'@
+
+            IssuanceTransformRules               = @(
+                @{
+                    TemplateName    = 'LdapClaims'
+                    Name            = 'Test'
+                    AtttributeStore = 'ActiveDirectory'
+                    LdapMapping     = @(
+                        @{
+                            LdapAttribute     = 'mail'
+                            OutgoingClaimType = 'emailaddress'
+                        }
+                        @{
+                            LdapAttribute     = 'givenName'
+                            OutgoingCliamType = 'givenname'
+                        }
+                    )
+                }
+                @{
+                    TemplateName         = 'EmitGroupClaims'
+                    Name                 = 'Group Membership'
+                    GroupName            = 'Test'
+                    OutgoingClaimType    = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'
+                    OutgoingNameIDFormat = ''
+                    OutgoingClaimValue   = 'App1 User'
+                }
+                @{
+                    TemplateName = 'CustomClaims'
+                    Name         = 'Test'
+                    CustomRule   = ''
+                }
+            )
+    #>
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [AllowEmptyCollection()]
+        [AllowNull()]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $InputObject
+    )
+    begin
+    {
+        $ldapClaimsTransformRule = @(
+            '@RuleTemplate = "LdapClaims"'
+            '@RuleName = "{1}"'
+            'c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"]'
+            '=> issue(store = "{2}", types = ({3}), query = ";{4};{0}", param = c.Value);'
+        ) | Out-String
+
+        $emitGroupClaimsTransformRule = @(
+            '@RuleTemplate = "EmitGroupClaims"'
+            '@RuleName = "{0}"'
+            'c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/groupsid", Value == "{1}", Issuer == "AD AUTHORITY"]'
+            '=> issue(Type = "{2}", Value = "{3}", Issuer = c.Issuer, OriginalIssuer = c.OriginalIssuer, ValueType = c.ValueType);'
+        ) | Out-String
+
+        $customTransformRule = @(
+            '@RuleName = "{0}"'
+            '{1}'
+        ) | Out-String
+
+        $output = ''
+    }
+    process
+    {
+        foreach ($rule in $InputObject)
+        {
+            if ($rule.TemplateName -eq 'LdapClaims')
+            {
+                Write-Debug "Processing LdapClaims Template Rule"
+                $claimTypes = '"' + ($rule.LdapMapping.OutGoingClaimType -join '", "') + '"'
+                $ldapAttributes = $rule.LdapMapping.LdapAttribute -join ','
+                $output += ($ldapClaimsTransformRule -f '{0}', $rule.Name, $rule.AttributeStore,
+                    $claimTypes, $ldapAttributes)
+            }
+            elseif ($rule.TemplateName -eq 'EmitGroupClaims')
+            {
+                Write-Debug "Processing EmitGroupClaims Template Rule"
+                $groupSid = Get-AdGroupSid -GroupName $rule.GroupName
+                $output += ($emitGroupClaimsTransformRule -f $rule.Name, $groupSid, $rule.OutgoingClaimType,
+                    $rule.OutgoingClaimValue)
+            }
+            elseif ($rule.TemplateName -eq 'CustomClaims')
+            {
+                $output += $customTransformRule -f $rule.Name, $rule.CustomRule
+            }
+            else
+            {
+                $errorMessage = $script:localizedData.UnknownIssuanceTransformRuleTemplateError -f $rule.TemplateName
+                New-InvalidOperationException -Message $errorMessage
+            }
+        }
+    }
+    end
+    {
+        Write-Debug "ConvertTo-IssuanceTransformRule output: $output"
+        $output
+    }
+}
+
+function ConvertFrom-IssuanceTransformRule
+{
+    <#
+        IssuanceTransformRules               = @(
+        MSFT_AdfsIssuanceTransformRule
+        {
+            TemplateName    = 'LdapClaims'
+            Name            = 'Test'
+            AtttributeStore = 'ActiveDirectory'
+            LdapMapping     = @(
+                MSFT_AdfsLdapMapping
+                {
+                    LdapAttribute     = 'emailaddress'
+                    OutgoingClaimType = 'mail'
+                }
+            )
+        }
+    #>
+
+    [CmdletBinding()]
+    [OutputType([Microsoft.Management.Infrastructure.CimInstance])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
+        [System.String[]]
+        $Rule
+    )
+
+    $ruleLines = $Rule -split '\r?\n'
+    $individualRules = [System.Collections.ArrayList]@()
+    $individualRule = @()
+    foreach ($ruleLine in $ruleLines)
+    {
+        if ($ruleLine -eq '')
+        {
+            if ($individualRule)
+            {
+                $individualRules.Add($individualRule) | Out-Null
+                $individualRule = @()
+            }
+        }
+        else
+        {
+            $individualRule += $ruleLine
+        }
+    }
+    $MSFT_AdfsIssuanceTransformRule = @()
+    if ($individualRules)
+    {
+        foreach ($individualRule in $individualRules)
+        {
+            if ($individualRule[0] -eq '@RuleTemplate = "LdapClaims"')
+            {
+                # Process LdapClaims Rule Template
+                $outgoingClaimTypes = ($individualRule[3].Split('(').Split(')')[2]).Split(',').Trim().Trim('"')
+                $ldapAttributes = ($individualRule[3].Split(';')[1]).Split(',')
+
+                $MSFT_AdfsLdapMapping = @()
+                for ($index = 0; $index -lt $ldapAttributes.Count; $index++)
+                {
+                    $ldapMapping = @{
+                        LdapAttribute     = $ldapAttributes[$index]
+                        OutgoingClaimType = $outgoingClaimTypes[$index]
+                    }
+                    $MSFT_AdfsLdapMapping += New-CimInstance -ClassName MSFT_AdfsLdapMapping `
+                        -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                        -Property $ldapMapping -ClientOnly
+                }
+                $issuanceTransformRule = @{
+                    TemplateName   = 'LdapClaims'
+                    Name           = $individualRule[1].split('"')[1]
+                    AttributeStore = $individualRule[3].split('"')[1]
+                    LdapMapping    = [CimInstance[]]$MSFT_AdfsLdapMapping
+                }
+            }
+            elseif ($individualRule[0] -eq '@RuleTemplate = "EmitGroupClaims"')
+            {
+                # Process EmitGroupClaims Rule Template
+                $groupSid = $individualRule[2].Split('"')[3]
+                $issuanceTransformRule = @{
+                    TemplateName       = 'EmitGroupClaims'
+                    Name               = $individualRule[1].split('"')[1]
+                    GroupName          = Get-AdGroupNameFromSid -Sid $groupSid
+                    OutgoingClaimType  = $individualRule[3].split('"')[1]
+                    OutgoingClaimValue = $individualRule[3].split('"')[3]
+                }
+            }
+            else
+            {
+                # Process Custom Claim Rule
+                $issuanceTransformRule = @{
+                    TemplateName = 'CustomClaims'
+                    Name         = $individualRule[0].split('"')[1]
+                    CustomRule   = $individualRule[1..($individualRule.count)] | Out-String
+                }
+            }
+
+            $MSFT_AdfsIssuanceTransformRule += New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
+                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                -Property $issuanceTransformRule -ClientOnly
+        }
+
+        $MSFT_AdfsIssuanceTransformRule
+    }
+}
+
+function Compare-IssuanceTransformRule
+{
+    [CmdletBinding()]
+    [OutputType([System.Collections.Hashtable])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyCollection()]
+        [System.Object[]]
+        $CurrentValue,
+
+        [Parameter(Mandatory = $true)]
+        [System.Object[]]
+        $DesiredValue
+    )
+
+
+    $parameterState = @{
+        ParameterName  = 'IssuanceTransformRules'
+        Expected       = $DesiredValue
+        Actual         = $CurrentValue
+        InDesiredState = $true
+    }
+
+    if ([System.String]::IsNullOrEmpty($CurrentValue))
+    {
+        $parameterState.InDesiredState = $false
+    }
+    else
+    {
+        for ($index = 0; $index -lt $DesiredValue.Count; $index++)
+        {
+            if ($DesiredValue[$index].TemplateName -eq $CurrentValue[$index].TemplateName)
+            {
+                if ($DesiredValue[$index].TemplateName -eq 'LdapClaims')
+                {
+                    Write-Verbose -Message "Comparing LdapClaims Rule $($CurrentValue[$index].Name)"
+                    if (Compare-Object -ReferenceObject $CurrentValue[$index] -DifferenceObject $DesiredValue[$index] `
+                            -Property $CurrentValue[$index].CimInstanceProperties.Name)
+                    {
+                        Write-Verbose -Message "Comparing LdapClaims False"
+                        $parameterState.InDesiredState = $false
+                        break
+                    }
+                }
+                elseif ($DesiredValue[$index].TemplateName -eq 'EmitGroupClaims')
+                {
+                    Write-Verbose -Message "Comparing EmitGroupClaims Rule $($CurrentValue[$index].Name)"
+                    if (Compare-Object -ReferenceObject $CurrentValue[$index] -DifferenceObject $DesiredValue[$index] `
+                            -Property $CurrentValue[$index].CimInstanceProperties.Name)
+                    {
+                        Write-Verbose -Message "Comparing EmitGroupClaims False"
+                        $parameterState.InDesiredState = $false
+                        break
+                    }
+                }
+                elseif ($DesiredValue[$index].TemplateName -eq 'CustomClaims')
+                {
+                    Write-Verbose -Message "Comparing CustomClaims Rule $($CurrentValue[$index].Name)"
+                    $CurrentCustomRule = ($CurrentValue[$index].CustomRule -split '\r?\n' | Out-String).Trim()
+                    $DesiredCustomRule = ($DesiredValue[$index].CustomRule -split '\r?\n' | Out-String).Trim()
+                    if ($CurrentCustomRule -ne $DesiredCustomRule)
+                    {
+                        Write-Verbose -Message "Comparing CustomClaims False"
+                        $parameterState.InDesiredState = $false
+                        break
+                    }
+                }
+                else
+                {
+                    $errorMessage = ($script:LocalizedData.UnknownIssuanceTransformRuleTemplateError -f
+                        $DesiredValue[$index].TemplateName)
+                    New-InvalidOperationException -Message $errorMessage
+                }
+            }
+            else
+            {
+                Write-Verbose -Message "TemplateName Changed"
+                $parameterState.InDesiredState = $false
+                break
+            }
+        }
+    }
+
+    Write-Verbose -Message "Returning Parameter State"
+    return $parameterState
+}
+
+function Get-AdGroupNameFromSid
+{
+    [CmdletBinding()]
+    [OutputType([System.String])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [System.String]
+        $Sid
+    )
+
+
+    $groupObject = ([System.DirectoryServices.DirectorySearcher]"(&(objectClass=group)(objectSid=$sid))").FindOne()
+    if ($groupObject)
+    {
+        return $groupObject.GetDirectoryEntry().Name
+    }
+    else
+    {
+        $errorMessage = $script:localizedData.ActiveDirectoryGroupNotFoundFromSidError -f $Sid
+        New-ObjectNotFoundException -Message $errorMessage
+    }
+}
+
+function Get-AdGroupSid
+{
+    [CmdletBinding()]
+    [OutputType([System.String])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [System.String]
+        $GroupName
+    )
+
+    Write-Debug "Getting SID for Active Directory group $GroupName"
+    $adGroup = ([System.DirectoryServices.DirectorySearcher]"(&(objectClass=group)(name=$GroupName))").FindOne()
+    if ($adGroup)
+    {
+        $binarySid = $adGroup.GetDirectoryEntry().ObjectSid.Value
+        $stringSid = ([System.Security.Principal.SecurityIdentifier]::new($binarysid, 0)).Value
+
+        return $stringSid
+    }
+    else
+    {
+        $errorMessage = $script:localizedData.ActiveDirectoryGroupNotFoundError -f $GroupName
+        New-ObjectNotFoundException -Message $errorMessage
+    }
+}
+
 $script:localizedData = Get-LocalizedData -ResourceName 'AdfsDsc.Common' -ScriptRoot $PSScriptRoot
 $script:adfsServiceName = 'adfssrv'
 
@@ -1076,4 +1439,7 @@ Export-ModuleMember -Function @(
     'Assert-GroupServiceAccount'
     'Get-AdfsConfigurationStatus'
     'Get-ObjectType'
+    'ConvertTo-IssuanceTransformRule'
+    'ConvertFrom-IssuanceTransformRule'
+    'Compare-IssuanceTransformRule'
 )
