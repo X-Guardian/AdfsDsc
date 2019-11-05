@@ -295,7 +295,7 @@ function Set-TargetResource
 
         [Parameter()]
         [ValidateSet('None', 'Public', 'Confidential')]
-        [System.String]
+        [System.String[]]
         $AllowedClientTypes,
 
         [Parameter()]
@@ -461,7 +461,7 @@ function Test-TargetResource
 
         [Parameter()]
         [ValidateSet('None', 'Public', 'Confidential')]
-        [System.String]
+        [System.String[]]
         $AllowedClientTypes,
 
         [Parameter()]
