@@ -1058,19 +1058,27 @@ function Get-ObjectType
 function ConvertTo-IssuanceTransformRule
 {
     <#
-        $LdapClaimsTransformRule = @'
-@RuleTemplate = "LdapClaims"
-@RuleName = "test"
-c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"]
- => issue(store = "Active Directory", types = ("test", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"), query = ";test,mail,givenName,sn;{0}", param = c.Value);
-'@
+        .SYNOPSIS
+            Convert a CIMInstance MSFT_AdfsIssuanceTransformRule object to a Claims Rule string
 
-    $EmitGroupClaimsTransformRule = @'
-@RuleTemplate = "EmitGroupClaims"
-@RuleName = "IDscan Users SRV EU-West-1"
-c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/groupsid", Value == "S-1-5-21-2624039266-918686060-4041204886-1128", Issuer == "AD AUTHORITY"]
- => issue(Type = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role", Value = "IDScan User", Issuer = c.Issuer, OriginalIssuer = c.OriginalIssuer, ValueType = c.ValueType);
-'@
+        .NOTES
+
+            https://blogs.technet.microsoft.com/askds/2011/10/07/ad-fs-2-0-claims-rule-language-primer/
+
+            Example LDAPClaims Transform Claims Rule string:
+
+                @RuleTemplate = "LdapClaims"
+                @RuleName = "test"
+                c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"]
+                 => issue(store = "Active Directory", types = ("test", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"), query = ";test,mail,givenName,sn;{0}", param = c.Value);
+
+            Example EmitGroupClaims Transform Claims Rule string:
+
+                @RuleTemplate = "EmitGroupClaims"
+                @RuleName = "IDscan Users SRV EU-West-1"
+                c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/groupsid", Value == "S-1-5-21-2624039266-918686060-4041204886-1128", Issuer == "AD AUTHORITY"]
+                 => issue(Type = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role", Value = "IDScan User", Issuer = c.Issuer, OriginalIssuer = c.OriginalIssuer, ValueType = c.ValueType);
+
 
             IssuanceTransformRules               = @(
                 @{
@@ -1103,6 +1111,7 @@ c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/groupsid", V
                 }
             )
     #>
+
     [CmdletBinding()]
     param
     (
@@ -1175,20 +1184,25 @@ c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/groupsid", V
 function ConvertFrom-IssuanceTransformRule
 {
     <#
-        IssuanceTransformRules               = @(
-        MSFT_AdfsIssuanceTransformRule
-        {
-            TemplateName    = 'LdapClaims'
-            Name            = 'Test'
-            AtttributeStore = 'ActiveDirectory'
-            LdapMapping     = @(
-                MSFT_AdfsLdapMapping
-                {
-                    LdapAttribute     = 'emailaddress'
-                    OutgoingClaimType = 'mail'
-                }
-            )
-        }
+        .SYNOPSIS
+            Convert a Claims Rule string to a CIMInstance MSFT_AdfsIssuanceTransformRule object
+
+        .NOTES
+
+            IssuanceTransformRules               = @(
+            MSFT_AdfsIssuanceTransformRule
+            {
+                TemplateName    = 'LdapClaims'
+                Name            = 'Test'
+                AtttributeStore = 'ActiveDirectory'
+                LdapMapping     = @(
+                    MSFT_AdfsLdapMapping
+                    {
+                        LdapAttribute     = 'emailaddress'
+                        OutgoingClaimType = 'mail'
+                    }
+                )
+            }
     #>
 
     [CmdletBinding()]
@@ -1281,6 +1295,11 @@ function ConvertFrom-IssuanceTransformRule
 
 function Compare-IssuanceTransformRule
 {
+    <#
+        .SYNOPSIS
+            Compare two Issuance Transform Rules
+    #>
+
     [CmdletBinding()]
     [OutputType([System.Collections.Hashtable])]
     param
@@ -1369,6 +1388,11 @@ function Compare-IssuanceTransformRule
 
 function Get-AdGroupNameFromSid
 {
+    <#
+        .SYNOPSIS
+            Get an Active Directory group name from a SID
+    #>
+
     [CmdletBinding()]
     [OutputType([System.String])]
     param
@@ -1393,6 +1417,11 @@ function Get-AdGroupNameFromSid
 
 function Get-AdGroupSid
 {
+    <#
+        .SYNOPSIS
+            Get the SID of an Active Directory group
+    #>
+
     [CmdletBinding()]
     [OutputType([System.String])]
     param
