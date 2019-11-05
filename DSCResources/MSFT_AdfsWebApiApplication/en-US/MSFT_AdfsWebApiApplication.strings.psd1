@@ -9,7 +9,4 @@ ConvertFrom-StringData @'
     ResourceExistsButShouldNotMessage         = '{0}' exists but should not. (WEB0007)
     ResourceDoesNotExistButShouldMessage      = '{0}' does not exist but should. (WEB0008)
     ResourceDoesNotExistAndShouldNotMessage   = '{0}' does not exist and should not. (WEB0009)
-    ActiveDirectoryGroupNotFoundError         = Active Directory Group '{0}' not found. (WEB0010)
-    ActiveDirectoryGroupNotFoundFromSidError  = No Active Directory Group found with Sid '{0}' (WEB0011)
-    UnknownIssuanceTransformRuleTemplateError = Unknown issuance transform rule template '{0}' (WEB0012)
 '@
