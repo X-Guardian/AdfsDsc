@@ -496,7 +496,7 @@ function Test-TargetResource
             {
                 $propertiesNotInDesiredState += (
                     Compare-IssuanceTransformRule -CurrentValue $targetResource.IssuanceTransformRules `
-                        -DesiredValue $IssuanceTransformRules -Debug:$true |
+                        -DesiredValue $IssuanceTransformRules |
                         Where-Object -Property InDesiredState -eq $false)
             }
 
