@@ -131,7 +131,7 @@ InModuleScope 'AdfsDsc.Common' {
 
             It 'Should throw the correct error' {
                 { New-InvalidArgumentException -Message $mockErrorMessage -ArgumentName $mockArgumentName } |
-                Should -Throw ('Parameter name: {0}' -f $mockArgumentName)
+                    Should -Throw ('Parameter name: {0}' -f $mockArgumentName)
             }
         }
     }
@@ -159,8 +159,8 @@ InModuleScope 'AdfsDsc.Common' {
 
             It 'Should throw the correct error' {
                 { New-InvalidOperationException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } |
-                Should -Throw ('System.InvalidOperationException: {0} ---> System.Exception: {1}' -f
-                    $mockErrorMessage, $mockExceptionErrorMessage)
+                    Should -Throw ('System.InvalidOperationException: {0} ---> System.Exception: {1}' -f
+                        $mockErrorMessage, $mockExceptionErrorMessage)
             }
         }
     }
@@ -188,8 +188,8 @@ InModuleScope 'AdfsDsc.Common' {
 
             It 'Should throw the correct error' {
                 { New-ObjectNotFoundException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } |
-                Should -Throw ('System.Exception: {0} ---> System.Exception: {1}' -f
-                    $mockErrorMessage, $mockExceptionErrorMessage)
+                    Should -Throw ('System.Exception: {0} ---> System.Exception: {1}' -f
+                        $mockErrorMessage, $mockExceptionErrorMessage)
             }
         }
     }
@@ -217,8 +217,8 @@ InModuleScope 'AdfsDsc.Common' {
 
             It 'Should throw the correct error' {
                 { New-InvalidResultException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } |
-                Should -Throw ('System.Exception: {0} ---> System.Exception: {1}' -f
-                    $mockErrorMessage, $mockExceptionErrorMessage)
+                    Should -Throw ('System.Exception: {0} ---> System.Exception: {1}' -f
+                        $mockErrorMessage, $mockExceptionErrorMessage)
             }
         }
     }
@@ -246,8 +246,8 @@ InModuleScope 'AdfsDsc.Common' {
 
             It 'Should throw the correct error' {
                 { New-NotImplementedException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } |
-                Should -Throw ('System.NotImplementedException: {0} ---> System.Exception: {1}' -f
-                    $mockErrorMessage, $mockExceptionErrorMessage)
+                    Should -Throw ('System.NotImplementedException: {0} ---> System.Exception: {1}' -f
+                        $mockErrorMessage, $mockExceptionErrorMessage)
             }
         }
     }
@@ -1148,7 +1148,7 @@ InModuleScope 'AdfsDsc.Common' {
 
             It 'Should throw the correct error' {
                 { Assert-Module -ModuleName $testModuleName } |
-                Should -Throw ($script:localizedData.ModuleNotFoundError -f $testModuleName)
+                    Should -Throw ($script:localizedData.ModuleNotFoundError -f $testModuleName)
             }
         }
 
@@ -1670,7 +1670,7 @@ InModuleScope 'AdfsDsc.Common' {
 
             It 'Should return the correct result' {
                 ConvertTo-IssuanceTransformRule -InputObject $mockEmitGroupClaimsIssuanceTransformRules | `
-                    Should -Be $mockEmitGroupClaimsTransformRule
+                        Should -Be $mockEmitGroupClaimsTransformRule
             }
 
             It 'Should call the expected mocks' {
@@ -1706,11 +1706,32 @@ InModuleScope 'AdfsDsc.Common' {
 
             It 'Should return the correct result' {
                 ConvertTo-IssuanceTransformRule -InputObject $mockCustomClaimsIssuanceTransformRules | `
-                    Should -Be $mockCustomClaimsTransformRule
+                        Should -Be $mockCustomClaimsTransformRule
             }
         }
 
-        Context 'When the transform rule template '
-        $script:localizedData.UnknownIssuanceTransformRuleTemplateError -f $rule.TemplateName
+        Context 'When the transform rule template is of an unknown type' {
+            BeforeAll {
+                $mockUnknownTemplateName = 'UnknownClaims'
+                $mockUnknownRuleName = 'Test'
+
+                $mockUnknownMSFT_AdfsIssuanceTransformRuleProperties = @{
+                    TemplateName = $mockUnknownTemplateName
+                    Name         = $mockUnknownRuleName
+                }
+
+                $mockUnknownIssuanceTransformRules = [CIMInstance[]]@(
+                    New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
+                        -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                        -Property $mockUnknownMSFT_AdfsIssuanceTransformRuleProperties -ClientOnly
+                )
+
+                It 'Should return the correct error' {
+                    { ConvertTo-IssuanceTransformRule -InputObject $mockUnknownIssuanceTransformRules } |
+                        Should Throw ($script:localizedData.UnknownIssuanceTransformRuleTemplateError -f
+                            $mockUnknownTemplateName)
+                }
+            }
+        }
     }
 }
