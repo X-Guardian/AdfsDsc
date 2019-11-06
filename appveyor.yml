@@ -3,6 +3,9 @@
 #---------------------------------#
 
 version: 2.16.{build}.0
+branches:
+    only:
+    - master
 install:
     - git clone https://github.com/PowerShell/DscResource.Tests
     - ps: |
