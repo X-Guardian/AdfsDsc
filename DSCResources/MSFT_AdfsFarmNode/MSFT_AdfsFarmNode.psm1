@@ -174,7 +174,6 @@ function Get-TargetResource
             $groupServiceAccountIdentifier = $null
         }
 
-        # Get ADFS Sync Properties
         try
         {
             $adfsSyncProperties = Get-AdfsSyncProperties
@@ -217,8 +216,8 @@ function Get-TargetResource
             CertificateThumbprint         = $certificateThumbprint
             GroupServiceAccountIdentifier = $groupServiceAccountIdentifier
             ServiceAccountCredential      = $serviceAccountCredential
-            PrimaryComputerName           = $primaryComputerName
-            PrimaryComputerPort           = $primaryComputerPort
+            PrimaryComputerName           = $adfsSyncProperties.PrimaryComputerName
+            PrimaryComputerPort           = $adfsSyncProperties.PrimaryComputerPort
             SQLConnectionString           = $sqlConnectionString
             Ensure                        = 'Present'
         }
