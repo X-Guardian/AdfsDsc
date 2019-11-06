@@ -216,8 +216,8 @@ function Get-TargetResource
             CertificateThumbprint         = $certificateThumbprint
             GroupServiceAccountIdentifier = $groupServiceAccountIdentifier
             ServiceAccountCredential      = $serviceAccountCredential
-            PrimaryComputerName           = $adfsSyncProperties.PrimaryComputerName
-            PrimaryComputerPort           = $adfsSyncProperties.PrimaryComputerPort
+            PrimaryComputerName           = $primaryComputerName
+            PrimaryComputerPort           = $primaryComputerPort
             SQLConnectionString           = $sqlConnectionString
             Ensure                        = 'Present'
         }
