@@ -79,8 +79,8 @@ Import-Module -Name (Join-Path -Path $script:localizationModulePath -ChildPath "
 $script:localizedData = Get-LocalizedData -ResourceName $script:dscResourceName
 
 $script:adfsServiceName = 'adfssrv'
-$script:AdfsAddFarmNodeFileNotFoundErrorId = `
-    'System.IO.FileNotFoundException,Microsoft.IdentityServer.Deployment.Commands.JoinFarmCommand'
+$script:syncPropertiesTypeName = 'Microsoft.IdentityServer.Management.Resources.SyncProperties'
+$script:syncPropertiesBaseTypeName = 'Microsoft.IdentityServer.Management.Resources.SyncPropertiesBase'
 
 function Get-TargetResource
 {
@@ -186,7 +186,7 @@ function Get-TargetResource
         }
 
         # If using WID, object returned is of type 'SyncProperties' with PrimaryComputerName/Port properties
-        if ($adfsSyncProperties -is [Microsoft.IdentityServer.Management.Resources.SyncProperties])
+        if ((Get-ObjectType -Object $adfsSyncProperties) -eq $script:SyncPropertiesTypeName)
         {
             $primaryComputerName = $adfsSyncProperties.PrimaryComputerName
             $primaryComputerPort = $adfsSyncProperties.PrimaryComputerPort

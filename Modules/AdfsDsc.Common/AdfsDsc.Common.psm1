@@ -1036,6 +1036,25 @@ function Get-AdfsConfigurationStatus
     $ReturnValue
 }
 
+function Get-ObjectType
+{
+    <#
+        .SYNOPSIS
+            Returns the type name of the input object
+    #>
+
+    [CmdletBinding()]
+    [OutputType([System.String])]
+    param (
+        [Parameter(Mandatory = $true)]
+        [AllowNull()]
+        [System.Management.Automation.PSObject]
+        $Object
+    )
+
+    $Object.GetType().FullName
+}
+
 $script:localizedData = Get-LocalizedData -ResourceName 'AdfsDsc.Common' -ScriptRoot $PSScriptRoot
 $script:adfsServiceName = 'adfssrv'
 
@@ -1056,4 +1075,5 @@ Export-ModuleMember -Function @(
     'Assert-Command'
     'Assert-GroupServiceAccount'
     'Get-AdfsConfigurationStatus'
+    'Get-ObjectType'
 )
