@@ -174,6 +174,7 @@ function Get-TargetResource
             $groupServiceAccountIdentifier = $null
         }
 
+        # Get ADFS Sync Properties
         try
         {
             $adfsSyncProperties = Get-AdfsSyncProperties
@@ -182,6 +183,19 @@ function Get-TargetResource
         {
             $errorMessage = $script:localizedData.GettingAdfsSyncPropertiesError -f $FederationServiceName
             New-InvalidOperationException -Message $errorMessage -ErrorRecord $_
+        }
+
+        # If using WID, object returned is of type 'SyncProperties' with PrimaryComputerName/Port properties
+        if ($adfsSyncProperties -is [Microsoft.IdentityServer.Management.Resources.SyncProperties])
+        {
+            $primaryComputerName = $adfsSyncProperties.PrimaryComputerName
+            $primaryComputerPort = $adfsSyncProperties.PrimaryComputerPort
+        }
+        # If using SQL, object returned is of type 'SyncPropertiesBase', with no PrimaryComputerName/Port properties
+        else
+        {
+            $primaryComputerName = $null
+            $primaryComputerPort = $null
         }
 
         # Get ADFS SQL Connection String
@@ -203,8 +217,8 @@ function Get-TargetResource
             CertificateThumbprint         = $certificateThumbprint
             GroupServiceAccountIdentifier = $groupServiceAccountIdentifier
             ServiceAccountCredential      = $serviceAccountCredential
-            PrimaryComputerName           = $adfsSyncProperties.PrimaryComputerName
-            PrimaryComputerPort           = $adfsSyncProperties.PrimaryComputerPort
+            PrimaryComputerName           = $primaryComputerName
+            PrimaryComputerPort           = $primaryComputerPort
             SQLConnectionString           = $sqlConnectionString
             Ensure                        = 'Present'
         }
