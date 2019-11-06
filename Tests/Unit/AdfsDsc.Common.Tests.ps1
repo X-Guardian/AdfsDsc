@@ -1558,4 +1558,14 @@ InModuleScope 'AdfsDsc.Common' {
             }
         }
     }
+
+    Describe 'AdfsDsc.Common\Get-ObjectType' {
+        BeforeAll {
+            $mockStringObject = [System.String]'StringObject'
+        }
+
+        It 'Should return the correct result' {
+            Get-ObjectType -Object $mockStringObject | Should -Be 'System.String'
+        }
+    }
 }
