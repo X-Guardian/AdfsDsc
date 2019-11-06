@@ -31,16 +31,29 @@ try
             Remove = 'Remove-AdfsWebApiApplication'
         }
 
+        $mockLdapAttributes = @(
+            'mail'
+            'sn'
+        )
+
+        $mockOutgoingClaimTypes = @(
+            'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'
+            'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'
+        )
+
         $MSFT_AdfsLdapMappingProperties = @(
             @{
-                LdapAttribute     = 'mail'
-                OutgoingClaimType = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'
+                LdapAttribute     = $mockLdapAttributes[0]
+                OutgoingClaimType = $mockOutgoingClaimTypes[0]
             }
             @{
-                LdapAttribute     = 'sn'
-                OutgoingClaimType = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'
+                LdapAttribute     = $mockLdapAttributes[1]
+                OutgoingClaimType = $mockOutgoingClaimTypes[1]
             }
         )
+
+        $mockTemplateName = 'LdapClaims'
+        $mockRuleName = 'Test'
 
         $mockLdapMapping = [CIMInstance[]]@(
             New-CimInstance -ClassName MSFT_AdfsLdapMapping `
@@ -52,11 +65,12 @@ try
         )
 
         $mockMSFT_AdfsIssuanceTransformRuleProperties = @{
-            TemplateName   = 'LdapClaims'
-            Name           = 'Test'
+            TemplateName   = $mockTemplateName
+            Name           = $mockRuleName
             AttributeStore = 'Active Directory'
             LdapMapping    = $mockLdapMapping
         }
+
 
         $mockIssuanceTransformRules = [CIMInstance[]]@(
             New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
@@ -64,13 +78,13 @@ try
                 -Property $mockMSFT_AdfsIssuanceTransformRuleProperties -ClientOnly
         )
 
-        $mockLdapClaimsTransformRule = @'
-@RuleTemplate = "LdapClaims"
-@RuleName = "test"
-c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"]
- => issue(store = "Active Directory", types = ("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"), query = ";mail,sn;{0}", param = c.Value);
-
-'@
+        $mockLdapClaimsTransformRule = @(
+            '@RuleTemplate = "{0}"' -f $mockTemplateName
+            '@RuleName = "{0}"' -f $mockRuleName
+            'c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"]'
+            '=> issue(store = "Active Directory", types = ("{1}", "{2}"), query = ";{3},{4};{0}", param = c.Value);' -f `
+                '{0}', $mockOutgoingClaimTypes[0], $mockOutgoingClaimTypes[1], $mockLdapAttributes[0], $mockLdapAttributes[1]
+        ) | Out-String
 
         $mockResource = @{
             Name                                 = 'AppGroup1 - Web API'
