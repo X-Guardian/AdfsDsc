@@ -1165,6 +1165,7 @@ function ConvertTo-IssuanceTransformRule
             }
             elseif ($rule.TemplateName -eq 'CustomClaims')
             {
+                Write-Debug "Processing CustomClaims Template Rule"
                 $output += $customTransformRule -f $rule.Name, $rule.CustomRule
             }
             else
@@ -1334,34 +1335,42 @@ function Compare-IssuanceTransformRule
             {
                 if ($DesiredValue[$index].TemplateName -eq 'LdapClaims')
                 {
-                    Write-Verbose -Message "Comparing LdapClaims Rule $($CurrentValue[$index].Name)"
+                    Write-Debug -Message "Comparing LdapClaims Rule $($CurrentValue[$index].Name)"
                     if (Compare-Object -ReferenceObject $CurrentValue[$index] -DifferenceObject $DesiredValue[$index] `
                             -Property $CurrentValue[$index].CimInstanceProperties.Name)
                     {
-                        Write-Verbose -Message "Comparing LdapClaims False"
+                        Write-Debug -Message "Comparing LdapClaims False"
                         $parameterState.InDesiredState = $false
                         break
                     }
+                    if (Compare-Object -ReferenceObject $CurrentValue[$index].LdapMapping -DifferenceObject $DesiredValue[$index].LdapMapping `
+                        -Property $CurrentValue[$index].LdapMapping.CimInstanceProperties.Name)
+                        {
+                            Write-Debug -Message "Comparing LdapClaims LdapMapping False"
+                            $parameterState.InDesiredState = $false
+                            break
+                        }
+
                 }
                 elseif ($DesiredValue[$index].TemplateName -eq 'EmitGroupClaims')
                 {
-                    Write-Verbose -Message "Comparing EmitGroupClaims Rule $($CurrentValue[$index].Name)"
+                    Write-Debug -Message "Comparing EmitGroupClaims Rule $($CurrentValue[$index].Name)"
                     if (Compare-Object -ReferenceObject $CurrentValue[$index] -DifferenceObject $DesiredValue[$index] `
                             -Property $CurrentValue[$index].CimInstanceProperties.Name)
                     {
-                        Write-Verbose -Message "Comparing EmitGroupClaims False"
+                        Write-Debug -Message "Comparing EmitGroupClaims False"
                         $parameterState.InDesiredState = $false
                         break
                     }
                 }
                 elseif ($DesiredValue[$index].TemplateName -eq 'CustomClaims')
                 {
-                    Write-Verbose -Message "Comparing CustomClaims Rule $($CurrentValue[$index].Name)"
+                    Write-Debug -Message "Comparing CustomClaims Rule $($CurrentValue[$index].Name)"
                     $CurrentCustomRule = ($CurrentValue[$index].CustomRule -split '\r?\n' | Out-String).Trim()
                     $DesiredCustomRule = ($DesiredValue[$index].CustomRule -split '\r?\n' | Out-String).Trim()
                     if ($CurrentCustomRule -ne $DesiredCustomRule)
                     {
-                        Write-Verbose -Message "Comparing CustomClaims False"
+                        Write-Debug -Message "Comparing CustomClaims False"
                         $parameterState.InDesiredState = $false
                         break
                     }
@@ -1375,14 +1384,13 @@ function Compare-IssuanceTransformRule
             }
             else
             {
-                Write-Verbose -Message "TemplateName Changed"
+                Write-Debug -Message "TemplateName Changed"
                 $parameterState.InDesiredState = $false
                 break
             }
         }
     }
 
-    Write-Verbose -Message "Returning Parameter State"
     return $parameterState
 }
 
