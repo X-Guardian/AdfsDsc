@@ -288,6 +288,19 @@ try
                                 $mockWidResource.FederationServiceName)
                         }
                     }
+
+                    Context 'When Get-AdfsSyncProperties returns an unexpected type' {
+                        BeforeAll {
+                            $mockUnexpectedType = 'UnexpectedType'
+                            Mock Get-ObjectType -MockWith { $mockUnexpectedType }
+                        }
+
+                        It 'Should throw the correct exception' {
+                            { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
+                                $script:localizedData.UnknownAdfsSyncPropertiesObjectTypeError -f
+                                $mockUnexpectedType)
+                        }
+                    }
                 }
 
                 Context "When the configured database is SQL" {

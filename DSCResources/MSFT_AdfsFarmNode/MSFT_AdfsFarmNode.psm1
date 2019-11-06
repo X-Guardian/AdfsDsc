@@ -185,16 +185,23 @@ function Get-TargetResource
         }
 
         # If using WID, object returned is of type 'SyncProperties' with PrimaryComputerName/Port properties
-        if ((Get-ObjectType -Object $adfsSyncProperties) -eq $script:SyncPropertiesTypeName)
+        $adfsSyncPropertiesObjectTypeName = Get-ObjectType -Object $adfsSyncProperties
+        if ($adfsSyncPropertiesObjectTypeName -eq $script:SyncPropertiesTypeName)
         {
             $primaryComputerName = $adfsSyncProperties.PrimaryComputerName
             $primaryComputerPort = $adfsSyncProperties.PrimaryComputerPort
         }
         # If using SQL, object returned is of type 'SyncPropertiesBase', with no PrimaryComputerName/Port properties
-        else
+        elseif ($adfsSyncPropertiesObjectTypeName -eq $script:syncPropertiesBaseTypeName)
         {
             $primaryComputerName = $null
             $primaryComputerPort = $null
+        }
+        else
+        {
+            $errorMessage = ($script:localizedData.UnknownAdfsSyncPropertiesObjectTypeError -f
+                $adfsSyncPropertiesObjectTypeName)
+            New-InvalidOperationException -Message $errorMessage
         }
 
         # Get ADFS SQL Connection String
