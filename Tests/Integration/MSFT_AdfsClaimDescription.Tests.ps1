@@ -1,6 +1,6 @@
 <#
     .SYNOPSIS
-        AdfsApplicationGroup DSC Resource Integration Tests
+        AdfsClaimDescription DSC Resource Integration Tests
 #>
 
 if ($env:APPVEYOR -eq $true)
@@ -10,7 +10,7 @@ if ($env:APPVEYOR -eq $true)
 }
 
 $script:dscModuleName = 'AdfsDsc'
-$script:dscResourceFriendlyName = 'AdfsApplicationGroup'
+$script:dscResourceFriendlyName = 'AdfsClaimDescription'
 $script:dscResourceName = "MSFT_$($script:dscResourceFriendlyName)"
 
 #region HEADER
@@ -113,9 +113,9 @@ try
                         -and $_.ResourceId -eq $resourceId
                 }
 
-                Foreach ($property in $ConfigurationData.AdfsApplicationGroup.Keys)
+                Foreach ($property in $ConfigurationData.AdfsClaimDescription.Keys)
                 {
-                    $resourceCurrentState.$property | Should -Be $ConfigurationData.AdfsApplicationGroup.$property
+                    $resourceCurrentState.$property | Should -Be $ConfigurationData.AdfsClaimDescription.$property
                 }
             }
 

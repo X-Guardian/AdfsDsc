@@ -1,6 +1,9 @@
 <#
     .SYNOPSIS
-        AdfsApplicationGroup DSC Resource Integration Tests
+        AdfsNativeClientApplication DSC Resource Integration Tests
+
+    .NOTES
+        The AdfsNativeClientApplication resource has a dependency on an AdfsApplicationGroup resource
 #>
 
 if ($env:APPVEYOR -eq $true)
@@ -10,7 +13,7 @@ if ($env:APPVEYOR -eq $true)
 }
 
 $script:dscModuleName = 'AdfsDsc'
-$script:dscResourceFriendlyName = 'AdfsApplicationGroup'
+$script:dscResourceFriendlyName = 'AdfsNativeClientApplication'
 $script:dscResourceName = "MSFT_$($script:dscResourceFriendlyName)"
 
 #region HEADER
@@ -46,6 +49,7 @@ try
             Wait         = $true
             Verbose      = $true
             Force        = $true
+            Debug        = $true
             ErrorAction  = 'Stop'
         }
 
@@ -73,10 +77,8 @@ try
 
             It 'Should have ensured the resource is absent' {
                 $resourceCurrentState = $script:currentConfiguration | Where-Object -FilterScript {
-                    $_.ConfigurationName -eq $configurationName `
-                        -and $_.ResourceId -eq $resourceId
+                    $_.ConfigurationName -eq $configurationName
                 }
-
                 $resourceCurrentState.Ensure | Should -Be 'Absent'
             }
 
@@ -113,9 +115,9 @@ try
                         -and $_.ResourceId -eq $resourceId
                 }
 
-                Foreach ($property in $ConfigurationData.AdfsApplicationGroup.Keys)
+                Foreach ($property in $ConfigurationData.AdfsNativeClientApplication.Keys)
                 {
-                    $resourceCurrentState.$property | Should -Be $ConfigurationData.AdfsApplicationGroup.$property
+                    $resourceCurrentState.$property | Should -Be $ConfigurationData.AdfsNativeClientApplication.$property
                 }
             }
 
