@@ -2,14 +2,14 @@
     AdfsFarmNode
 
 .DESCRIPTION
-    The AdfsFarmNode DSC resource manages an additional node in a pre-existing Active Directory Federation Service
-     server farm.
+    The AdfsFarmNode DSC resource manages an additional node in a pre-existing Active Directory
+    Federation Service server farm.
 
     ## Requirements
 
     - The `SQLConnectionString` parameter should be the same as was specified for the ADFS Farm.
-    - The `ServiceAccountCredential` or `GroupServiceAccountIdentifier` should be the same as was specified for the
-    ADFS farm.
+    - The `ServiceAccountCredential` or `GroupServiceAccountIdentifier` should be the same as was
+    specified for the ADFS farm.
 
 .PARAMETER FederationServiceName
     Key - String
@@ -65,7 +65,7 @@ signing and token decryption certificates.
 The standard user account specified in the ServiceAccountCredential parameter will be used for the service
 account.
 
-Configuration AdfsFarmNode_ServiceAccount_Config
+Configuration AdfsFarmNode_ServiceAccount-WID_Config
 {
     param
     (
@@ -80,6 +80,7 @@ Configuration AdfsFarmNode_ServiceAccount_Config
         $DomainAdminCredential
     )
 
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
     Import-DscResource -ModuleName AdfsDsc
 
     Node localhost
@@ -113,7 +114,7 @@ signing and token decryption certificates.
 The group Managed Service Account specified in the GroupServiceAccountIdentifier parameter will be used for the
 service account.
 
-Configuration AdfsFarmNode_gMSA_Config
+Configuration AdfsFarmNode_gMSA-WID_Config
 {
     param
     (
@@ -123,6 +124,7 @@ Configuration AdfsFarmNode_gMSA_Config
         $DomainAdminCredential
     )
 
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
     Import-DscResource -ModuleName AdfsDsc
 
     Node localhost
@@ -166,6 +168,7 @@ Configuration AdfsFarmNode_gMSA-SQL_Config
         $DomainAdminCredential
     )
 
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
     Import-DscResource -ModuleName AdfsDsc
 
     Node localhost
