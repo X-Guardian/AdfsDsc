@@ -2196,9 +2196,9 @@ InModuleScope 'AdfsDsc.Common' {
                         -Property $mockDesiredLdapClaimsMSFT_AdfsIssuanceTransformRuleProperties -ClientOnly
                 )
 
-                $compareIssuanceTransformRuleResult = Compare-IssuanceTransformRule`
-                -CurrentValue $mockCurrentCustomClaimsIssuanceTransformRules `
-                -DesiredValue $mockDesiredLdapClaimsIssuanceTransformRules
+                $compareIssuanceTransformRuleResult = Compare-IssuanceTransformRule `
+                    -CurrentValue $mockCurrentCustomClaimsIssuanceTransformRules `
+                    -DesiredValue $mockDesiredLdapClaimsIssuanceTransformRules
             }
 
             It 'Should return the correct result' {
