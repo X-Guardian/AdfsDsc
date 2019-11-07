@@ -172,7 +172,7 @@ function Get-TargetResource
             NotBeforeSkew                        = $targetResource.NotBeforeSkew
             TokenLifetime                        = $targetResource.TokenLifetime
             AlwaysRequireAuthentication          = $targetResource.AlwaysRequireAuthentication
-            AllowedClientTypes                   = $targetResource.AllowedClientTypes
+            AllowedClientTypes                   = @($targetResource.AllowedClientTypes)
             IssueOAuthRefreshTokensTo            = $targetResource.IssueOAuthRefreshTokensTo
             RefreshTokenProtectionEnabled        = $targetResource.RefreshTokenProtectionEnabled
             RequestMFAFromClaimsProviders        = $targetResource.RequestMFAFromClaimsProviders
