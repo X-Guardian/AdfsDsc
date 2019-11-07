@@ -1633,7 +1633,7 @@ InModuleScope 'AdfsDsc.Common' {
 
             It 'Should return the correct result' {
                 ConvertTo-IssuanceTransformRule -InputObject $mockLdapClaimsIssuanceTransformRules | `
-                    Should -Be $mockLdapClaimsTransformRule
+                        Should -Be $mockLdapClaimsTransformRule
             }
 
             It 'Should call the expected mocks' {
@@ -2008,7 +2008,7 @@ InModuleScope 'AdfsDsc.Common' {
             }
         }
 
-        Context 'When the transform rule contains an LdapClaims rule' {
+        Context 'When the transform rule contains an EmitGroupClaims rule' {
             BeforeAll {
                 $mockEmitGroupClaimsTemplateName = 'EmitGroupClaims'
                 $mockEmitGroupClaimsRuleName = 'Test'
@@ -2080,32 +2080,18 @@ InModuleScope 'AdfsDsc.Common' {
             BeforeAll {
                 $mockCustomClaimsTemplateName = 'CustomClaims'
                 $mockCustomClaimsRuleName = 'Test'
-                $mockCurrentCustomRule = 'Custom Claim Rule Text'
+                $mockCustomRule = 'Custom Claim Rule Text'
 
                 $mockCurrentCustomClaimsMSFT_AdfsIssuanceTransformRuleProperties = @{
                     TemplateName = $mockCustomClaimsTemplateName
                     Name         = $mockCustomClaimsRuleName
-                    CustomRule   = $mockCurrentCustomRule
+                    CustomRule   = $mockCustomRule
                 }
 
                 $mockCurrentCustomClaimsIssuanceTransformRules = [CIMInstance[]]@(
                     New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
                         -Namespace root/microsoft/Windows/DesiredStateConfiguration `
                         -Property $mockCurrentCustomClaimsMSFT_AdfsIssuanceTransformRuleProperties -ClientOnly
-                )
-
-                $mockDesiredCustomRule = 'Custom Claim Rule Text 2'
-
-                $mockDesiredCustomClaimsMSFT_AdfsIssuanceTransformRuleProperties = @{
-                    TemplateName = $mockCustomClaimsTemplateName
-                    Name         = $mockCustomClaimsRuleName
-                    CustomRule   = $mockDesiredCustomRule
-                }
-
-                $mockDesiredCustomClaimsIssuanceTransformRules = [CIMInstance[]]@(
-                    New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
-                        -Namespace root/microsoft/Windows/DesiredStateConfiguration `
-                        -Property $mockDesiredCustomClaimsMSFT_AdfsIssuanceTransformRuleProperties -ClientOnly
                 )
             }
 
@@ -2125,6 +2111,20 @@ InModuleScope 'AdfsDsc.Common' {
 
             Context 'When the CustomClaims rules are different' {
                 BeforeAll {
+                    $mockDesiredCustomRule = 'Custom Claim Rule Text 2'
+
+                    $mockDesiredCustomClaimsMSFT_AdfsIssuanceTransformRuleProperties = @{
+                        TemplateName = $mockCustomClaimsTemplateName
+                        Name         = $mockCustomClaimsRuleName
+                        CustomRule   = $mockDesiredCustomRule
+                    }
+
+                    $mockDesiredCustomClaimsIssuanceTransformRules = [CIMInstance[]]@(
+                        New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
+                            -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                            -Property $mockDesiredCustomClaimsMSFT_AdfsIssuanceTransformRuleProperties -ClientOnly
+                    )
+
                     $compareIssuanceTransformRuleResult = Compare-IssuanceTransformRule `
                         -CurrentValue $mockCurrentCustomClaimsIssuanceTransformRules `
                         -DesiredValue $mockDesiredCustomClaimsIssuanceTransformRules
@@ -2135,6 +2135,76 @@ InModuleScope 'AdfsDsc.Common' {
                     $compareIssuanceTransformRuleResult.ParameterName | Should -Be 'IssuanceTransformRules'
                     $compareIssuanceTransformRuleResult.InDesiredState | Should -BeFalse
                 }
+            }
+
+            Context 'When the Rule Name has changed' {
+                BeforeAll {
+                    $mockDesiredCustomClaimsRuleName = 'Test2'
+
+                    $mockDesiredCustomClaimsMSFT_AdfsIssuanceTransformRuleProperties = @{
+                        TemplateName = $mockCustomClaimsTemplateName
+                        Name         = $mockDesiredCustomClaimsRuleName
+                        CustomRule   = $mockCustomRule
+                    }
+
+                    $mockDesiredCustomClaimsIssuanceTransformRules = [CIMInstance[]]@(
+                        New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
+                            -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                            -Property $mockDesiredCustomClaimsMSFT_AdfsIssuanceTransformRuleProperties -ClientOnly
+                    )
+
+                    $compareIssuanceTransformRuleResult = Compare-IssuanceTransformRule `
+                        -CurrentValue $mockCurrentCustomClaimsIssuanceTransformRules `
+                        -DesiredValue $mockDesiredCustomClaimsIssuanceTransformRules
+                }
+
+                It 'Should return the correct result' {
+                    $compareIssuanceTransformRuleResult | Should -HaveCount 1
+                    $compareIssuanceTransformRuleResult.ParameterName | Should -Be 'IssuanceTransformRules'
+                    $compareIssuanceTransformRuleResult.InDesiredState | Should -BeFalse
+                }
+            }
+        }
+
+        Context 'When the Template Name has changed' {
+            BeforeAll {
+                $mockCustomClaimsTemplateName = 'CustomClaims'
+                $mockCustomClaimsRuleName = 'Test'
+
+                $mockCurrentCustomClaimsMSFT_AdfsIssuanceTransformRuleProperties = @{
+                    TemplateName = $mockCustomClaimsTemplateName
+                    Name         = $mockCustomClaimsRuleName
+                }
+
+                $mockCurrentCustomClaimsIssuanceTransformRules = [CIMInstance[]]@(
+                    New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
+                        -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                        -Property $mockCurrentCustomClaimsMSFT_AdfsIssuanceTransformRuleProperties -ClientOnly
+                )
+
+                $mockLdapClaimsTemplateName = 'LdapClaims'
+                $mockLdapClaimsRuleName = 'Test'
+
+                $mockCurrentCustomClaimsMSFT_AdfsIssuanceTransformRuleProperties = @{
+                    TemplateName = $mockLdapClaimsTemplateName
+                    Name         = $mockLdapClaimsRuleName
+                }
+
+                $mockDesiredLdapClaimsIssuanceTransformRules = [CIMInstance[]]@(
+                    New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
+                        -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                        -Property $mockDesiredLdapClaimsMSFT_AdfsIssuanceTransformRuleProperties -ClientOnly
+                )
+
+                $compareIssuanceTransformRuleResult = Compare-IssuanceTransformRule`
+                -CurrentValue $mockCurrentCustomClaimsIssuanceTransformRules `
+                -DesiredValue $mockDesiredLdapClaimsIssuanceTransformRules
+            }
+
+            It 'Should return the correct result' {
+                $compareIssuanceTransformRuleResult | Should -HaveCount 1
+                $compareIssuanceTransformRuleResult.ParameterName | Should -Be 'IssuanceTransformRules'
+                $compareIssuanceTransformRuleResult.InDesiredState | Should -BeFalse
             }
         }
     }

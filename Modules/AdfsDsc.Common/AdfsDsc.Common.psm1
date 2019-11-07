@@ -1150,7 +1150,7 @@ function ConvertTo-IssuanceTransformRule
         {
             if ($rule.TemplateName -eq 'LdapClaims')
             {
-                Write-Debug "Processing LdapClaims Template Rule"
+                Write-Debug 'Processing LdapClaims Template Rule'
                 $claimTypes = '"' + ($rule.LdapMapping.OutGoingClaimType -join '", "') + '"'
                 $ldapAttributes = $rule.LdapMapping.LdapAttribute -join ','
                 $output += ($ldapClaimsTransformRule -f '{0}', $rule.Name, $rule.AttributeStore,
@@ -1158,14 +1158,14 @@ function ConvertTo-IssuanceTransformRule
             }
             elseif ($rule.TemplateName -eq 'EmitGroupClaims')
             {
-                Write-Debug "Processing EmitGroupClaims Template Rule"
+                Write-Debug 'Processing EmitGroupClaims Template Rule'
                 $groupSid = Get-AdGroupSid -GroupName $rule.GroupName
                 $output += ($emitGroupClaimsTransformRule -f $rule.Name, $groupSid, $rule.OutgoingClaimType,
                     $rule.OutgoingClaimValue)
             }
             elseif ($rule.TemplateName -eq 'CustomClaims')
             {
-                Write-Debug "Processing CustomClaims Template Rule"
+                Write-Debug 'Processing CustomClaims Template Rule'
                 $output += $customTransformRule -f $rule.Name, $rule.CustomRule
             }
             else
@@ -1241,7 +1241,7 @@ function ConvertFrom-IssuanceTransformRule
         {
             if ($individualRule[0] -eq '@RuleTemplate = "LdapClaims"')
             {
-                # Process LdapClaims Rule Template
+                Write-Debug 'Processing LdapClaims Template Rule'
                 $outgoingClaimTypes = ($individualRule[3].Split('(').Split(')')[2]).Split(',').Trim().Trim('"')
                 $ldapAttributes = ($individualRule[3].Split(';')[1]).Split(',')
 
@@ -1265,7 +1265,7 @@ function ConvertFrom-IssuanceTransformRule
             }
             elseif ($individualRule[0] -eq '@RuleTemplate = "EmitGroupClaims"')
             {
-                # Process EmitGroupClaims Rule Template
+                Write-Debug 'Processing EmitGroupClaims Template Rule'
                 $groupSid = $individualRule[2].Split('"')[3]
                 $issuanceTransformRule = @{
                     TemplateName       = 'EmitGroupClaims'
@@ -1277,7 +1277,7 @@ function ConvertFrom-IssuanceTransformRule
             }
             else
             {
-                # Process Custom Claim Rule
+                Write-Debug 'Processing CustomClaims Template Rule'
                 $issuanceTransformRule = @{
                     TemplateName = 'CustomClaims'
                     Name         = $individualRule[0].split('"')[1]
@@ -1368,7 +1368,7 @@ function Compare-IssuanceTransformRule
                     Write-Debug -Message "Comparing CustomClaims Rule $($CurrentValue[$index].Name)"
                     $CurrentCustomRule = ($CurrentValue[$index].CustomRule -split '\r?\n' | Out-String).Trim()
                     $DesiredCustomRule = ($DesiredValue[$index].CustomRule -split '\r?\n' | Out-String).Trim()
-                    if ($CurrentCustomRule -ne $DesiredCustomRule)
+                    if ($CurrentCustomRule -ne $DesiredCustomRule -or $CurrentValue[$index].Name -ne $DesiredValue[$index].Name)
                     {
                         Write-Debug -Message "Comparing CustomClaims False"
                         $parameterState.InDesiredState = $false
