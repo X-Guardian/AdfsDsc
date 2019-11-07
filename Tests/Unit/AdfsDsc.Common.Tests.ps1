@@ -1570,6 +1570,9 @@ InModuleScope 'AdfsDsc.Common' {
     }
 
     Describe 'AdfsDsc.Common\ConvertTo-IssuanceTransformRule' {
+        BeforeAll {
+            mock -CommandName Get-AdGroupSid
+        }
 
         Context 'When the transform rule is of type LdapClaims' {
             BeforeAll {
@@ -1629,7 +1632,12 @@ InModuleScope 'AdfsDsc.Common' {
             }
 
             It 'Should return the correct result' {
-                ConvertTo-IssuanceTransformRule -InputObject $mockLdapClaimsIssuanceTransformRules | Should -Be $mockLdapClaimsTransformRule
+                ConvertTo-IssuanceTransformRule -InputObject $mockLdapClaimsIssuanceTransformRules | `
+                    Should -Be $mockLdapClaimsTransformRule
+            }
+
+            It 'Should call the expected mocks' {
+                Assert-MockCalled -CommandName Get-AdGroupSid -Exactly -Times 0
             }
         }
 
@@ -1708,6 +1716,10 @@ InModuleScope 'AdfsDsc.Common' {
                 ConvertTo-IssuanceTransformRule -InputObject $mockCustomClaimsIssuanceTransformRules | `
                         Should -Be $mockCustomClaimsTransformRule
             }
+
+            It 'Should call the expected mocks' {
+                Assert-MockCalled -CommandName Get-AdGroupSid -Exactly -Times 0
+            }
         }
 
         Context 'When the transform rule template is of an unknown type' {
@@ -1731,6 +1743,167 @@ InModuleScope 'AdfsDsc.Common' {
                         Should Throw ($script:localizedData.UnknownIssuanceTransformRuleTemplateError -f
                             $mockUnknownTemplateName)
                 }
+
+                It 'Should call the expected mocks' {
+                    Assert-MockCalled -CommandName Get-AdGroupSid -Exactly -Times 0
+                }
+            }
+        }
+    }
+
+    Describe 'AdfsDsc.Common\ConvertFrom-IssuanceTransformRule' {
+        BeforeAll {
+            mock -CommandName Get-AdGroupNameFromSid
+        }
+
+        Context 'When the transform rule is of type LdapClaims' {
+            BeforeAll {
+                $mockLdapAttributes = @(
+                    'mail'
+                    'sn'
+                )
+
+                $mockOutgoingClaimTypes = @(
+                    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'
+                    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'
+                )
+
+                $MSFT_AdfsLdapMappingProperties = @(
+                    @{
+                        LdapAttribute     = $mockLdapAttributes[0]
+                        OutgoingClaimType = $mockOutgoingClaimTypes[0]
+                    }
+                    @{
+                        LdapAttribute     = $mockLdapAttributes[1]
+                        OutgoingClaimType = $mockOutgoingClaimTypes[1]
+                    }
+                )
+
+                $mockLdapClaimsTemplateName = 'LdapClaims'
+                $mockLdapClaimsRuleName = 'Test'
+
+                $mockLdapMapping = [CIMInstance[]]@(
+                    New-CimInstance -ClassName MSFT_AdfsLdapMapping `
+                        -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                        -Property $MSFT_AdfsLdapMappingProperties[0] -ClientOnly
+                    New-CimInstance -ClassName MSFT_AdfsLdapMapping `
+                        -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                        -Property $MSFT_AdfsLdapMappingProperties[1] -ClientOnly
+                )
+
+                $mockLdapClaimsMSFT_AdfsIssuanceTransformRuleProperties = @{
+                    TemplateName   = $mockLdapClaimsTemplateName
+                    Name           = $mockLdapClaimsRuleName
+                    AttributeStore = 'Active Directory'
+                    LdapMapping    = $mockLdapMapping
+                }
+
+                $mockLdapClaimsIssuanceTransformRules = [CIMInstance[]]@(
+                    New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
+                        -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                        -Property $mockLdapClaimsMSFT_AdfsIssuanceTransformRuleProperties -ClientOnly
+                )
+
+                $mockLdapClaimsTransformRule = @(
+                    '@RuleTemplate = "{0}"' -f $mockLdapClaimsTemplateName
+                    '@RuleName = "{0}"' -f $mockLdapClaimsRuleName
+                    'c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"]'
+                    '=> issue(store = "Active Directory", types = ("{1}", "{2}"), query = ";{3},{4};{0}", param = c.Value);' -f `
+                        '{0}', $mockOutgoingClaimTypes[0], $mockOutgoingClaimTypes[1], $mockLdapAttributes[0], $mockLdapAttributes[1]
+                ) | Out-String
+            }
+
+            It 'Should return the correct result' {
+                $issuanceTransformRule = ConvertFrom-IssuanceTransformRule -Rule $mockLdapClaimsTransformRule
+                Compare-IssuanceTransformRule -CurrentValue $issuanceTransformRule `
+                    -DesiredValue $mockLdapClaimsIssuanceTransformRules | Should -BeTrue
+            }
+
+            It 'Should call the expected mocks' {
+                Assert-MockCalled -CommandName Get-AdGroupNameFromSid -Exactly -Times 0
+            }
+        }
+
+        Context 'When the transform rule is of type EmitGroupClaims' {
+            BeforeAll {
+                $mockEmitGroupClaimsTemplateName = 'EmitGroupClaims'
+                $mockEmitGroupClaimsRuleName = 'Test'
+                $mockAdGroupName = 'Test Group'
+                $mockAdGroupSid = 'd382a151-2a2c-4f0f-a6e7-8de159333cd2'
+                $mockOutgoingClaimType = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'
+                $mockOutgoingClaimValue = 'User'
+
+                $mockEmitGroupClaimsMSFT_AdfsIssuanceTransformRuleProperties = @{
+                    TemplateName       = $mockEmitGroupClaimsTemplateName
+                    Name               = $mockEmitGroupClaimsRuleName
+                    GroupName          = $mockAdGroupName
+                    OutgoingClaimType  = $mockOutgoingClaimType
+                    OutgoingClaimValue = $mockOutgoingClaimValue
+                }
+
+                $mockEmitGroupClaimsIssuanceTransformRules = [CIMInstance[]]@(
+                    New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
+                        -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                        -Property $mockEmitGroupClaimsMSFT_AdfsIssuanceTransformRuleProperties -ClientOnly
+                )
+
+                $mockEmitGroupClaimsTransformRule = @(
+                    '@RuleTemplate = "{0}"' -f $mockEmitGroupClaimsTemplateName
+                    '@RuleName = "{0}"' -f $mockEmitGroupClaimsRuleName
+                    'c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/groupsid", Value == "{0}", Issuer == "AD AUTHORITY"]' -f `
+                        $mockAdGroupSid
+                    '=> issue(Type = "{0}", Value = "{1}", Issuer = c.Issuer, OriginalIssuer = c.OriginalIssuer, ValueType = c.ValueType);' -f `
+                        $mockOutgoingClaimType, $mockOutgoingClaimValue
+                ) | Out-String
+
+                mock -CommandName Get-AdGroupNameFromSid -MockWith { $mockAdGroupName }
+            }
+
+            It 'Should return the correct result' {
+                $issuanceTransformRule = ConvertFrom-IssuanceTransformRule -Rule $mockEmitGroupClaimsTransformRule
+                Compare-IssuanceTransformRule -CurrentValue $issuanceTransformRule `
+                    -DesiredValue $mockEmitGroupClaimsIssuanceTransformRules | Should -BeTrue
+            }
+
+            It 'Should call the expected mocks' {
+                Assert-MockCalled -CommandName Get-AdGroupNameFromSid `
+                    -ParameterFilter { $Sid -eq $mockAdGroupSid } `
+                    -Exactly -Times 1
+            }
+        }
+
+        Context 'When the transform rule is of type CustomClaims' {
+            BeforeAll {
+                $mockCustomClaimsTemplateName = 'CustomClaims'
+                $mockCustomClaimsRuleName = 'Test'
+                $customRule = 'Custom Claim Rule Text'
+
+                $mockCustomClaimsMSFT_AdfsIssuanceTransformRuleProperties = @{
+                    TemplateName = $mockCustomClaimsTemplateName
+                    Name         = $mockCustomClaimsRuleName
+                    CustomRule   = $customRule
+                }
+
+                $mockCustomClaimsIssuanceTransformRules = [CIMInstance[]]@(
+                    New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
+                        -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                        -Property $mockCustomClaimsMSFT_AdfsIssuanceTransformRuleProperties -ClientOnly
+                )
+
+                $mockCustomClaimsTransformRule = @(
+                    '@RuleName = "{0}"' -f $mockCustomClaimsRuleName
+                    $customRule
+                ) | Out-String
+            }
+
+            It 'Should return the correct result' {
+                $issuanceTransformRule = ConvertFrom-IssuanceTransformRule -Rule $mockCustomClaimsTransformRule
+                Compare-IssuanceTransformRule -CurrentValue $issuanceTransformRule `
+                    -DesiredValue $mockCustomClaimsIssuanceTransformRules | Should -BeTrue
+            }
+
+            It 'Should call the expected mocks' {
+                Assert-MockCalled -CommandName Get-AdGroupNameFromSid -Exactly -Times 0
             }
         }
     }
