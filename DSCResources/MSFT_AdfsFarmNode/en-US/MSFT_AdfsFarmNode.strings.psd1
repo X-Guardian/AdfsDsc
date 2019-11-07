@@ -20,4 +20,5 @@ ConvertFrom-StringData @'
     GettingAdfsServiceError                  = Error getting the ADFS service details for '{0}'. (NDE0017)
     GettingAdfsSecurityTokenServiceError     = Error getting the ADFS Security Token Service details for '{0}'. (NDE0018)
     GettingAdfsSyncPropertiesError           = Error getting the ADFS sync properties for '{0}'. (NDE0019)
+    UnknownAdfsSyncPropertiesObjectTypeError = Error unknown AdfsSyncProperties object type '{0}. (NDE0020)
 '@

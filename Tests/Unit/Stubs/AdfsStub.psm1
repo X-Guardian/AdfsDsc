@@ -710,6 +710,29 @@ namespace Microsoft.IdentityServer.Management.Resources
         }
     }
 
+    public class SyncProperties
+    {
+        // Constructor
+        public SyncProperties() { }
+
+        // Property
+        public System.String LastSyncFromPrimaryComputerName { get; set; }
+        public System.Int32 LastSyncStatus { get; set; }
+        public System.DateTime LastSyncTime { get; set; }
+        public System.Int32 PollDuration { get; set; }
+        public System.String PrimaryComputerName { get; set; }
+        public System.Int32 PrimaryComputerPort { get; set; }
+        public System.String Role { get; set; }
+    }
+
+    public class SyncPropertiesBase
+    {
+        // Constructor
+        public SyncPropertiesBase() { }
+
+        // Property
+        public System.String Role { get; set; }
+    }
 }
 
 namespace Microsoft.IdentityServer.PolicyModel.Configuration
@@ -825,7 +848,6 @@ namespace Microsoft.IdentityServer.Protocols.PolicyStore
     }
 
 }
-
 '@
 
 function Add-AdfsAttributeStore {

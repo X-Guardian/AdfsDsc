@@ -79,8 +79,8 @@ Import-Module -Name (Join-Path -Path $script:localizationModulePath -ChildPath "
 $script:localizedData = Get-LocalizedData -ResourceName $script:dscResourceName
 
 $script:adfsServiceName = 'adfssrv'
-$script:AdfsAddFarmNodeFileNotFoundErrorId = `
-    'System.IO.FileNotFoundException,Microsoft.IdentityServer.Deployment.Commands.JoinFarmCommand'
+$script:syncPropertiesTypeName = 'Microsoft.IdentityServer.Management.Resources.SyncProperties'
+$script:syncPropertiesBaseTypeName = 'Microsoft.IdentityServer.Management.Resources.SyncPropertiesBase'
 
 function Get-TargetResource
 {
@@ -184,6 +184,26 @@ function Get-TargetResource
             New-InvalidOperationException -Message $errorMessage -ErrorRecord $_
         }
 
+        # If using WID, object returned is of type 'SyncProperties' with PrimaryComputerName/Port properties
+        $adfsSyncPropertiesObjectTypeName = Get-ObjectType -Object $adfsSyncProperties
+        if ($adfsSyncPropertiesObjectTypeName -eq $script:SyncPropertiesTypeName)
+        {
+            $primaryComputerName = $adfsSyncProperties.PrimaryComputerName
+            $primaryComputerPort = $adfsSyncProperties.PrimaryComputerPort
+        }
+        # If using SQL, object returned is of type 'SyncPropertiesBase', with no PrimaryComputerName/Port properties
+        elseif ($adfsSyncPropertiesObjectTypeName -eq $script:syncPropertiesBaseTypeName)
+        {
+            $primaryComputerName = $null
+            $primaryComputerPort = $null
+        }
+        else
+        {
+            $errorMessage = ($script:localizedData.UnknownAdfsSyncPropertiesObjectTypeError -f
+                $adfsSyncPropertiesObjectTypeName)
+            New-InvalidOperationException -Message $errorMessage
+        }
+
         # Get ADFS SQL Connection String
         try
         {
@@ -203,8 +223,8 @@ function Get-TargetResource
             CertificateThumbprint         = $certificateThumbprint
             GroupServiceAccountIdentifier = $groupServiceAccountIdentifier
             ServiceAccountCredential      = $serviceAccountCredential
-            PrimaryComputerName           = $adfsSyncProperties.PrimaryComputerName
-            PrimaryComputerPort           = $adfsSyncProperties.PrimaryComputerPort
+            PrimaryComputerName           = $primaryComputerName
+            PrimaryComputerPort           = $primaryComputerPort
             SQLConnectionString           = $sqlConnectionString
             Ensure                        = 'Present'
         }
