@@ -33,8 +33,8 @@ Configuration AdfsNativeClientApplication_Config
         {
             Name                       = 'NativeApp1'
             ApplicationGroupIdentifier = 'AppGroup1'
-            Identifier                 = 'NativeApp1'
-            RedirectUri                = @('https://nativeapp1.contoso.com')
+            Identifier                 = 'e7bfb303-c5f6-4028-a360-b6293d41338c'
+            RedirectUri                = 'https://nativeapp1.contoso.com'
             Description                = 'App1 Native App'
             LogoutUri                  = 'https://nativeapp1.contoso.com/logout'
         }
