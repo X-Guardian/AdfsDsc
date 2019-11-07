@@ -1,6 +1,6 @@
 <#PSScriptInfo
 .VERSION 1.0.0
-.GUID e5ff26fc-ec8f-45b4-babc-532a39074e83
+.GUID 3b6861e5-d3c9-48a7-bebe-88c61442c69c
 .AUTHOR Microsoft Corporation
 .COMPANYNAME Microsoft Corporation
 .COPYRIGHT (c) Microsoft Corporation. All rights reserved.
@@ -26,20 +26,26 @@
         communications certificate. Automatically generated, self-signed certificates will be used for the token
         signing and token decryption certificates.
 
-        The group Managed Service Account specified in the GroupServiceAccountIdentifier parameter will be used for the
-        service account.
+        The standard user account specified in the ServiceAccountCredential parameter will be used for the service
+        account.
 #>
 
-Configuration AdfsFarm_gMSA_Config
+Configuration AdfsFarm_ServiceAccount-WID_Config
 {
     Param
     (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCredential]
+        $ServiceAccountCredential,
+
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [System.Management.Automation.PSCredential]
         $DomainAdminCredential
     )
 
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
     Import-DscResource -ModuleName AdfsDsc
 
     Node localhost
@@ -51,11 +57,11 @@ Configuration AdfsFarm_gMSA_Config
 
         AdfsFarm Contoso
         {
-            FederationServiceName         = 'fs.corp.contoso.com'
-            FederationServiceDisplayName  = 'Contoso ADFS Service'
-            CertificateThumbprint         = '8169c52b4ec6e77eb2ae17f028fe5da4e35c0bed'
-            GroupServiceAccountIdentifier = 'contoso\adfsgmsa$'
-            Credential                    = $DomainAdminCredential
+            FederationServiceName        = 'fs.corp.contoso.com'
+            FederationServiceDisplayName = 'Contoso ADFS Service'
+            CertificateThumbprint        = '8169c52b4ec6e77eb2ae17f028fe5da4e35c0bed'
+            ServiceAccountCredential     = $ServiceAccountCredential
+            Credential                   = $DomainAdminCredential
         }
     }
 }

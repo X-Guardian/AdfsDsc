@@ -30,8 +30,8 @@ Configuration AdfsApplicationPermission_Config
     {
         AdfsApplicationPermission AppPermission1
         {
-            ClientRoleIdentifier = 'NativeApp1'
-            ServerRoleIdentifier = 'https://nativeapp1.contoso.com'
+            ClientRoleIdentifier = 'e7bfb303-c5f6-4028-a360-b6293d41338c'
+            ServerRoleIdentifier = 'e7bfb303-c5f6-4028-a360-b6293d41338c'
             Description          = "This is the AppPermission1 Description"
             ScopeNames           = 'openid'
         }
