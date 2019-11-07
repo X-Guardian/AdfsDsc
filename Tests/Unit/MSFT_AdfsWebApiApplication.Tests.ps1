@@ -31,6 +31,61 @@ try
             Remove = 'Remove-AdfsWebApiApplication'
         }
 
+        $mockLdapAttributes = @(
+            'mail'
+            'sn'
+        )
+
+        $mockOutgoingClaimTypes = @(
+            'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'
+            'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'
+        )
+
+        $MSFT_AdfsLdapMappingProperties = @(
+            @{
+                LdapAttribute     = $mockLdapAttributes[0]
+                OutgoingClaimType = $mockOutgoingClaimTypes[0]
+            }
+            @{
+                LdapAttribute     = $mockLdapAttributes[1]
+                OutgoingClaimType = $mockOutgoingClaimTypes[1]
+            }
+        )
+
+        $mockTemplateName = 'LdapClaims'
+        $mockRuleName = 'Test'
+
+        $mockLdapMapping = [CIMInstance[]]@(
+            New-CimInstance -ClassName MSFT_AdfsLdapMapping `
+                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                -Property $MSFT_AdfsLdapMappingProperties[0] -ClientOnly
+            New-CimInstance -ClassName MSFT_AdfsLdapMapping `
+                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                -Property $MSFT_AdfsLdapMappingProperties[1] -ClientOnly
+        )
+
+        $mockMSFT_AdfsIssuanceTransformRuleProperties = @{
+            TemplateName   = $mockTemplateName
+            Name           = $mockRuleName
+            AttributeStore = 'Active Directory'
+            LdapMapping    = $mockLdapMapping
+        }
+
+
+        $mockIssuanceTransformRules = [CIMInstance[]]@(
+            New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
+                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                -Property $mockMSFT_AdfsIssuanceTransformRuleProperties -ClientOnly
+        )
+
+        $mockLdapClaimsTransformRule = @(
+            '@RuleTemplate = "{0}"' -f $mockTemplateName
+            '@RuleName = "{0}"' -f $mockRuleName
+            'c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"]'
+            '=> issue(store = "Active Directory", types = ("{1}", "{2}"), query = ";{3},{4};{0}", param = c.Value);' -f `
+                '{0}', $mockOutgoingClaimTypes[0], $mockOutgoingClaimTypes[1], $mockLdapAttributes[0], $mockLdapAttributes[1]
+        ) | Out-String
+
         $mockResource = @{
             Name                                 = 'AppGroup1 - Web API'
             ApplicationGroupIdentifier           = 'AppGroup1'
@@ -42,7 +97,7 @@ try
             IssuanceAuthorizationRules           = 'rule'
             DelegationAuthorizationRules         = 'rule'
             ImpersonationAuthorizationRules      = 'rule'
-            IssuanceTransformRules               = 'rule'
+            IssuanceTransformRules               = $mockIssuanceTransformRules
             AdditionalAuthenticationRules        = 'rule'
             NotBeforeSkew                        = 5
             TokenLifetime                        = 90
@@ -77,6 +132,30 @@ try
             Ensure                               = 'Absent'
         }
 
+        $mockMSFT_AdfsLdapMappingChangedProperties = @{
+            LdapAttribute     = 'givenname'
+            OutgoingClaimType = 'givenName'
+        }
+
+        $mockLdapChangedMapping = [CIMInstance[]]@(
+            New-CimInstance -ClassName MSFT_AdfsLdapMapping `
+                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                -Property $mockMSFT_AdfsLdapMappingChangedProperties -ClientOnly
+        )
+
+        $mockMSFT_AdfsIssuanceTransformChangedRuleProperties = @{
+            TemplateName   = 'LdapClaims'
+            Name           = 'Test2'
+            AttributeStore = 'ActiveDirectory'
+            LdapMapping    = $mockLdapChangedMapping
+        }
+
+        $mockIssuanceTransformChangedRules = [CIMInstance[]]@(
+            New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
+                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                -Property $mockMSFT_AdfsIssuanceTransformChangedRuleProperties -ClientOnly
+        )
+
         $mockChangedResource = @{
             Identifier                           = 'e7bfb303-c5f6-4028-a360-b6293d41338d'
             Description                          = 'App2 Web Api'
@@ -86,7 +165,7 @@ try
             IssuanceAuthorizationRules           = 'changedrule'
             DelegationAuthorizationRules         = 'changedrule'
             ImpersonationAuthorizationRules      = 'changedrule'
-            IssuanceTransformRules               = 'changedrule'
+            IssuanceTransformRules               = $mockIssuanceTransformChangedRules
             AdditionalAuthenticationRules        = 'changedrule'
             NotBeforeSkew                        = 10
             TokenLifetime                        = 180
@@ -146,7 +225,7 @@ try
                     IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
                     DelegationAuthorizationRules         = $mockResource.DelegationAuthorizationRules
                     ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
-                    IssuanceTransformRules               = $mockResource.IssuanceTransformRules
+                    IssuanceTransformRules               = $mockLdapClaimsTransformRule
                     AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
                     NotBeforeSkew                        = $mockResource.NotBeforeSkew
                     TokenLifetime                        = $mockResource.TokenLifetime
@@ -172,7 +251,7 @@ try
                 foreach ($property in $mockResource.Keys)
                 {
                     It "Should return the correct $property property" {
-                        $result.$property | Should -Be $mockResource.$property
+                        $result.$property | ConvertTo-Json | Should -Be ($mockResource.$property | ConvertTo-Json)
                     }
                 }
 

@@ -1,3 +1,23 @@
+[ClassVersion("1.0.0")]
+class MSFT_AdfsLdapMapping
+{
+    [Required, Description("Specifies the LDAP attribute.")] String LdapAttribute;
+    [Required, Description("Specifies the outgoing claim type.")] String OutgoingClaimType;
+};
+
+[ClassVersion("1.0.0")]
+class MSFT_AdfsIssuanceTransformRule
+{
+    [Required, Description("Specifies the name of the claim rule template"), ValueMap{"LdapClaims","EmitGroupClaims","CustomClaims"},Values{"LdapClaims","EmitGroupClaims","CustomClaims"}] String TemplateName;
+    [Required, Description("Specifies the name of the claim rule")] String Name;
+    [Write, Description("Specifies the attribute store from which to extract LDAP attributes")] String AttributeStore;
+    [Write, EmbeddedInstance("MSFT_AdfsLdapMapping"), Description("Specifies the mapping pairs of LDAP attributes to outgoing claim types")]  String LdapMapping[];
+    [Write, Description("Specifies the Active Directory group.")] String GroupName;
+    [Write, Description("Specifies the outgoing claim type.")] String OutgoingClaimType;
+    [Write, Description("Specifies the outgoing Name ID format if Name ID is specified as the outgoing claim type.")] String OutgoingNameIDFormat;
+    [Write, Description("Specifies the outgoing claim value.")] String OutgoingClaimValue;
+    [Write, Description("Specifies the custom claim rule")] String CustomRule;
+};
 
 [ClassVersion("1.0.0.0"), FriendlyName("AdfsWebApiApplication")]
 class MSFT_AdfsWebApiApplication : OMI_BaseResource
@@ -12,15 +32,14 @@ class MSFT_AdfsWebApiApplication : OMI_BaseResource
     [Write, Description("Specifies the issuance authorization rules.")] String IssuanceAuthorizationRules;
     [Write, Description("Specifies delegation authorization rules.")] String DelegationAuthorizationRules;
     [Write, Description("Specifies the impersonation authorization rules.")] String ImpersonationAuthorizationRules;
-    [Write, Description("Specifies the issuance transform rules.")] String IssuanceTransformRules;
+    [Write, EmbeddedInstance("MSFT_AdfsIssuanceTransformRule"), Description("Specifies the issuance transform rules.")] String IssuanceTransformRules[];
     [Write, Description("Specifies additional authentication rules.")] String AdditionalAuthenticationRules;
     [Write, Description("Specifies the name of an access control policy.")] String AccessControlPolicyName;
     [Write, Description("Specifies the not before skew value.")] Sint32 NotBeforeSkew;
     [Write, Description("Specifies the token lifetime.")] Sint32 TokenLifetime;
     [Write, Description("Indicates that this Web API application role always requires authentication, even if it previously authenticated credentials for access. Specify this parameter to require users to always supply credentials to access sensitive resources.")] Boolean AlwaysRequireAuthentication;
-    [Write, Description("Specifies allowed client types."), ValueMap{"None","Public","Confidential"}, Values{"None","Public","Confidential"}] String AllowedClientTypes;
+    [Write, Description("Specifies allowed client types."), ValueMap{"None","Public","Confidential"}, Values{"None","Public","Confidential"}] String AllowedClientTypes[];
     [Write, Description("Specifies the refresh token issuance device types."), ValueMap{"NoDevice","WorkplaceJoinedDevices","AllDevices"}, Values{"NoDevice","WorkplaceJoinedDevices","AllDevices"}] String IssueOAuthRefreshTokensTo;
     [Write, Description("Indicates whether refresh token protection is enabled.")] Boolean RefreshTokenProtectionEnabled;
     [Write, Description("Indicates that the request MFA from claims providers option is used.")] Boolean RequestMFAFromClaimsProviders;
 };
-

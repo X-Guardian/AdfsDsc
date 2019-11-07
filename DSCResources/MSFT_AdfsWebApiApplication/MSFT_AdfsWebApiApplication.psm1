@@ -155,23 +155,24 @@ function Get-TargetResource
     if ($targetResource)
     {
         # Resource exists
+        Write-Debug "Target resource $Name exists"
         $returnValue = @{
             Name                                 = $targetResource.Name
             ApplicationGroupIdentifier           = $targetResource.ApplicationGroupIdentifier
-            Identifier                           = $targetResource.Identifier
+            Identifier                           = @($targetResource.Identifier)
             Description                          = $targetResource.Description
-            AllowedAuthenticationClassReferences = $targetResource.AllowedAuthenticationClassReferences
-            ClaimsProviderName                   = $targetResource.ClaimsProviderName
+            AllowedAuthenticationClassReferences = @($targetResource.AllowedAuthenticationClassReferences)
+            ClaimsProviderName                   = @($targetResource.ClaimsProviderName)
             IssuanceAuthorizationRules           = $targetResource.IssuanceAuthorizationRules
             DelegationAuthorizationRules         = $targetResource.DelegationAuthorizationRules
             ImpersonationAuthorizationRules      = $targetResource.ImpersonationAuthorizationRules
-            IssuanceTransformRules               = $targetResource.IssuanceTransformRules
+            IssuanceTransformRules               = @(ConvertFrom-IssuanceTransformRule -Rule $targetResource.IssuanceTransformRules)
             AdditionalAuthenticationRules        = $targetResource.AdditionalAuthenticationRules
             AccessControlPolicyName              = $targetResource.AccessControlPolicyName
             NotBeforeSkew                        = $targetResource.NotBeforeSkew
             TokenLifetime                        = $targetResource.TokenLifetime
             AlwaysRequireAuthentication          = $targetResource.AlwaysRequireAuthentication
-            AllowedClientTypes                   = $targetResource.AllowedClientTypes
+            AllowedClientTypes                   = @($targetResource.AllowedClientTypes)
             IssueOAuthRefreshTokensTo            = $targetResource.IssueOAuthRefreshTokensTo
             RefreshTokenProtectionEnabled        = $targetResource.RefreshTokenProtectionEnabled
             RequestMFAFromClaimsProviders        = $targetResource.RequestMFAFromClaimsProviders
@@ -181,17 +182,18 @@ function Get-TargetResource
     else
     {
         # Resource does not exist
+        Write-Debug "Target resource $Name does not exist"
         $returnValue = @{
             Name                                 = $Name
             ApplicationGroupIdentifier           = $ApplicationGroupIdentifier
-            Identifier                           = $Identifier
+            Identifier                           = @($Identifier)
             Description                          = $null
             AllowedAuthenticationClassReferences = @()
             ClaimsProviderName                   = @()
             IssuanceAuthorizationRules           = $null
             DelegationAuthorizationRules         = $null
             ImpersonationAuthorizationRules      = $null
-            IssuanceTransformRules               = $null
+            IssuanceTransformRules               = @()
             AdditionalAuthenticationRules        = $null
             AccessControlPolicyName              = $null
             NotBeforeSkew                        = 0
@@ -205,6 +207,7 @@ function Get-TargetResource
         }
     }
 
+    Write-Debug "Returning Value"
     $returnValue
 }
 
@@ -267,7 +270,7 @@ function Set-TargetResource
         $ImpersonationAuthorizationRules,
 
         [Parameter()]
-        [System.String]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
         $IssuanceTransformRules,
 
         [Parameter()]
@@ -292,7 +295,7 @@ function Set-TargetResource
 
         [Parameter()]
         [ValidateSet('None', 'Public', 'Confidential')]
-        [System.String]
+        [System.String[]]
         $AllowedClientTypes,
 
         [Parameter()]
@@ -324,6 +327,9 @@ function Set-TargetResource
     if ($Ensure -eq 'Present')
     {
         # Resource should exist
+        $parameters.IssuanceTransformRules = $IssuanceTransformRules | ConvertTo-IssuanceTransformRule
+        write-verbose $parameters.IssuanceTransformRules
+
         if ($TargetResource.Ensure -eq 'Present')
         {
             # Resource exists
@@ -430,7 +436,7 @@ function Test-TargetResource
         $ImpersonationAuthorizationRules,
 
         [Parameter()]
-        [System.String]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
         $IssuanceTransformRules,
 
         [Parameter()]
@@ -455,7 +461,7 @@ function Test-TargetResource
 
         [Parameter()]
         [ValidateSet('None', 'Public', 'Confidential')]
-        [System.String]
+        [System.String[]]
         $AllowedClientTypes,
 
         [Parameter()]
@@ -485,9 +491,19 @@ function Test-TargetResource
         if ($Ensure -eq 'Present')
         {
             # Resource should exist
-            $propertiesNotInDesiredState = (
-                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
-                    Where-Object -Property InDesiredState -eq $false)
+            $propertiesNotInDesiredState = @()
+            if ($PSBoundParameters.Keys.Contains('IssuanceTransformRules'))
+            {
+                $propertiesNotInDesiredState += (
+                    Compare-IssuanceTransformRule -CurrentValue $targetResource.IssuanceTransformRules `
+                        -DesiredValue $IssuanceTransformRules |
+                        Where-Object -Property InDesiredState -eq $false)
+            }
+
+            $propertiesNotInDesiredState += (
+                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters `
+                    -IgnoreProperties IssuanceTransformRules | Where-Object -Property InDesiredState -eq $false)
+
             if ($propertiesNotInDesiredState)
             {
                 # Resource is not in desired state
