@@ -1,17 +1,9 @@
 <#
     .SYNOPSIS
-        DSC Configuration Template for DSC Resource Integration tests.
-
-    .DESCRIPTION
-        To Use:
-            1. Copy to \Tests\Integration\ folder and rename <ResourceName>.config.ps1
-               (e.g. MSFT_Firewall.config.ps1).
-            2. Customize TODO sections.
-            3. Remove TODO comments and TODO comment-blocks.
-            4. Remove this comment-based help.
+        AdfsWebApiApplication DSC Resource Integration test Configuration.
 
     .NOTES
-        Comment in HEADER region are standard and should not be altered.
+        The AdfsWebApiApplication resource has a dependency on an AdfsApplicationGroup resource
 #>
 
 #region HEADER
@@ -21,28 +13,10 @@
 $configFile = [System.IO.Path]::ChangeExtension($MyInvocation.MyCommand.Path, 'json')
 if (Test-Path -Path $configFile)
 {
-    <#
-        TODO: Allows reading the configuration data from a JSON file,
-        e.g. integration_template.config.json for real testing
-        scenarios outside of the CI.
-    #>
     $ConfigurationData = Get-Content -Path $configFile | ConvertFrom-Json
 }
 else
 {
-    <#
-        TODO: (Optional) If appropriate, this configuration hash table
-        can be moved from here and into the integration test file.
-        For example, if there are several configurations which all
-        need different configuration properties, it might be easier
-        to have one ConfigurationData-block per configuration test
-        than one big ConfigurationData-block here.
-        It may also be moved if it is easier to read the tests when
-        the ConfigurationData-block is in the integration test file.
-        The reason for it being here is that it is easier to read
-        the configuration when the ConfigurationData-block is in this
-        file.
-    #>
     $ConfigurationData = @{
         AllNodes              = @(
             @{
@@ -56,19 +30,21 @@ else
             Ensure      = 'Present'
         }
         AdfsWebApiApplication = @{
-            Name        = 'DscWebApiApplication1'
-            Description = 'This is the DscWebApiApplication1 Description'
-            Identifier  = 'e7bfb303-c5f6-4028-a360-b6293d41338c'
+            Name                    = 'DscWebApiApplication1'
+            Description             = 'This is the DscWebApiApplication1 Description'
+            Identifier              = 'e7bfb303-c5f6-4028-a360-b6293d41338c'
+            AccessControlPolicyName = 'Permit Everyone'
         }
     }
 }
 
-<#
-    .SYNOPSIS
-        Initialises the Integration test resources
-#>
 Configuration MSFT_AdfsWebApiApplication_Init_Config
 {
+    <#
+        .SYNOPSIS
+            Initialises the Integration test resources
+    #>
+
     Import-DscResource -ModuleName 'AdfsDsc'
 
     node $AllNodes.NodeName
@@ -81,12 +57,13 @@ Configuration MSFT_AdfsWebApiApplication_Init_Config
     }
 }
 
-<#
-    .SYNOPSIS
-        Manages an ADFS Application Group
-#>
 Configuration MSFT_AdfsWebApiApplication_Config
 {
+    <#
+        .SYNOPSIS
+            Manages an ADFS Application Group and AdfsWebApiApplication
+    #>
+
     Import-DscResource -ModuleName 'AdfsDsc'
 
     node $AllNodes.NodeName
@@ -103,22 +80,8 @@ Configuration MSFT_AdfsWebApiApplication_Config
             Description                = $ConfigurationData.AdfsWebApiApplication.Description
             ApplicationGroupIdentifier = $ConfigurationData.AdfsApplicationGroup.Name
             Identifier                 = $ConfigurationData.AdfsWebApiApplication.Identifier
-            AccessControlPolicyName    = 'Permit Everyone'
+            AccessControlPolicyName    = $ConfigurationData.AdfsWebApiApplication.AccessControlPolicyName
             IssuanceTransformRules     = @(
-                MSFT_AdfsIssuanceTransformRule
-                {
-                    TemplateName = 'CustomClaims'
-                    Name         = 'App1 Custom Claim'
-                    CustomRule   = 'c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/groupsid", Value == "S-1-5-21-2624039266-918686060-4041204886-1128", Issuer == "AD AUTHORITY"]
- => issue(Type = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role", Value = "IDScan User", Issuer = c.Issuer, OriginalIssuer = c.OriginalIssuer, ValueType = c.ValueType);'
-                }
-            )
-        }
-    }
-}
-
-<#
-
                 MSFT_AdfsIssuanceTransformRule
                 {
                     TemplateName   = 'LdapClaims'
@@ -139,10 +102,20 @@ Configuration MSFT_AdfsWebApiApplication_Config
                 }
                 MSFT_AdfsIssuanceTransformRule
                 {
-                    TemplateName         = 'EmitGroupClaims'
-                    Name                 = 'App1 User Role Claim'
-                    GroupName            = 'App1 Users'
-                    OutgoingClaimType    = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'
-                    OutgoingClaimValue   = 'User'
+                    TemplateName       = 'EmitGroupClaims'
+                    Name               = 'App1 User Role Claim'
+                    GroupName          = 'App1 Users'
+                    OutgoingClaimType  = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'
+                    OutgoingClaimValue = 'User'
                 }
-#>
+                MSFT_AdfsIssuanceTransformRule
+                {
+                    TemplateName = 'CustomClaims'
+                    Name         = 'App1 Custom Claim'
+                    CustomRule   = 'c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/groupsid", Value == "S-1-5-21-2624039266-918686060-4041204886-1128", Issuer == "AD AUTHORITY"]
+ => issue(Type = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role", Value = "IDScan User", Issuer = c.Issuer, OriginalIssuer = c.OriginalIssuer, ValueType = c.ValueType);'
+                }
+            )
+        }
+    }
+}
