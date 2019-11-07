@@ -1,6 +1,6 @@
 <#
     .SYNOPSIS
-        AdfsApplicationGroup DSC Resource Integration Tests
+        AdfsFarm DSC Resource Integration Tests
 #>
 
 if ($env:APPVEYOR -eq $true)
@@ -10,7 +10,7 @@ if ($env:APPVEYOR -eq $true)
 }
 
 $script:dscModuleName = 'AdfsDsc'
-$script:dscResourceFriendlyName = 'AdfsApplicationGroup'
+$script:dscResourceFriendlyName = 'AdfsFarm'
 $script:dscResourceName = "MSFT_$($script:dscResourceFriendlyName)"
 
 #region HEADER
@@ -46,43 +46,8 @@ try
             Wait         = $true
             Verbose      = $true
             Force        = $true
+            Debug        = $true
             ErrorAction  = 'Stop'
-        }
-
-        $configurationName = "$($script:dscResourceName)_Init_Config"
-
-        Context ('When using configuration {0}' -f $configurationName) {
-            It 'Should compile and apply the MOF without throwing' {
-                {
-                    $configurationParameters = @{
-                        OutputPath        = $TestDrive
-                        ConfigurationData = $ConfigurationData
-                    }
-
-                    & $configurationName @configurationParameters
-
-                    Start-DscConfiguration @startDscConfigurationParameters
-                } | Should -Not -Throw
-            }
-
-            It 'Should be able to call Get-DscConfiguration without throwing' {
-                {
-                    $script:currentConfiguration = Get-DscConfiguration -Verbose -ErrorAction Stop
-                } | Should -Not -Throw
-            }
-
-            It 'Should have ensured the resource is absent' {
-                $resourceCurrentState = $script:currentConfiguration | Where-Object -FilterScript {
-                    $_.ConfigurationName -eq $configurationName `
-                        -and $_.ResourceId -eq $resourceId
-                }
-
-                $resourceCurrentState.Ensure | Should -Be 'Absent'
-            }
-
-            It 'Should return $true when Test-DscConfiguration is run' {
-                Test-DscConfiguration -Verbose | Should -Be 'True'
-            }
         }
 
         $configurationName = "$($script:dscResourceName)_Config"
@@ -113,9 +78,9 @@ try
                         -and $_.ResourceId -eq $resourceId
                 }
 
-                Foreach ($property in $ConfigurationData.AdfsApplicationGroup.Keys)
+                Foreach ($property in $ConfigurationData.AdfsNativeClientApplication.Keys)
                 {
-                    $resourceCurrentState.$property | Should -Be $ConfigurationData.AdfsApplicationGroup.$property
+                    $resourceCurrentState.$property | Should -Be $ConfigurationData.AdfsNativeClientApplication.$property
                 }
             }
 
