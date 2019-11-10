@@ -6,6 +6,8 @@
         The AdfsNativeClientApplication resource has a dependency on an AdfsApplicationGroup resource
 #>
 
+Set-StrictMode -Version 2.0
+
 if ($env:APPVEYOR -eq $true)
 {
     Write-Warning -Message 'Integration test is not supported in AppVeyor.'
