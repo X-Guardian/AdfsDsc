@@ -1242,8 +1242,8 @@ function ConvertFrom-IssuanceTransformRule
             if ($individualRule[0] -eq '@RuleTemplate = "LdapClaims"')
             {
                 Write-Debug 'Processing LdapClaims Template Rule'
-                $outgoingClaimTypes = ($individualRule[3].Split('(').Split(')')[2]).Split(',').Trim().Trim('"')
-                $ldapAttributes = ($individualRule[3].Split(';')[1]).Split(',')
+                $outgoingClaimTypes = @(($individualRule[3].Split('(').Split(')')[2]).Split(',').Trim().Trim('"'))
+                $ldapAttributes = @(($individualRule[3].Split(';')[1]).Split(','))
 
                 $MSFT_AdfsLdapMapping = @()
                 for ($index = 0; $index -lt $ldapAttributes.Count; $index++)

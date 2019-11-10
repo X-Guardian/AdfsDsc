@@ -50,7 +50,7 @@
 
 .PARAMETER EncryptionCertificateRevocationCheck
     Write - String
-    Allowed values: None, CheckEndCert, CheckEndCertCacheOnly, CheckChain, CheckChainCacheOnly, CheckChainExcludingRoot, CheckChainExcludingRootCacheOnly
+    Allowed values: None, CheckEndCert, CheckEndCertCacheOnly, CheckChain, CheckChainCacheOnly, CheckChainExcludeRoot, CheckChainExcludeRootCacheOnly
     Specifies the type of validation that should occur for the encryption certificate it is used for encrypting claims to the relying party.
 
 .PARAMETER Identifier
@@ -106,7 +106,7 @@
 
 .PARAMETER SigningCertificateRevocationCheck
     Write - String
-    Allowed values: None, CheckEndCert, CheckEndCertCacheOnly, CheckChain, CheckChainCacheOnly, CheckChainExcludingRoot, CheckChainExcludingRootCacheOnly
+    Allowed values: None, CheckEndCert, CheckEndCertCacheOnly, CheckChain, CheckChainCacheOnly, CheckChainExcludeRoot, CheckChainExcludeRootCacheOnly
     Specifies the type of certificate validation that occur when signatures on requests from the relying party are verified.
 
 .PARAMETER TokenLifetime

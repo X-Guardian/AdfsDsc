@@ -1,3 +1,24 @@
+[ClassVersion("1.0.0")]
+class MSFT_AdfsLdapMapping
+{
+    [Required, Description("Specifies the LDAP attribute.")] String LdapAttribute;
+    [Required, Description("Specifies the outgoing claim type.")] String OutgoingClaimType;
+};
+
+[ClassVersion("1.0.0")]
+class MSFT_AdfsIssuanceTransformRule
+{
+    [Required, Description("Specifies the name of the claim rule template"), ValueMap{"LdapClaims","EmitGroupClaims","CustomClaims"},Values{"LdapClaims","EmitGroupClaims","CustomClaims"}] String TemplateName;
+    [Required, Description("Specifies the name of the claim rule")] String Name;
+    [Write, Description("Specifies the attribute store from which to extract LDAP attributes")] String AttributeStore;
+    [Write, EmbeddedInstance("MSFT_AdfsLdapMapping"), Description("Specifies the mapping pairs of LDAP attributes to outgoing claim types")]  String LdapMapping[];
+    [Write, Description("Specifies the Active Directory group.")] String GroupName;
+    [Write, Description("Specifies the outgoing claim type.")] String OutgoingClaimType;
+    [Write, Description("Specifies the outgoing Name ID format if Name ID is specified as the outgoing claim type.")] String OutgoingNameIDFormat;
+    [Write, Description("Specifies the outgoing claim value.")] String OutgoingClaimValue;
+    [Write, Description("Specifies the custom claim rule")] String CustomRule;
+};
+
 [ClassVersion("1.0.0.0"), FriendlyName("AdfsRelyingPartyTrust")]
 class MSFT_AdfsRelyingPartyTrust : OMI_BaseResource
 {
@@ -12,11 +33,11 @@ class MSFT_AdfsRelyingPartyTrust : OMI_BaseResource
     [Write, Description("Indicates whether the JSON Web Token (JWT) format should be used to issue a token on a WS-Federation request. By default, SAML tokens are issued over WS-Federation.")] Boolean EnableJWT;
     [Write, Description("Indicates whether the claims that are sent to the relying party are encrypted.")] Boolean EncryptClaims;
     [Write, Description("Indicates whether the relying party requires that the NameID claim be encrypted.")] Boolean EncryptedNameIdRequired;
-    [Write, Description("Specifies the type of validation that should occur for the encryption certificate it is used for encrypting claims to the relying party."), ValueMap{"None","CheckEndCert","CheckEndCertCacheOnly","CheckChain","CheckChainCacheOnly","CheckChainExcludingRoot","CheckChainExcludingRootCacheOnly"}, Values{"None","CheckEndCert","CheckEndCertCacheOnly","CheckChain","CheckChainCacheOnly","CheckChainExcludingRoot","CheckChainExcludingRootCacheOnly"}] String EncryptionCertificateRevocationCheck;
+    [Write, Description("Specifies the type of validation that should occur for the encryption certificate it is used for encrypting claims to the relying party."), ValueMap{"None","CheckEndCert","CheckEndCertCacheOnly","CheckChain","CheckChainCacheOnly","CheckChainExcludeRoot","CheckChainExcludeRootCacheOnly"}, Values{"None","CheckEndCert","CheckEndCertCacheOnly","CheckChain","CheckChainCacheOnly","CheckChainExcludeRoot","CheckChainExcludeRootCacheOnly"}] String EncryptionCertificateRevocationCheck;
     [Write, Description("Specifies the unique identifiers for this relying party trust. No other trust can use an identifier from this list. Uniform Resource Identifiers (URIs) are often used as unique identifiers for a relying party trust, but you can use any string of characters.")] String Identifier[];
     [Write, Description("Specifies the impersonation authorization rules for issuing claims to this relying party.")] String ImpersonationAuthorizationRules;
     [Write, Description("Specifies the issuance authorization rules for issuing claims to this relying party.")] String IssuanceAuthorizationRules;
-    [Write, Description("Specifies the issuance transform rules for issuing claims to this relying party.")] String IssuanceTransformRules;
+    [Write, EmbeddedInstance("MSFT_AdfsIssuanceTransformRule"), Description("Specifies the issuance transform rules for issuing claims to this relying party.")] String IssuanceTransformRules[];
     [Write, Description("Specifies a URL at which the federation metadata for this relying party trust is available.")] String MetadataUrl;
     [Write, Description("Indicates whether periodic monitoring of this relying party federation metadata is enabled. The MetadataUrl parameter specifies the URL of the relying party federation metadata.")] Boolean MonitoringEnabled;
     [Write, Description("Specifies the skew, as in integer, for the time stamp that marks the beginning of the validity period.")] Sint32 NotBeforeSkew;
@@ -25,7 +46,7 @@ class MSFT_AdfsRelyingPartyTrust : OMI_BaseResource
     [Write, Description("Specifies the response signature or signatures that the relying party expects."), ValueMap{"AssertionOnly","MessageAndAssertion","MessageOnly"}, Values{"AssertionOnly","MessageAndAssertion","MessageOnly"}] String SamlResponseSignature;
     [Write, Description("Specifies the signature algorithm that the relying party uses for signing and verification."), ValueMap{"http://www.w3.org/2000/09/xmldsig#rsa-sha1","http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"}, Values{"http://www.w3.org/2000/09/xmldsig#rsa-sha1","http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"}] String SignatureAlgorithm;
     [Write, Description("Indicates whether the Federation Service requires signed SAML protocol requests from the relying party. If you specify a value of True, the Federation Service rejects unsigned SAML protocol requests.")] Boolean SignedSamlRequestsRequired;
-    [Write, Description("Specifies the type of certificate validation that occur when signatures on requests from the relying party are verified."), ValueMap{"None","CheckEndCert","CheckEndCertCacheOnly","CheckChain","CheckChainCacheOnly","CheckChainExcludingRoot","CheckChainExcludingRootCacheOnly"}, Values{"None","CheckEndCert","CheckEndCertCacheOnly","CheckChain","CheckChainCacheOnly","CheckChainExcludingRoot","CheckChainExcludingRootCacheOnly"}] String SigningCertificateRevocationCheck;
+    [Write, Description("Specifies the type of certificate validation that occur when signatures on requests from the relying party are verified."), ValueMap{"None","CheckEndCert","CheckEndCertCacheOnly","CheckChain","CheckChainCacheOnly","CheckChainExcludeRoot","CheckChainExcludeRootCacheOnly"}, Values{"None","CheckEndCert","CheckEndCertCacheOnly","CheckChain","CheckChainCacheOnly","CheckChainExcludeRoot","CheckChainExcludeRootCacheOnly"}] String SigningCertificateRevocationCheck;
     [Write, Description("Specifies the duration, in minutes, for which the claims that are issued to the relying party are valid.")] Sint32 TokenLifetime;
     [Write, Description("Specifies the WS-Federation Passive URL for this relying party.")] String WSFedEndpoint;
     [Write, Description("Specifies whether to remove or add the relying party trust."), ValueMap{"Present","Absent"}, Values{"Present","Absent"}] String Ensure;
