@@ -117,6 +117,32 @@
     Write - String
     Specifies the WS-Federation Passive URL for this relying party.
 
+.PARAMETER AllowedClientTypes
+    Write - String
+    Allowed values: None, Public, Confidential
+    Specifies allowed client types.
+
+.PARAMETER AlwaysRequireAuthentication
+    Write - Boolean
+    Indicates to always require authentication.
+
+.PARAMETER RequestMFAFromClaimsProviders
+    Write - Boolean
+    Indicates whether to use the request MFA from claims providers option.
+
+.PARAMETER AllowedAuthenticationClassReferences
+    Write - String
+    Specifies an array of allow authentication class references.
+
+.PARAMETER IssueOAuthRefreshTokensTo
+    Write - String
+    Allowed values: NoDevice, WorkplaceJoinedDevices, AllDevices
+    Specifies the refresh token issuance device types.
+
+.PARAMETER RefreshTokenProtectionEnabled
+    Write - Boolean
+    Indicates whether refresh token protection is enabled.
+
 .PARAMETER Ensure
     Write - String
     Allowed values: Present, Absent
@@ -146,22 +172,41 @@ Configuration AdfsRelyingPartyTrust_Metadata_Config
 
 This configuration will ...
 
-Configuration AdfsRelyingPartyTrust_OWA_Config
+Configuration AdfsRelyingPartyTrust_LdapClaims_IssuanceTransformRules_Config
 {
 
     Import-DscResource -Module AdfsDsc
 
     Node localhost
     {
-        AdfsRelyingPartyTrust OwaInternal
+        AdfsRelyingPartyTrust WebApp1
         {
-            Name                       = 'Outlook Web App'
+            Name                       = 'WebApp1'
             Enabled                    = $true
-            Notes                      = 'This is a trust for https://mail.fabrikam.com/owa'
-            WSFedEndpoint              = 'https://mail.fabrikam.com/owa'
-            Identifier                 = 'https://mail.fabrikam.com/owa'
-            IssuanceTransformRules     = $node.IssuanceTransformRules
+            Notes                      = 'This is a trust for https://webapp1.fabrikam.com'
+            WSFedEndpoint              = 'https://webapp1.fabrikam.com'
+            Identifier                 = 'https://webapp1.fabrikam.com'
             IssuanceAuthorizationRules = $node.IssuanceAuthorizationRules
+            IssuanceTransformRules        = @(
+                MSFT_AdfsIssuanceTransformRule
+                {
+                    TemplateName   = 'LdapClaims'
+                    Name           = 'WebApp1 Ldap Claims'
+                    AttributeStore = 'Active Directory'
+                    LdapMapping    = @(
+                        MSFT_AdfsLdapMapping
+                        {
+                            LdapAttribute     = 'objectSID'
+                            OutgoingClaimType = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/primarysid'
+                        }
+                        MSFT_AdfsLdapMapping
+                        {
+                            LdapAttribute     = 'userPrincipalName'
+                            OutgoingClaimType = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn'
+                        }
+                    )
+                }
+            )
         }
     }
 }
@@ -174,21 +219,93 @@ $ConfigurationData = @{
 @RuleTemplate = "AllowAllAuthzRule"
  => issue(Type = "http://schemas.microsoft.com/authorization/claims/permit", Value = "true");
 '@
-            IssuanceTransformRules     = @'
-@RuleName = "ActiveDirectoryUserSID"
-c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"]
+        }
+    )
+}
 
-=> issue(store = "Active Directory", types = ("http://schemas.microsoft.com/ws/2008/06/identity/claims/primarysid"), query = ";objectSID;{0}", param = c.Value);
+.EXAMPLE 3
 
-@RuleName = "ActiveDirectoryGroupSID"
-c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"]
+This configuration will ...
 
-=> issue(store = "Active Directory", types = ("http://schemas.microsoft.com/ws/2008/06/identity/claims/groupsid"), query = ";tokenGroups(SID);{0}", param = c.Value);
+Configuration AdfsRelyingPartyTrust_EmitGroupClaims_IssuanceTransformRules_Config
+{
 
-@RuleName = "ActiveDirectoryUPN"
-c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"]
+    Import-DscResource -Module AdfsDsc
 
-=> issue(store = "Active Directory", types = ("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn"), query = ";userPrincipalName;{0}", param = c.Value);
+    Node localhost
+    {
+        AdfsRelyingPartyTrust WebApp1
+        {
+            Name                       = 'WebApp1'
+            Enabled                    = $true
+            Notes                      = 'This is a trust for https://webapp1.fabrikam.com'
+            WSFedEndpoint              = 'https://webapp1.fabrikam.com'
+            Identifier                 = 'https://webapp1.fabrikam.com'
+            IssuanceAuthorizationRules = $node.IssuanceAuthorizationRules
+            IssuanceTransformRules        = @(
+                MSFT_AdfsIssuanceTransformRule
+                {
+                    TemplateName       = 'EmitGroupClaims'
+                    Name               = 'App1 User Role Claim'
+                    GroupName          = 'App1 Users'
+                    OutgoingClaimType  = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'
+                    OutgoingClaimValue = 'User'
+                }
+            )
+        }
+    }
+}
+
+$ConfigurationData = @{
+    AllNodes = @(
+        @{
+            NodeName = 'localhost'
+            IssuanceAuthorizationRules = @'
+@RuleTemplate = "AllowAllAuthzRule"
+ => issue(Type = "http://schemas.microsoft.com/authorization/claims/permit", Value = "true");
+'@
+        }
+    )
+}
+
+.EXAMPLE 4
+
+This configuration will ...
+
+Configuration AdfsRelyingPartyTrust_CustomClaims_IssuanceTransformRules_Config
+{
+
+    Import-DscResource -Module AdfsDsc
+
+    Node localhost
+    {
+        AdfsRelyingPartyTrust WebApp1
+        {
+            Name                       = 'WebApp1'
+            Enabled                    = $true
+            Notes                      = 'This is a trust for https://webapp1.fabrikam.com'
+            WSFedEndpoint              = 'https://webapp1.fabrikam.com'
+            Identifier                 = 'https://webapp1.fabrikam.com'
+            IssuanceAuthorizationRules = $node.IssuanceAuthorizationRules
+            IssuanceTransformRules        = @(
+                MSFT_AdfsIssuanceTransformRule
+                {
+                    TemplateName = 'CustomClaims'
+                    Name         = 'App1 Custom Claim'
+                    CustomRule   = 'TBC'
+                }
+            )
+        }
+    }
+}
+
+$ConfigurationData = @{
+    AllNodes = @(
+        @{
+            NodeName = 'localhost'
+            IssuanceAuthorizationRules = @'
+@RuleTemplate = "AllowAllAuthzRule"
+ => issue(Type = "http://schemas.microsoft.com/authorization/claims/permit", Value = "true");
 '@
         }
     )
