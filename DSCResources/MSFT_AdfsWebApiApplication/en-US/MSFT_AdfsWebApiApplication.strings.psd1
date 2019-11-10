@@ -6,7 +6,6 @@ ConvertFrom-StringData @'
     RemovingResourceMessage                   = Removing '{0}' from Application Group '{1}'. (WEB0004)
     ResourceInDesiredStateMessage             = '{0}' in the desired state. (WEB0005)
     ResourcePropertyNotInDesiredStateMessage  = '{0}' Property '{1}' is not in the desired state. Expected: '{2}', Actual: '{3}'. (WEB0006)
-    ResourceExistsButShouldNotMessage         = '{0}' exists but should not. (WEB0007)
-    ResourceDoesNotExistButShouldMessage      = '{0}' does not exist but should. (WEB0008)
-    ResourceDoesNotExistAndShouldNotMessage   = '{0}' does not exist and should not. (WEB0009)
+    ResourceIsPresentButShouldBeAbsentMessage = '{0}' is present but should be absent. (WEB0007)
+    ResourceIsAbsentButShouldBePresentMessage = '{0}' is absent but should be present. (WEB0008)
 '@
