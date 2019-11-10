@@ -64,7 +64,7 @@
     .PARAMETER EncryptionCertificateRevocationCheck
         Write - String
         Allowed values: None, CheckEndCert, CheckEndCertCacheOnly, CheckChain, CheckChainCacheOnly,
-                        CheckChainExcludingRoot, CheckChainExcludingRootCacheOnly
+                        CheckChainExcludeRoot, CheckChainExcludeRootCacheOnly
 
         Specifies the type of validation that should occur for the encryption certificate it is used for encrypting
         claims to the relying party.
@@ -84,7 +84,7 @@
         Specifies the issuance authorization rules for issuing claims to this relying party.
 
     .PARAMETER IssuanceTransformRules
-        Write - String
+        Write - MSFT_AdfsIssuanceTransformRule
         Specifies the issuance transform rules for issuing claims to this relying party.
 
     .PARAMETER MetadataUrl
@@ -135,7 +135,7 @@
     .PARAMETER SigningCertificateRevocationCheck
         Write - String
         Allowed values: None, CheckEndCert, CheckEndCertCacheOnly, CheckChain, CheckChainCacheOnly,
-                        CheckChainExcludingRoot, CheckChainExcludingRootCacheOnly
+                        CheckChainExcludeRoot, CheckChainExcludeRootCacheOnly
 
         Specifies the type of certificate validation that occur when signatures on requests from the relying party are
         verified.
@@ -214,6 +214,7 @@ function Get-TargetResource
         }
 
         # Resource exists
+        Write-Debug "Target resource $Name exists"
         $returnValue = @{
             Name                                 = $targetResource.Name
             AdditionalAuthenticationRules        = $targetResource.AdditionalAuthenticationRules
@@ -230,7 +231,7 @@ function Get-TargetResource
             Identifier                           = @($targetResource.Identifier)
             ImpersonationAuthorizationRules      = $targetResource.ImpersonationAuthorizationRules
             IssuanceAuthorizationRules           = $targetResource.IssuanceAuthorizationRules
-            IssuanceTransformRules               = $targetResource.IssuanceTransformRules
+            IssuanceTransformRules               = @(ConvertFrom-IssuanceTransformRule -Rule $targetResource.IssuanceTransformRules)
             MetadataUrl                          = $targetResource.MetadataUrl
             MonitoringEnabled                    = $targetResource.MonitoringEnabled
             NotBeforeSkew                        = $targetResource.NotBeforeSkew
@@ -248,6 +249,7 @@ function Get-TargetResource
     else
     {
         # Resource does not exist
+        Write-Debug "Target resource $Name does not exist"
         $returnValue = @{
             Name                                 = $Name
             AdditionalAuthenticationRules        = $null
@@ -280,6 +282,7 @@ function Get-TargetResource
         }
     }
 
+    Write-Debug "Returning Value"
     $returnValue
 }
 
@@ -350,8 +353,8 @@ function Set-TargetResource
             'CheckEndCertCacheOnly',
             'CheckChain',
             'CheckChainCacheOnly',
-            'CheckChainExcludingRoot',
-            'CheckChainExcludingRootCacheOnly')]
+            'CheckChainExcludeRoot',
+            'CheckChainExcludeRootCacheOnly')]
         [System.String]
         $EncryptionCertificateRevocationCheck,
 
@@ -368,7 +371,7 @@ function Set-TargetResource
         $IssuanceAuthorizationRules,
 
         [Parameter()]
-        [System.String]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
         $IssuanceTransformRules,
 
         [Parameter()]
@@ -413,8 +416,8 @@ function Set-TargetResource
             'CheckEndCertCacheOnly',
             'CheckChain',
             'CheckChainCacheOnly',
-            'CheckChainExcludingRoot',
-            'CheckChainExcludingRootCacheOnly')]
+            'CheckChainExcludeRoot',
+            'CheckChainExcludeRootCacheOnly')]
         [System.String]
         $SigningCertificateRevocationCheck,
 
@@ -437,10 +440,10 @@ function Set-TargetResource
     $parameters.Remove('Ensure')
     $parameters.Remove('Verbose')
 
-    $GetTargetResourceParms = @{
+    $getTargetResourceParms = @{
         Name = $Name
     }
-    $targetResource = Get-TargetResource @GetTargetResourceParms
+    $targetResource = Get-TargetResource @getTargetResourceParms
 
     if ($targetResource.Ensure -eq 'Present')
     {
@@ -448,16 +451,26 @@ function Set-TargetResource
         if ($Ensure -eq 'Present')
         {
             # Resource should be Present
-            # Resource exists
-            $propertiesNotInDesiredState = (
-                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters |
-                Where-Object -Property InDesiredState -eq $false)
+            $propertiesNotInDesiredState = @()
+
+            if ($PSBoundParameters.Keys.Contains('IssuanceTransformRules'))
+            {
+                $propertiesNotInDesiredState += (
+                    Compare-IssuanceTransformRule -CurrentValue $targetResource.IssuanceTransformRules `
+                        -DesiredValue $IssuanceTransformRules |
+                    Where-Object -Property InDesiredState -eq $false)
+            }
+
+            $propertiesNotInDesiredState += (
+                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters `
+                    -IgnoreProperties 'IssuanceTransformRules' | Where-Object -Property InDesiredState -eq $false)
 
             $SetParameters = @{ }
             foreach ($property in $propertiesNotInDesiredState)
             {
                 Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f
                     $Name, $property.ParameterName, ($property.Expected -join ', '))
+
                 if ($property.ParameterName -eq 'ClaimAccepted')
                 {
                     # Custom processing for 'ClaimAccepted' property
@@ -479,6 +492,11 @@ function Set-TargetResource
                     {
                         Disable-AdfsRelyingPartyTrust -TargetName $Name
                     }
+                }
+                elseif ($property.ParameterName -eq 'IssuanceTransformRules')
+                {
+                    # Custom processing for 'IssuanceTransformRules' property
+                    $SetParameters.Add($property.ParameterName, ($IssuanceTransformRules | ConvertTo-IssuanceTransformRule))
                 }
                 else
                 {
@@ -513,6 +531,12 @@ function Set-TargetResource
                 }
 
                 $parameters.ClaimAccepted = $ClaimAcceptedDescriptions
+            }
+
+            if ($parameters.ContainsKey('IssuanceTransformRules'))
+            {
+                # Custom processing for 'IssuanceTransformRules' property
+                $parameters.IssuanceTransformRules = $parameters.IssuanceTransformRules | ConvertTo-IssuanceTransformRule
             }
 
             Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f $Name)
@@ -587,8 +611,8 @@ function Test-TargetResource
             'CheckEndCertCacheOnly',
             'CheckChain',
             'CheckChainCacheOnly',
-            'CheckChainExcludingRoot',
-            'CheckChainExcludingRootCacheOnly')]
+            'CheckChainExcludeRoot',
+            'CheckChainExcludeRootCacheOnly')]
         [System.String]
         $EncryptionCertificateRevocationCheck,
 
@@ -605,7 +629,7 @@ function Test-TargetResource
         $IssuanceAuthorizationRules,
 
         [Parameter()]
-        [System.String]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
         $IssuanceTransformRules,
 
         [Parameter()]
@@ -650,8 +674,8 @@ function Test-TargetResource
             'CheckEndCertCacheOnly',
             'CheckChain',
             'CheckChainCacheOnly',
-            'CheckChainExcludingRoot',
-            'CheckChainExcludingRootCacheOnly')]
+            'CheckChainExcludeRoot',
+            'CheckChainExcludeRootCacheOnly')]
         [System.String]
         $SigningCertificateRevocationCheck,
 
@@ -680,9 +704,19 @@ function Test-TargetResource
         if ($Ensure -eq 'Present')
         {
             # Resource should be Present
-            $propertiesNotInDesiredState = (
-                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
+            $propertiesNotInDesiredState = @()
+
+            if ($PSBoundParameters.Keys.Contains('IssuanceTransformRules'))
+            {
+                $propertiesNotInDesiredState += (
+                    Compare-IssuanceTransformRule -CurrentValue $targetResource.IssuanceTransformRules `
+                        -DesiredValue $IssuanceTransformRules |
                     Where-Object -Property InDesiredState -eq $false)
+            }
+
+            $propertiesNotInDesiredState += (
+                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters `
+                    -IgnoreProperties IssuanceTransformRules | Where-Object -Property InDesiredState -eq $false)
 
             if ($propertiesNotInDesiredState)
             {

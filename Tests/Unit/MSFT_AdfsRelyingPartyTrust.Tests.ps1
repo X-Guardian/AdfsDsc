@@ -49,14 +49,69 @@ try
             ClaimType = $mockChangedClaim.ClaimType
         }
 
+        $mockLdapAttributes = @(
+            'mail'
+            'sn'
+        )
+
+        $mockOutgoingClaimTypes = @(
+            'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'
+            'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'
+        )
+
+        $MSFT_AdfsLdapMappingProperties = @(
+            @{
+                LdapAttribute     = $mockLdapAttributes[0]
+                OutgoingClaimType = $mockOutgoingClaimTypes[0]
+            }
+            @{
+                LdapAttribute     = $mockLdapAttributes[1]
+                OutgoingClaimType = $mockOutgoingClaimTypes[1]
+            }
+        )
+
+        $mockTemplateName = 'LdapClaims'
+        $mockRuleName = 'Test'
+
+        $mockLdapMapping = [CIMInstance[]]@(
+            New-CimInstance -ClassName MSFT_AdfsLdapMapping `
+                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                -Property $MSFT_AdfsLdapMappingProperties[0] -ClientOnly
+            New-CimInstance -ClassName MSFT_AdfsLdapMapping `
+                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                -Property $MSFT_AdfsLdapMappingProperties[1] -ClientOnly
+        )
+
+        $mockMSFT_AdfsIssuanceTransformRuleProperties = @{
+            TemplateName   = $mockTemplateName
+            Name           = $mockRuleName
+            AttributeStore = 'Active Directory'
+            LdapMapping    = $mockLdapMapping
+        }
+
+
+        $mockIssuanceTransformRules = [CIMInstance[]]@(
+            New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
+                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                -Property $mockMSFT_AdfsIssuanceTransformRuleProperties -ClientOnly
+        )
+
+        $mockLdapClaimsTransformRule = @(
+            '@RuleTemplate = "{0}"' -f $mockTemplateName
+            '@RuleName = "{0}"' -f $mockRuleName
+            'c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"]'
+            '=> issue(store = "Active Directory", types = ("{1}", "{2}"), query = ";{3},{4};{0}", param = c.Value);' -f `
+                '{0}', $mockOutgoingClaimTypes[0], $mockOutgoingClaimTypes[1], $mockLdapAttributes[0], $mockLdapAttributes[1]
+        ) | Out-String
+
         $mockResource = @{
             Name                                 = 'Outlook Web App'
             AdditionalAuthenticationRules        = ''
             AdditionalWSFedEndpoint              = ''
             AutoUpdateEnabled                    = $true
             ClaimAccepted                        = $mockClaim.ShortName
-            ClaimsProviderName                   = ''
-            DelegationAuthorizationRules         = ''
+            ClaimsProviderName                   = @()
+            DelegationAuthorizationRules         = 'rule'
             Enabled                              = $true
             EnableJWT                            = $true
             EncryptClaims                        = $true
@@ -65,8 +120,8 @@ try
             Identifier                           = 'https://mail.contoso.com/owa'
             ImpersonationAuthorizationRules      = ''
             IssuanceAuthorizationRules           = ''
-            IssuanceTransformRules               = ''
-            MetadataUrl                          = ''
+            IssuanceTransformRules               = $mockIssuanceTransformRules
+            MetadataUrl                          = 'https://fabrikam.com/metadata'
             MonitoringEnabled                    = $true
             NotBeforeSkew                        = 1
             Notes                                = 'This is a trust for https://mail.contoso.com/owa'
@@ -111,6 +166,30 @@ try
             Ensure                               = 'Absent'
         }
 
+        $mockMSFT_AdfsLdapMappingChangedProperties = @{
+            LdapAttribute     = 'givenname'
+            OutgoingClaimType = 'givenName'
+        }
+
+        $mockLdapChangedMapping = [CIMInstance[]]@(
+            New-CimInstance -ClassName MSFT_AdfsLdapMapping `
+                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                -Property $mockMSFT_AdfsLdapMappingChangedProperties -ClientOnly
+        )
+
+        $mockMSFT_AdfsIssuanceTransformChangedRuleProperties = @{
+            TemplateName   = 'LdapClaims'
+            Name           = 'Test2'
+            AttributeStore = 'ActiveDirectory'
+            LdapMapping    = $mockLdapChangedMapping
+        }
+
+        $mockIssuanceTransformChangedRules = [CIMInstance[]]@(
+            New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
+                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                -Property $mockMSFT_AdfsIssuanceTransformChangedRuleProperties -ClientOnly
+        )
+
         $mockChangedResource = @{
             AdditionalAuthenticationRules        = 'changed'
             AdditionalWSFedEndpoint              = 'changed'
@@ -125,7 +204,7 @@ try
             Identifier                           = 'https://mail.fabrikam.com/owa'
             ImpersonationAuthorizationRules      = 'changed'
             IssuanceAuthorizationRules           = 'changed'
-            IssuanceTransformRules               = 'changed'
+            IssuanceTransformRules               = $mockIssuanceTransformChangedRules
             MetadataUrl                          = 'changed'
             MonitoringEnabled                    = $false
             NotBeforeSkew                        = 0
@@ -188,7 +267,7 @@ try
                     Notes                                = $mockResource.Notes
                     WSFedEndpoint                        = $mockResource.WSFedEndpoint
                     Identifier                           = $mockResource.Identifier
-                    IssuanceTransformRules               = $mockResource.IssuanceTransformRules
+                    IssuanceTransformRules               = $mockLdapClaimsTransformRule
                     IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
                     AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
                     AdditionalWSFedEndpoint              = $mockResource.AdditionalWSFedEndpoint
@@ -215,7 +294,7 @@ try
 
                 Mock -CommandName Assert-Module
                 Mock -CommandName Assert-Command
-                Mock -CommandName Assert-$($Global:PSModuleName)Service
+                Mock -CommandName Assert-AdfsService
                 Mock -CommandName Get-AdfsClaimDescription -MockWith { $mockClaim }
             }
 
@@ -229,7 +308,7 @@ try
                 foreach ($property in $mockResource.Keys)
                 {
                     It "Should return the correct $property property" {
-                        $result.$property | Should -Be $mockResource.$property
+                        $result.$property | ConvertTo-Json | Should -Be ($mockResource.$property | ConvertTo-Json)
                     }
                 }
 
@@ -240,7 +319,7 @@ try
                     Assert-MockCalled -CommandName Assert-Command `
                         -ParameterFilter { $Module -eq $Global:PSModuleName -and $Command -eq $ResourceCommand.Get } `
                         -Exactly -Times 1
-                    Assert-MockCalled -CommandName Assert-$($Global:PSModuleName)Service -Exactly -Times 1
+                    Assert-MockCalled -CommandName Assert-AdfsService -Exactly -Times 1
                     Assert-MockCalled -CommandName $ResourceCommand.Get `
                         -ParameterFilter { $Name -eq $getTargetResourceParameters.Name } `
                         -Exactly -Times 1
@@ -268,7 +347,7 @@ try
                     Assert-MockCalled -CommandName Assert-Command `
                         -ParameterFilter { $Module -eq $Global:PSModuleName -and $Command -eq $ResourceCommand.Get } `
                         -Exactly -Times 1
-                    Assert-MockCalled -CommandName Assert-$($Global:PSModuleName)Service -Exactly -Times 1
+                    Assert-MockCalled -CommandName Assert-AdfsService -Exactly -Times 1
                     Assert-MockCalled -CommandName $ResourceCommand.Get `
                         -ParameterFilter { $Name -eq $getTargetResourceParameters.Name } `
                         -Exactly -Times 1
@@ -536,12 +615,6 @@ try
                             -Exactly -Times 1
                     }
 
-                    Context 'When all the resource properties are in the desired state' {
-                        It 'Should return $true' {
-                            Test-TargetResource @testTargetResourcePresentParameters | Should -Be $true
-                        }
-                    }
-
                     foreach ($property in $mockChangedResource.Keys)
                     {
                         Context "When the $property resource property is not in the desired state" {
@@ -550,26 +623,32 @@ try
                                 $testTargetResourceNotInDesiredStateParameters.$property = $mockChangedResource.$property
                             }
 
-                            It 'Should return $false' {
+                            It 'Should return the desired result' {
                                 Test-TargetResource @testTargetResourceNotInDesiredStateParameters | Should -Be $false
                             }
+                        }
+                    }
+
+                    Context 'When all the resource properties are in the desired state' {
+                        It 'Should return the desired result' {
+                            Test-TargetResource @testTargetResourcePresentParameters | Should -Be $true
                         }
                     }
                 }
 
                 Context 'When the Resource should be Absent' {
-                    It 'Should not throw' {
-                        { Test-TargetResource @testTargetResourceAbsentParameters } | Should -Not -Throw
+                    BeforeAll {
+                        Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourcePresentResult }
+                    }
+
+                    It 'Should return the desired result' {
+                        Test-TargetResource @testTargetResourceAbsentParameters | Should -Be $false
                     }
 
                     It 'Should call the expected mocks' {
                         Assert-MockCalled -CommandName Get-TargetResource `
                             -ParameterFilter { $Name -eq $testTargetResourceAbsentParameters.Name } `
                             -Exactly -Times 1
-                    }
-
-                    It 'Should return $false' {
-                        Test-TargetResource @testTargetResourceAbsentParameters | Should -Be $false
                     }
                 }
             }
@@ -580,8 +659,8 @@ try
                 }
 
                 Context 'When the Resource should be Present' {
-                    It 'Should not throw' {
-                        { Test-TargetResource @testTargetResourcePresentParameters } | Should -Not -Throw
+                    It 'Should return the desired result' {
+                        Test-TargetResource @testTargetResourcePresentParameters | Should -Be $false
                     }
 
                     It 'Should call the expected mocks' {
@@ -589,25 +668,17 @@ try
                             -ParameterFilter { $Name -eq $testTargetResourcePresentParameters.Name } `
                             -Exactly -Times 1
                     }
-
-                    It 'Should return $false' {
-                        Test-TargetResource @testTargetResourcePresentParameters | Should -Be $false
-                    }
                 }
 
                 Context 'When the Resource should be Absent' {
-                    It 'Should not throw' {
-                        { Test-TargetResource @testTargetResourceAbsentParameters } | Should -Not -Throw
+                    It 'Should return the desired result' {
+                        Test-TargetResource @testTargetResourceAbsentParameters | Should -Be $true
                     }
 
                     It 'Should call the expected mocks' {
                         Assert-MockCalled -CommandName Get-TargetResource `
                             -ParameterFilter { $Name -eq $testTargetResourceAbsentParameters.Name } `
                             -Exactly -Times 1
-                    }
-
-                    It 'Should return $true' {
-                        Test-TargetResource @testTargetResourceAbsentParameters | Should -Be $true
                     }
                 }
             }
