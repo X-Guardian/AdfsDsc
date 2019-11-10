@@ -451,7 +451,7 @@ function Set-TargetResource
             # Resource exists
             $propertiesNotInDesiredState = (
                 Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters |
-                    Where-Object -Property InDesiredState -eq $false)
+                Where-Object -Property InDesiredState -eq $false)
 
             $SetParameters = @{ }
             foreach ($property in $propertiesNotInDesiredState)
@@ -680,6 +680,8 @@ function Test-TargetResource
         if ($Ensure -eq 'Present')
         {
             # Resource should be Present
+            $propertiesNotInDesiredState = (
+                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
                     Where-Object -Property InDesiredState -eq $false)
 
             if ($propertiesNotInDesiredState)
