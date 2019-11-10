@@ -49,5 +49,11 @@ class MSFT_AdfsRelyingPartyTrust : OMI_BaseResource
     [Write, Description("Specifies the type of certificate validation that occur when signatures on requests from the relying party are verified."), ValueMap{"None","CheckEndCert","CheckEndCertCacheOnly","CheckChain","CheckChainCacheOnly","CheckChainExcludeRoot","CheckChainExcludeRootCacheOnly"}, Values{"None","CheckEndCert","CheckEndCertCacheOnly","CheckChain","CheckChainCacheOnly","CheckChainExcludeRoot","CheckChainExcludeRootCacheOnly"}] String SigningCertificateRevocationCheck;
     [Write, Description("Specifies the duration, in minutes, for which the claims that are issued to the relying party are valid.")] Sint32 TokenLifetime;
     [Write, Description("Specifies the WS-Federation Passive URL for this relying party.")] String WSFedEndpoint;
+    [Write, Description("Specifies allowed client types."), ValueMap{"None","Public","Confidential"}, Values{"None","Public","Confidential"}] String AllowedClientTypes[];
+    [Write, Description("Indicates to always require authentication.")] Boolean AlwaysRequireAuthentication;
+    [Write, Description("Indicates whether to use the request MFA from claims providers option.")] Boolean RequestMFAFromClaimsProviders;
+    [Write, Description("Specifies an array of allow authentication class references.")] String AllowedAuthenticationClassReferences[];
+    [Write, Description("Specifies the refresh token issuance device types."), ValueMap{"NoDevice","WorkplaceJoinedDevices","AllDevices"}, Values{"NoDevice","WorkplaceJoinedDevices","AllDevices"}] String IssueOAuthRefreshTokensTo;
+    [Write, Description("Indicates whether refresh token protection is enabled.")] Boolean RefreshTokenProtectionEnabled;
     [Write, Description("Specifies whether to remove or add the relying party trust."), ValueMap{"Present","Absent"}, Values{"Present","Absent"}] String Ensure;
 };

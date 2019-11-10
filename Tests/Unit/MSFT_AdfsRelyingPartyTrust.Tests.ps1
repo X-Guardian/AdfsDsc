@@ -108,6 +108,9 @@ try
             Name                                 = 'Outlook Web App'
             AdditionalAuthenticationRules        = ''
             AdditionalWSFedEndpoint              = ''
+            AllowedAuthenticationClassReferences = ''
+            AllowedClientTypes                   = 'Public', 'Confidential'
+            AlwaysRequireAuthentication          = $true
             AutoUpdateEnabled                    = $true
             ClaimAccepted                        = $mockClaim.ShortName
             ClaimsProviderName                   = @()
@@ -121,11 +124,14 @@ try
             ImpersonationAuthorizationRules      = ''
             IssuanceAuthorizationRules           = ''
             IssuanceTransformRules               = $mockIssuanceTransformRules
+            IssueOAuthRefreshTokensTo            = 'AllDevices'
             MetadataUrl                          = 'https://fabrikam.com/metadata'
             MonitoringEnabled                    = $true
             NotBeforeSkew                        = 1
             Notes                                = 'This is a trust for https://mail.contoso.com/owa'
             ProtocolProfile                      = 'SAML'
+            RefreshTokenProtectionEnabled        = $true
+            RequestMFAFromClaimsProviders        = $false
             SamlResponseSignature                = 'AssertionOnly'
             SignatureAlgorithm                   = 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'
             SignedSamlRequestsRequired           = $true
@@ -139,6 +145,9 @@ try
             Name                                 = 'Outlook Web App'
             AdditionalAuthenticationRules        = $null
             AdditionalWSFedEndpoint              = @()
+            AllowedAuthenticationClassReferences = $null
+            AllowedClientTypes                   = 'None'
+            AlwaysRequireAuthentication          = $false
             AutoUpdateEnabled                    = $false
             ClaimAccepted                        = @()
             ClaimsProviderName                   = @()
@@ -152,11 +161,14 @@ try
             ImpersonationAuthorizationRules      = $null
             IssuanceAuthorizationRules           = $null
             IssuanceTransformRules               = $null
+            IssueOAuthRefreshTokensTo            = 'NoDevice'
             MetadataUrl                          = $null
             MonitoringEnabled                    = $false
             NotBeforeSkew                        = 0
             Notes                                = $null
             ProtocolProfile                      = 'SAML'
+            RefreshTokenProtectionEnabled        = $false
+            RequestMFAFromClaimsProviders        = $false
             SamlResponseSignature                = 'AssertionOnly'
             SignatureAlgorithm                   = 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'
             SignedSamlRequestsRequired           = $false
@@ -193,6 +205,9 @@ try
         $mockChangedResource = @{
             AdditionalAuthenticationRules        = 'changed'
             AdditionalWSFedEndpoint              = 'changed'
+            AllowedAuthenticationClassReferences = 'changed'
+            AllowedClientTypes                   = 'Confidential'
+            AlwaysRequireAuthentication          = $false
             AutoUpdateEnabled                    = $false
             ClaimAccepted                        = $mockChangedClaim.ShortName
             ClaimsProviderName                   = 'changed'
@@ -205,11 +220,14 @@ try
             ImpersonationAuthorizationRules      = 'changed'
             IssuanceAuthorizationRules           = 'changed'
             IssuanceTransformRules               = $mockIssuanceTransformChangedRules
+            IssueOAuthRefreshTokensTo            = 'NoDevice'
             MetadataUrl                          = 'changed'
             MonitoringEnabled                    = $false
             NotBeforeSkew                        = 0
             Notes                                = 'This is a trust for https://mail.fabrikam.com/owa'
             ProtocolProfile                      = 'WsFederation'
+            RefreshTokenProtectionEnabled        = $false
+            RequestMFAFromClaimsProviders        = $true
             SamlResponseSignature                = 'MessageOnly'
             SignatureAlgorithm                   = 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'
             SignedSamlRequestsRequired           = $false
@@ -220,13 +238,11 @@ try
 
         $mockGetTargetResourceResult = @{
             Name                                 = $mockResource.Name
-            Notes                                = $mockResource.Notes
-            WSFedEndpoint                        = $mockResource.WSFedEndpoint
-            Identifier                           = $mockResource.Identifier
-            IssuanceTransformRules               = $mockResource.IssuanceTransformRules
-            IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
             AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
             AdditionalWSFedEndpoint              = $mockResource.AdditionalWSFedEndpoint
+            AllowedAuthenticationClassReferences = $mockResource.AllowedAuthenticationClassReferences
+            AllowedClientTypes                   = $mockResource.AllowedClientTypes
+            AlwaysRequireAuthentication          = $mockResource.AlwaysRequireAuthentication
             AutoUpdateEnabled                    = $mockResource.AutoUpdateEnabled
             ClaimAccepted                        = $mockResource.ClaimAccepted
             ClaimsProviderName                   = $mockResource.ClaimsProviderName
@@ -236,16 +252,24 @@ try
             EncryptClaims                        = $mockResource.EncryptClaims
             EncryptedNameIdRequired              = $mockResource.EncryptedNameIdRequired
             EncryptionCertificateRevocationCheck = $mockResource.EncryptionCertificateRevocationCheck
+            Identifier                           = $mockResource.Identifier
             ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
+            IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
+            IssuanceTransformRules               = $mockResource.IssuanceTransformRules
+            IssueOAuthRefreshTokensTo            = $mockResource.IssueOAuthRefreshTokensTo
             MetadataUrl                          = $mockResource.MetadataUrl
             MonitoringEnabled                    = $mockResource.MonitoringEnabled
             NotBeforeSkew                        = $mockResource.NotBeforeSkew
+            Notes                                = $mockResource.Notes
             ProtocolProfile                      = $mockResource.ProtocolProfile
+            RefreshTokenProtectionEnabled        = $mockResource.RefreshTokenProtectionEnabled
+            RequestMFAFromClaimsProviders        = $mockResource.RequestMFAFromClaimsProviders
             SamlResponseSignature                = $mockResource.SamlResponseSignature
             SignatureAlgorithm                   = $mockResource.SignatureAlgorithm
             SignedSamlRequestsRequired           = $mockResource.SignedSamlRequestsRequired
             SigningCertificateRevocationCheck    = $mockResource.SigningCertificateRevocationCheck
             TokenLifetime                        = $mockResource.TokenLifetime
+            WSFedEndpoint                        = $mockResource.WSFedEndpoint
         }
 
         $mockGetTargetResourcePresentResult = $mockGetTargetResourceResult.Clone()
@@ -264,13 +288,11 @@ try
 
                 $mockGetResourceCommandResult = @{
                     Name                                 = $mockResource.Name
-                    Notes                                = $mockResource.Notes
-                    WSFedEndpoint                        = $mockResource.WSFedEndpoint
-                    Identifier                           = $mockResource.Identifier
-                    IssuanceTransformRules               = $mockLdapClaimsTransformRule
-                    IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
                     AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
                     AdditionalWSFedEndpoint              = $mockResource.AdditionalWSFedEndpoint
+                    AllowedAuthenticationClassReferences = $mockResource.AllowedAuthenticationClassReferences
+                    AllowedClientTypes                   = $mockResource.AllowedClientTypes
+                    AlwaysRequireAuthentication          = $mockResource.AlwaysRequireAuthentication
                     AutoUpdateEnabled                    = $mockResource.AutoUpdateEnabled
                     ClaimsAccepted                       = $mockClaimAccepted
                     ClaimsProviderName                   = $mockResource.ClaimsProviderName
@@ -280,16 +302,24 @@ try
                     EncryptClaims                        = $mockResource.EncryptClaims
                     EncryptedNameIdRequired              = $mockResource.EncryptedNameIdRequired
                     EncryptionCertificateRevocationCheck = $mockResource.EncryptionCertificateRevocationCheck
+                    Identifier                           = $mockResource.Identifier
                     ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
+                    IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
+                    IssuanceTransformRules               = $mockLdapClaimsTransformRule
+                    IssueOAuthRefreshTokensTo            = $mockResource.IssueOAuthRefreshTokensTo
                     MetadataUrl                          = $mockResource.MetadataUrl
                     MonitoringEnabled                    = $mockResource.MonitoringEnabled
                     NotBeforeSkew                        = $mockResource.NotBeforeSkew
+                    Notes                                = $mockResource.Notes
                     ProtocolProfile                      = $mockResource.ProtocolProfile
+                    RefreshTokenProtectionEnabled        = $mockResource.RefreshTokenProtectionEnabled
+                    RequestMFAFromClaimsProviders        = $mockResource.RequestMFAFromClaimsProviders
                     SamlResponseSignature                = $mockResource.SamlResponseSignature
                     SignatureAlgorithm                   = $mockResource.SignatureAlgorithm
                     SignedSamlRequestsRequired           = $mockResource.SignedSamlRequestsRequired
                     SigningCertificateRevocationCheck    = $mockResource.SigningCertificateRevocationCheck
                     TokenLifetime                        = $mockResource.TokenLifetime
+                    WSFedEndpoint                        = $mockResource.WSFedEndpoint
                 }
 
                 Mock -CommandName Assert-Module
@@ -359,14 +389,12 @@ try
             BeforeAll {
                 $setTargetResourceParameters = @{
                     Name                                 = $mockResource.Name
-                    Notes                                = $mockResource.Notes
-                    WSFedEndpoint                        = $mockResource.WSFedEndpoint
-                    Identifier                           = $mockResource.Identifier
-                    IssuanceTransformRules               = $mockResource.IssuanceTransformRules
-                    IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
                     AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
                     AdditionalWSFedEndpoint              = $mockResource.AdditionalWSFedEndpoint
                     AutoUpdateEnabled                    = $mockResource.AutoUpdateEnabled
+                    AllowedAuthenticationClassReferences = $mockResource.AllowedAuthenticationClassReferences
+                    AllowedClientTypes                   = $mockResource.AllowedClientTypes
+                    AlwaysRequireAuthentication          = $mockResource.AlwaysRequireAuthentication
                     ClaimAccepted                        = $mockResource.ClaimAccepted
                     ClaimsProviderName                   = $mockResource.ClaimsProviderName
                     DelegationAuthorizationRules         = $mockResource.DelegationAuthorizationRules
@@ -374,15 +402,23 @@ try
                     EncryptClaims                        = $mockResource.EncryptClaims
                     EncryptedNameIdRequired              = $mockResource.EncryptedNameIdRequired
                     EncryptionCertificateRevocationCheck = $mockResource.EncryptionCertificateRevocationCheck
+                    Identifier                           = $mockResource.Identifier
                     ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
+                    IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
+                    IssuanceTransformRules               = $mockResource.IssuanceTransformRules
+                    IssueOAuthRefreshTokensTo            = $mockResource.IssueOAuthRefreshTokensTo
                     MonitoringEnabled                    = $mockResource.MonitoringEnabled
                     NotBeforeSkew                        = $mockResource.NotBeforeSkew
+                    Notes                                = $mockResource.Notes
                     ProtocolProfile                      = $mockResource.ProtocolProfile
+                    RefreshTokenProtectionEnabled        = $mockResource.RefreshTokenProtectionEnabled
+                    RequestMFAFromClaimsProviders        = $mockResource.RequestMFAFromClaimsProviders
                     SamlResponseSignature                = $mockResource.SamlResponseSignature
                     SignatureAlgorithm                   = $mockResource.SignatureAlgorithm
                     SignedSamlRequestsRequired           = $mockResource.SignedSamlRequestsRequired
                     SigningCertificateRevocationCheck    = $mockResource.SigningCertificateRevocationCheck
                     TokenLifetime                        = $mockResource.TokenLifetime
+                    WSFedEndpoint                        = $mockResource.WSFedEndpoint
                 }
 
                 $setTargetResourcePresentParameters = $setTargetResourceParameters.Clone()
@@ -565,14 +601,12 @@ try
             BeforeAll {
                 $testTargetResourceParameters = @{
                     Name                                 = $mockResource.Name
-                    Notes                                = $mockResource.Notes
-                    WSFedEndpoint                        = $mockResource.WSFedEndpoint
-                    Identifier                           = $mockResource.Identifier
-                    IssuanceTransformRules               = $mockResource.IssuanceTransformRules
-                    IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
                     AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
                     AdditionalWSFedEndpoint              = $mockResource.AdditionalWSFedEndpoint
                     AutoUpdateEnabled                    = $mockResource.AutoUpdateEnabled
+                    AllowedAuthenticationClassReferences = $mockResource.AllowedAuthenticationClassReferences
+                    AllowedClientTypes                   = $mockResource.AllowedClientTypes
+                    AlwaysRequireAuthentication          = $mockResource.AlwaysRequireAuthentication
                     ClaimAccepted                        = $mockResource.ClaimAccepted
                     ClaimsProviderName                   = $mockResource.ClaimsProviderName
                     DelegationAuthorizationRules         = $mockResource.DelegationAuthorizationRules
@@ -580,16 +614,23 @@ try
                     EncryptClaims                        = $mockResource.EncryptClaims
                     EncryptedNameIdRequired              = $mockResource.EncryptedNameIdRequired
                     EncryptionCertificateRevocationCheck = $mockResource.EncryptionCertificateRevocationCheck
+                    Identifier                           = $mockResource.Identifier
                     ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
-                    MetadataUrl                          = $mockResource.MetadataUrl
+                    IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
+                    IssuanceTransformRules               = $mockResource.IssuanceTransformRules
+                    IssueOAuthRefreshTokensTo            = $mockResource.IssueOAuthRefreshTokensTo
                     MonitoringEnabled                    = $mockResource.MonitoringEnabled
                     NotBeforeSkew                        = $mockResource.NotBeforeSkew
+                    Notes                                = $mockResource.Notes
                     ProtocolProfile                      = $mockResource.ProtocolProfile
+                    RefreshTokenProtectionEnabled        = $mockResource.RefreshTokenProtectionEnabled
+                    RequestMFAFromClaimsProviders        = $mockResource.RequestMFAFromClaimsProviders
                     SamlResponseSignature                = $mockResource.SamlResponseSignature
                     SignatureAlgorithm                   = $mockResource.SignatureAlgorithm
                     SignedSamlRequestsRequired           = $mockResource.SignedSamlRequestsRequired
                     SigningCertificateRevocationCheck    = $mockResource.SigningCertificateRevocationCheck
                     TokenLifetime                        = $mockResource.TokenLifetime
+                    WSFedEndpoint                        = $mockResource.WSFedEndpoint
                 }
 
                 $testTargetResourcePresentParameters = $testTargetResourceParameters.Clone()
