@@ -442,15 +442,16 @@ function Set-TargetResource
     }
     $targetResource = Get-TargetResource @GetTargetResourceParms
 
-    if ($Ensure -eq 'Present')
+    if ($targetResource.Ensure -eq 'Present')
     {
-        # Resource should exist
-        if ($TargetResource.Ensure -eq 'Present')
+        # Resource is Present
+        if ($Ensure -eq 'Present')
         {
+            # Resource should be Present
             # Resource exists
             $propertiesNotInDesiredState = (
                 Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters |
-                    Where-Object -Property InDesiredState -eq $false)
+                Where-Object -Property InDesiredState -eq $false)
 
             $SetParameters = @{ }
             foreach ($property in $propertiesNotInDesiredState)
@@ -492,7 +493,17 @@ function Set-TargetResource
         }
         else
         {
-            # Resource does not exist
+            # Resource should be Absent
+            Write-Verbose -Message ($script:localizedData.RemovingResourceMessage -f $Name)
+            Remove-AdfsRelyingPartyTrust -TargetName $Name
+        }
+    }
+    else
+    {
+        # Resource is Absent
+        if ($Ensure -eq 'Present')
+        {
+            # Resource should be Present
             if ($parameters.ContainsKey('ClaimAccepted'))
             {
                 $ClaimAcceptedDescriptions = @()
@@ -507,19 +518,9 @@ function Set-TargetResource
             Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f $Name)
             Add-AdfsRelyingPartyTrust @parameters -Verbose:$false
         }
-    }
-    else
-    {
-        # Resource should not exist
-        if ($TargetResource.Ensure -eq 'Present')
-        {
-            # Resource exists
-            Write-Verbose -Message ($script:localizedData.RemovingResourceMessage -f $Name)
-            Remove-AdfsRelyingPartyTrust -TargetName $Name
-        }
         else
         {
-            # Resource does not exist
+            # Resource should be Absent
             Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $Name)
         }
     }
@@ -675,10 +676,10 @@ function Test-TargetResource
 
     if ($targetResource.Ensure -eq 'Present')
     {
-        # Resource exists
+        # Resource is Present
         if ($Ensure -eq 'Present')
         {
-            # Resource should exist
+            # Resource should be Present
             $propertiesNotInDesiredState = (
                 Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
                     Where-Object -Property InDesiredState -eq $false)
@@ -692,7 +693,7 @@ function Test-TargetResource
                         $script:localizedData.ResourcePropertyNotInDesiredStateMessage -f
                         $targetResource.Name, $property.ParameterName, `
                             $property.Expected, $property.Actual)
-                        }
+                }
                 $inDesiredState = $false
             }
             else
@@ -705,26 +706,26 @@ function Test-TargetResource
         }
         else
         {
-            # Resource should not exist
-            Write-Verbose -Message ($script:localizedData.ResourceExistsButShouldNotMessage -f
+            # Resource should be Absent
+            Write-Verbose -Message ($script:localizedData.ResourceIsPresentButShouldBeAbsentMessage -f
                 $targetResource.Name)
             $inDesiredState = $false
         }
     }
     else
     {
-        # Resource does not exist
+        # Resource is Absent
         if ($Ensure -eq 'Present')
         {
-            # Resource should exist
-            Write-Verbose -Message ($script:localizedData.ResourceDoesNotExistButShouldMessage -f
+            # Resource should be Present
+            Write-Verbose -Message ($script:localizedData.ResourceIsAbsentButShouldBePresentMessage -f
                 $targetResource.Name)
             $inDesiredState = $false
         }
         else
         {
-            # Resource should not exist
-            Write-Verbose -Message ($script:localizedData.ResourceDoesNotExistAndShouldNotMessage -f
+            # Resource should be Absent
+            Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f
                 $targetResource.Name)
             $inDesiredState = $true
         }

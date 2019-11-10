@@ -1,3 +1,39 @@
+<#
+    .SYNOPSIS
+        DSC module for the Adfs Claim Description resource
+
+    .Description
+        The AdfsClaimDescription Dsc resource manages claim descriptions in the Federation Service.
+
+    .PARAMETER Name
+        Key - String
+        Specifies a friendly name for the claim description.
+
+    .PARAMETER ClaimType
+        Required - String
+        Specifies the claim type URN or URI of the claim.
+
+    .PARAMETER IsAccepted
+        Write - Boolean
+        Indicates whether the claim is published in federation metadata as a claim that the Federation Service accepts.
+
+    .PARAMETER IsOffered
+        Write - Boolean
+        Indicates whether the claim is published in federation metadata as a claim that the Federation Service offers.
+
+    .PARAMETER IsRequired
+        Write - Boolean
+        Indicates whether the claim is published in federation metadata as a claim that the Federation Service requires.
+
+    .PARAMETER Notes
+        Write - String
+        Specifies text that describes the purpose of the claim description.
+
+    .PARAMETER ShortName
+        Write - String
+        Specifies a short name for the claim description.
+#>
+
 Set-StrictMode -Version 2.0
 
 $script:dscModuleName = 'AdfsDsc'
@@ -132,7 +168,7 @@ function Set-TargetResource
     $parameters = $PSBoundParameters
     $parameters.Remove('Ensure')
     $parameters.Remove('Verbose')
-    $parameters.Remove($Name)
+    $parameters.Remove('Name')
 
     $GetTargetResourceParms = @{
         Name      = $Name
@@ -140,12 +176,12 @@ function Set-TargetResource
     }
     $targetResource = Get-TargetResource @GetTargetResourceParms
 
-    if ($Ensure -eq 'Present')
+    if ($targetResource.Ensure -eq 'Present')
     {
-        # Resource should exist
-        if ($TargetResource.Ensure -eq 'Present')
+        # Resource is Present
+        if ($Ensure -eq 'Present')
         {
-            # Resource exists
+            # Resource should be Present
             $propertiesNotInDesiredState = (
                 Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters |
                     Where-Object -Property InDesiredState -eq $false)
@@ -162,23 +198,23 @@ function Set-TargetResource
         }
         else
         {
-            # Resource does not exist
-            Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f $Name)
-            Add-AdfsClaimDescription @parameters
+            # Resource should be Absent
+            Write-Verbose -Message ($script:localizedData.RemovingResourceMessage -f $Name)
+            Remove-AdfsClaimDescription -TargetName $Name
         }
     }
     else
     {
-        # Resource should not exist
-        if ($TargetResource.Ensure -eq 'Present')
+        # Resource is Absent
+        if ($Ensure -eq 'Present')
         {
-            # Resource exists
-            Write-Verbose -Message ($script:localizedData.RemovingResourceMessage -f $Name)
-            Remove-AdfsClaimDescription -TargetName $Name
+            # Resource be Present
+            Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f $Name)
+            Add-AdfsClaimDescription -Name $Name @parameters
         }
         else
         {
-            # Resource does not exist
+            # Resource should be Absent
             Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $Name)
         }
     }
@@ -237,10 +273,10 @@ function Test-TargetResource
 
     if ($targetResource.Ensure -eq 'Present')
     {
-        # Resource exists
+        # Resource is Present
         if ($Ensure -eq 'Present')
         {
-            # Resource should exist
+            # Resource should be Present
             $propertiesNotInDesiredState = (
                 Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
                     Where-Object -Property InDesiredState -eq $false)
@@ -266,26 +302,26 @@ function Test-TargetResource
         }
         else
         {
-            # Resource should not exist
-            Write-Verbose -Message ($script:localizedData.ResourceExistsButShouldNotMessage -f
+            # Resource should be Absent
+            Write-Verbose -Message ($script:localizedData.ResourceIsPresentButShouldBeAbsentMessage -f
                 $targetResource.Name)
             $inDesiredState = $false
         }
     }
     else
     {
-        # Resource does not exist
+        # Resource is Absent
         if ($Ensure -eq 'Present')
         {
-            # Resource should exist
-            Write-Verbose -Message ($script:localizedData.ResourceDoesNotExistButShouldMessage -f
+            # Resource should be Present
+            Write-Verbose -Message ($script:localizedData.ResourceIsAbsentButShouldBePresentMessage -f
                 $targetResource.Name)
             $inDesiredState = $false
         }
         else
         {
-            # Resource should not exist
-            Write-Verbose ($script:localizedData.ResourceDoesNotExistAndShouldNotMessage -f
+            # Resource should be Absent
+            Write-Verbose ($script:localizedData.ResourceInDesiredStateMessage -f
                 $targetResource.Name)
             $inDesiredState = $true
         }

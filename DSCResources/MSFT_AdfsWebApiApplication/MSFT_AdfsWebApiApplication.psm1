@@ -1,6 +1,6 @@
 <#
     .SYNOPSIS
-        DSC module for the Web API Application resource
+        DSC module for the Adfs Web API Application resource
 
     .DESCRIPTION
         The AdfsWebApiApplication DSC resource manages Web API Applications within Active Directory Federation
@@ -193,13 +193,13 @@ function Get-TargetResource
             IssuanceAuthorizationRules           = $null
             DelegationAuthorizationRules         = $null
             ImpersonationAuthorizationRules      = $null
-            IssuanceTransformRules               = @()
+            IssuanceTransformRules               = $null
             AdditionalAuthenticationRules        = $null
             AccessControlPolicyName              = $null
             NotBeforeSkew                        = 0
             TokenLifetime                        = 0
             AlwaysRequireAuthentication          = $null
-            AllowedClientTypes                   = 'None'
+            AllowedClientTypes                   = @('None')
             IssueOAuthRefreshTokensTo            = 'NoDevice'
             RefreshTokenProtectionEnabled        = $false
             RequestMFAFromClaimsProviders        = $false
@@ -220,9 +220,9 @@ function Set-TargetResource
 
     .NOTES
         Used Resource PowerShell Cmdlets:
-        - Add-AdfsWebApiApplication    - https://docs.microsoft.com/en-us/powershell/module/adfs/add-adfswebApiapplication
-        - Remove-AdfsWebApiApplication - https://docs.microsoft.com/en-us/powershell/module/adfs/remove-adfswebApiapplication
-        - Set-AdfsWebApiApplication    - https://docs.microsoft.com/en-us/powershell/module/adfs/set-adfswebApiapplication
+        - Add-AdfsWebApiApplication    - https://docs.microsoft.com/en-us/powershell/module/adfs/add-adfswebapiapplication
+        - Remove-AdfsWebApiApplication - https://docs.microsoft.com/en-us/powershell/module/adfs/remove-adfswebapiapplication
+        - Set-AdfsWebApiApplication    - https://docs.microsoft.com/en-us/powershell/module/adfs/set-adfswebapiapplication
     #>
 
     [CmdletBinding()]
@@ -324,18 +324,25 @@ function Set-TargetResource
     }
     $targetResource = Get-TargetResource @GetTargetResourceParms
 
-    if ($Ensure -eq 'Present')
+    if ($targetResource.Ensure -eq 'Present')
     {
-        # Resource should exist
-        $parameters.IssuanceTransformRules = $IssuanceTransformRules | ConvertTo-IssuanceTransformRule
-        write-verbose $parameters.IssuanceTransformRules
-
-        if ($TargetResource.Ensure -eq 'Present')
+        # Resource is Present
+        if ($Ensure -eq 'Present')
         {
-            # Resource exists
-            $propertiesNotInDesiredState = (
-                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters |
+            # Resource should be Present
+            $propertiesNotInDesiredState = @()
+
+            if ($PSBoundParameters.Keys.Contains('IssuanceTransformRules'))
+            {
+                $propertiesNotInDesiredState += (
+                    Compare-IssuanceTransformRule -CurrentValue $targetResource.IssuanceTransformRules `
+                        -DesiredValue $IssuanceTransformRules |
                     Where-Object -Property InDesiredState -eq $false)
+            }
+
+            $propertiesNotInDesiredState += (
+                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters `
+                    -IgnoreProperties 'IssuanceTransformRules' | Where-Object -Property InDesiredState -eq $false)
 
             if ($propertiesNotInDesiredState |
                     Where-Object -Property ParameterName -eq 'ApplicationGroupIdentifier')
@@ -348,36 +355,53 @@ function Set-TargetResource
                 Add-AdfsWebApiApplication @parameters -Verbose:$false
                 break
             }
+
             $setParameters = @{ }
             foreach ($property in $propertiesNotInDesiredState)
             {
                 Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f
                     $Name, $property.ParameterName, ($property.Expected -join ', '))
-                $setParameters.add($property.ParameterName, $property.Expected)
+
+                if ($property.ParameterName -eq 'IssuanceTransformRules')
+                {
+                    # Custom processing for 'IssuanceTransformRules' property
+                    $SetParameters.Add($property.ParameterName, ($IssuanceTransformRules | ConvertTo-IssuanceTransformRule))
+                }
+                else
+                {
+                    $setParameters.add($property.ParameterName, $property.Expected)
+                }
             }
+
             Set-AdfsWebApiApplication -TargetName $Name @setParameters
         }
         else
         {
-            # Resource does not exist
-            Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f
-                $Name, $ApplicationGroupIdentifier)
-            Add-AdfsWebApiApplication @parameters -Verbose:$false
-        }
-    }
-    else
-    {
-        # Resource should not exist
-        if ($TargetResource.Ensure -eq 'Present')
-        {
-            # Resource exists
+            # Resource should be Absent
             Write-Verbose -Message ($script:localizedData.RemovingResourceMessage -f
                 $Name, $ApplicationGroupIdentifier)
             Remove-AdfsWebApiApplication -TargetName $Name
         }
+    }
+    else
+    {
+        # Resource is Absent
+        if ($Ensure -eq 'Present')
+        {
+            # Resource should be Present
+            if ($parameters.ContainsKey('IssuanceTransformRules'))
+            {
+                # Custom processing for 'IssuanceTransformRules' property
+                $parameters.IssuanceTransformRules = $parameters.IssuanceTransformRules | ConvertTo-IssuanceTransformRule
+            }
+
+            Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f
+                $Name, $ApplicationGroupIdentifier)
+            Add-AdfsWebApiApplication @parameters -Verbose:$false
+        }
         else
         {
-            # Resource does not exist
+            # Resource should be Absent
             Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $Name)
         }
     }
@@ -487,11 +511,12 @@ function Test-TargetResource
 
     if ($targetResource.Ensure -eq 'Present')
     {
-        # Resource exists
+        # Resource is Present
         if ($Ensure -eq 'Present')
         {
-            # Resource should exist
+            # Resource should be Present
             $propertiesNotInDesiredState = @()
+
             if ($PSBoundParameters.Keys.Contains('IssuanceTransformRules'))
             {
                 $propertiesNotInDesiredState += (
@@ -526,26 +551,26 @@ function Test-TargetResource
         }
         else
         {
-            # Resource should not exist
-            Write-Verbose -Message ($script:localizedData.ResourceExistsButShouldNotMessage -f
+            # Resource should be Absent
+            Write-Verbose -Message ($script:localizedData.ResourceIsPresentButShouldBeAbsentMessage -f
                 $targetResource.Name)
             $inDesiredState = $false
         }
     }
     else
     {
-        # Resource does not exist
+        # Resource is Absent
         if ($Ensure -eq 'Present')
         {
-            # Resource should exist
-            Write-Verbose -Message ($script:localizedData.ResourceDoesNotExistButShouldMessage -f
+            # Resource should be Present
+            Write-Verbose -Message ($script:localizedData.ResourceIsAbsentButShouldBePresentMessage -f
                 $targetResource.Name)
             $inDesiredState = $false
         }
         else
         {
-            # Resource should not exist
-            Write-Verbose -Message ($script:localizedData.ResourceDoesNotExistAndShouldNotMessage -f
+            # Resource should be Absent
+            Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f
                 $targetResource.Name)
             $inDesiredState = $true
         }

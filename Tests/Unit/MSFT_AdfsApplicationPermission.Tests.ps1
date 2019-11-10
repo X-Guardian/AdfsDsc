@@ -300,12 +300,6 @@ try
                             -Exactly -Times 1
                     }
 
-                    Context 'When all the resource properties are in the desired state' {
-                        It 'Should return $true' {
-                            Test-TargetResource @testTargetResourcePresentParameters | Should -Be $true
-                        }
-                    }
-
                     foreach ($property in $mockChangedResource.Keys)
                     {
                         Context "When the $property resource property is not in the desired state" {
@@ -314,16 +308,22 @@ try
                                 $testTargetResourceNotInDesiredStateParameters.$property = $mockChangedResource.$property
                             }
 
-                            It 'Should return $false' {
+                            It 'Should return the desired result' {
                                 Test-TargetResource @testTargetResourceNotInDesiredStateParameters | Should -Be $false
                             }
+                        }
+                    }
+
+                    Context 'When all the resource properties are in the desired state' {
+                        It 'Should return the desired result' {
+                            Test-TargetResource @testTargetResourcePresentParameters | Should -Be $true
                         }
                     }
                 }
 
                 Context 'When the Resource should be Absent' {
-                    It 'Should not throw' {
-                        { Test-TargetResource @testTargetResourceAbsentParameters } | Should -Not -Throw
+                    It 'Should return the desired result' {
+                        Test-TargetResource @testTargetResourceAbsentParameters | Should -Be $false
                     }
 
                     It 'Should call the expected mocks' {
@@ -332,10 +332,6 @@ try
                                 $ClientRoleIdentifier -eq $testTargetResourceAbsentParameters.ClientRoleIdentifier -and `
                                 $ServerRoleIdentifier -eq $testTargetResourceAbsentParameters.ServerRoleIdentifier } `
                             -Exactly -Times 1
-                    }
-
-                    It 'Should return $false' {
-                        Test-TargetResource @testTargetResourceAbsentParameters | Should -Be $false
                     }
                 }
             }
@@ -346,8 +342,8 @@ try
                 }
 
                 Context 'When the Resource should be Present' {
-                    It 'Should not throw' {
-                        { Test-TargetResource @testTargetResourcePresentParameters } | Should -Not -Throw
+                    It 'Should return return the desired result' {
+                        Test-TargetResource @testTargetResourcePresentParameters | Should -Be $false
                     }
 
                     It 'Should call the expected mocks' {
@@ -357,15 +353,11 @@ try
                                 $ServerRoleIdentifier -eq $testTargetResourcePresentParameters.ServerRoleIdentifier } `
                             -Exactly -Times 1
                     }
-
-                    It 'Should return $false' {
-                        Test-TargetResource @testTargetResourcePresentParameters | Should -Be $false
-                    }
                 }
 
                 Context 'When the Resource should be Absent' {
-                    It 'Should not throw' {
-                        { Test-TargetResource @testTargetResourceAbsentParameters } | Should -Not -Throw
+                    It 'Should return return the desired result' {
+                        Test-TargetResource @testTargetResourceAbsentParameters | Should -Be $true
                     }
 
                     It 'Should call the expected mocks' {
@@ -374,10 +366,6 @@ try
                                 $ClientRoleIdentifier -eq $testTargetResourceAbsentParameters.ClientRoleIdentifier -and `
                                 $ServerRoleIdentifier -eq $testTargetResourceAbsentParameters.ServerRoleIdentifier } `
                             -Exactly -Times 1
-                    }
-
-                    It 'Should return $true' {
-                        Test-TargetResource @testTargetResourceAbsentParameters | Should -Be $true
                     }
                 }
             }

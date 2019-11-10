@@ -3,7 +3,6 @@
 
 .DESCRIPTION
     The AdfsClaimDescription Dsc resource manages claim descriptions in the Federation Service.
-    communications.
 
 .PARAMETER Name
     Key - String
