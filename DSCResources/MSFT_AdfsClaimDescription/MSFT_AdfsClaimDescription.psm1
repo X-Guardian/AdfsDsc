@@ -210,7 +210,7 @@ function Set-TargetResource
         {
             # Resource be Present
             Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f $Name)
-            Add-AdfsClaimDescription @parameters
+            Add-AdfsClaimDescription -Name $Name @parameters
         }
         else
         {
