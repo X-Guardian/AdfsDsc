@@ -21,6 +21,19 @@
         application wants to indicate to AD FS what the return URL should be on successful token generation. AD FS
         requires that all acceptable URLs are entered as trusted information by the administrator.
 
+    .PARAMETER AllowedAuthenticationClassReferences
+        Write - String
+        Specifies an array of allow authentication class references.
+
+    .PARAMETER AllowedClientTypes
+        Write - String
+        Allowed values: None, Public, Confidential
+        Specifies allowed client types.
+
+    .PARAMETER AlwaysRequireAuthentication
+        Write - Boolean
+        Indicates to always require authentication.
+
     .PARAMETER AutoUpdateEnabled
         Write - Boolean
         Indicates whether changes to the federation metadata by the MetadataURL parameter apply automatically to the
@@ -87,6 +100,11 @@
         Write - MSFT_AdfsIssuanceTransformRule
         Specifies the issuance transform rules for issuing claims to this relying party.
 
+    .PARAMETER IssueOAuthRefreshTokensTo
+        Write - String
+        Allowed values: NoDevice, WorkplaceJoinedDevices, AllDevices
+        Specifies the refresh token issuance device types.
+
     .PARAMETER MetadataUrl
         Write - String
         Specifies a URL at which the federation metadata for this relying party trust is available.
@@ -108,6 +126,14 @@
         Write - String
         Allowed values: SAML, WsFederation, WsFed-SAML
         Specifies which protocol profiles the relying party supports.
+
+    .PARAMETER RefreshTokenProtectionEnabled
+        Write - Boolean
+        Indicates whether refresh token protection is enabled.
+
+    .PARAMETER RequestMFAFromClaimsProviders
+        Write - Boolean
+        Indicates that the request MFA from claims providers option is used.
 
     .PARAMETER RequestSigningCertificate
         ** Not Currently Implemented **
@@ -219,6 +245,9 @@ function Get-TargetResource
             Name                                 = $targetResource.Name
             AdditionalAuthenticationRules        = $targetResource.AdditionalAuthenticationRules
             AdditionalWSFedEndpoint              = @($targetResource.AdditionalWSFedEndpoint)
+            AllowedAuthenticationClassReferences = $targetResource.AllowedAuthenticationClassReferences
+            AllowedClientTypes                   = $targetResource.AllowedClientTypes
+            AlwaysRequireAuthentication          = $targetResource.AlwaysRequireAuthentication
             AutoUpdateEnabled                    = $targetResource.AutoUpdateEnabled
             ClaimAccepted                        = $claimAccepted
             ClaimsProviderName                   = @($targetResource.ClaimsProviderName)
@@ -232,11 +261,14 @@ function Get-TargetResource
             ImpersonationAuthorizationRules      = $targetResource.ImpersonationAuthorizationRules
             IssuanceAuthorizationRules           = $targetResource.IssuanceAuthorizationRules
             IssuanceTransformRules               = @(ConvertFrom-IssuanceTransformRule -Rule $targetResource.IssuanceTransformRules)
+            IssueOAuthRefreshTokensTo            = $targetResource.IssueOAuthRefreshTokensTo
             MetadataUrl                          = $targetResource.MetadataUrl
             MonitoringEnabled                    = $targetResource.MonitoringEnabled
             NotBeforeSkew                        = $targetResource.NotBeforeSkew
             Notes                                = $targetResource.Notes
             ProtocolProfile                      = $targetResource.ProtocolProfile
+            RefreshTokenProtectionEnabled        = $targetResource.RefreshTokenProtectionEnabled
+            RequestMFAFromClaimsProviders        = $targetResource.RequestMFAFromClaimsProviders
             SamlResponseSignature                = $targetResource.SamlResponseSignature
             SignatureAlgorithm                   = $targetResource.SignatureAlgorithm
             SignedSamlRequestsRequired           = $targetResource.SignedSamlRequestsRequired
@@ -254,6 +286,9 @@ function Get-TargetResource
             Name                                 = $Name
             AdditionalAuthenticationRules        = $null
             AdditionalWSFedEndpoint              = @()
+            AllowedAuthenticationClassReferences = @()
+            AllowedClientTypes                   = 'None'
+            AlwaysRequireAuthentication          = $false
             AutoUpdateEnabled                    = $false
             ClaimAccepted                        = @()
             ClaimsProviderName                   = @()
@@ -267,11 +302,14 @@ function Get-TargetResource
             ImpersonationAuthorizationRules      = $null
             IssuanceAuthorizationRules           = $null
             IssuanceTransformRules               = $null
+            IssueOAuthRefreshTokensTo            = 'NoDevice'
             MetadataUrl                          = $null
             MonitoringEnabled                    = $false
             NotBeforeSkew                        = 0
             Notes                                = $null
             ProtocolProfile                      = 'SAML'
+            RefreshTokenProtectionEnabled        = $false
+            RequestMFAFromClaimsProviders        = $false
             SamlResponseSignature                = 'AssertionOnly'
             SignatureAlgorithm                   = 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'
             SignedSamlRequestsRequired           = $false
@@ -314,6 +352,19 @@ function Set-TargetResource
         [Parameter()]
         [System.String[]]
         $AdditionalWSFedEndpoint,
+
+        [Parameter()]
+        [System.String[]]
+        $AllowedAuthenticationClassReferences,
+
+        [Parameter()]
+        [ValidateSet('None', 'Public', 'Confidential')]
+        [System.String[]]
+        $AllowedClientTypes,
+
+        [Parameter()]
+        [System.Boolean]
+        $AlwaysRequireAuthentication,
 
         [Parameter()]
         [System.Boolean]
@@ -375,6 +426,11 @@ function Set-TargetResource
         $IssuanceTransformRules,
 
         [Parameter()]
+        [ValidateSet('NoDevice', 'WorkplaceJoinedDevices', 'AllDevices')]
+        [System.String]
+        $IssueOAuthRefreshTokensTo,
+
+        [Parameter()]
         [System.String]
         $MetadataUrl,
 
@@ -394,6 +450,14 @@ function Set-TargetResource
         [ValidateSet('SAML', 'WsFederation', 'WsFed-SAML')]
         [System.String]
         $ProtocolProfile,
+
+        [Parameter()]
+        [System.Boolean]
+        $RefreshTokenProtectionEnabled,
+
+        [Parameter()]
+        [System.Boolean]
+        $RequestMFAFromClaimsProviders,
 
         [Parameter()]
         [ValidateSet('AssertionOnly', 'MessageAndAssertion', 'MessageOnly')]
@@ -574,6 +638,19 @@ function Test-TargetResource
         $AdditionalWSFedEndpoint,
 
         [Parameter()]
+        [System.String[]]
+        $AllowedAuthenticationClassReferences,
+
+        [Parameter()]
+        [ValidateSet('None', 'Public', 'Confidential')]
+        [System.String[]]
+        $AllowedClientTypes,
+
+        [Parameter()]
+        [System.Boolean]
+        $AlwaysRequireAuthentication,
+
+        [Parameter()]
         [System.Boolean]
         $AutoUpdateEnabled,
 
@@ -633,6 +710,11 @@ function Test-TargetResource
         $IssuanceTransformRules,
 
         [Parameter()]
+        [ValidateSet('NoDevice', 'WorkplaceJoinedDevices', 'AllDevices')]
+        [System.String]
+        $IssueOAuthRefreshTokensTo,
+
+        [Parameter()]
         [System.String]
         $MetadataUrl,
 
@@ -652,6 +734,14 @@ function Test-TargetResource
         [ValidateSet('SAML', 'WsFederation', 'WsFed-SAML')]
         [System.String]
         $ProtocolProfile,
+
+        [Parameter()]
+        [System.Boolean]
+        $RefreshTokenProtectionEnabled,
+
+        [Parameter()]
+        [System.Boolean]
+        $RequestMFAFromClaimsProviders,
 
         [Parameter()]
         [ValidateSet('AssertionOnly', 'MessageAndAssertion', 'MessageOnly')]
