@@ -19,6 +19,12 @@ class MSFT_AdfsIssuanceTransformRule
     [Write, Description("Specifies the custom claim rule")] String CustomRule;
 };
 
+[ClassVersion("1.0.0")]
+class MSFT_AdfsAccessControlPolicyParameters
+{
+    [Write, Description("Specifies the Group Parameter.")] String GroupParameter[];
+};
+
 [ClassVersion("1.0.0.0"), FriendlyName("AdfsWebApiApplication")]
 class MSFT_AdfsWebApiApplication : OMI_BaseResource
 {
@@ -35,6 +41,7 @@ class MSFT_AdfsWebApiApplication : OMI_BaseResource
     [Write, EmbeddedInstance("MSFT_AdfsIssuanceTransformRule"), Description("Specifies the issuance transform rules.")] String IssuanceTransformRules[];
     [Write, Description("Specifies additional authentication rules.")] String AdditionalAuthenticationRules;
     [Write, Description("Specifies the name of an access control policy.")] String AccessControlPolicyName;
+    [Write, EmbeddedInstance("MSFT_AdfsAccessControlPolicyParameters"), Description("Specifies the parameters and their values to pass to the Access Control Policy.")] String AccessControlPolicyParameters;
     [Write, Description("Specifies the not before skew value.")] Sint32 NotBeforeSkew;
     [Write, Description("Specifies the token lifetime.")] Sint32 TokenLifetime;
     [Write, Description("Indicates that this Web API application role always requires authentication, even if it previously authenticated credentials for access. Specify this parameter to require users to always supply credentials to access sensitive resources.")] Boolean AlwaysRequireAuthentication;

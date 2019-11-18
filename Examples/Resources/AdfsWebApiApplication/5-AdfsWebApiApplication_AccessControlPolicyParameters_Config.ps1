@@ -1,6 +1,6 @@
 <#PSScriptInfo
 .VERSION 1.0.0
-.GUID 56e909a1-5809-47e8-830d-5d367449c365
+.GUID a80e9f9d-149d-4834-a7b8-08103159bab3
 .AUTHOR Microsoft Corporation
 .COMPANYNAME Microsoft Corporation
 .COPYRIGHT (c) Microsoft Corporation. All rights reserved.
@@ -19,8 +19,8 @@
 
 <#
     .DESCRIPTION
-        This configuration will add a Web API application role to an application in Active Directory Federation
-        Services (AD FS).
+        This configuration will add a Web API application role with access control policy parameters to an application
+        in Active Directory Federation Services (AD FS).
 #>
 
 Configuration AdfsWebApiApplication_Config
@@ -37,14 +37,14 @@ Configuration AdfsWebApiApplication_Config
             ApplicationGroupIdentifier    = 'AppGroup1'
             Identifier                    = 'e7bfb303-c5f6-4028-a360-b6293d41338c'
             Description                   = 'App1 Web Api'
-            AccessControlPolicyName       = 'Permit everyone'
-            AlwaysRequireAuthentication   = $false
-            AllowedClientTypes            = 'Public', 'Confidential'
-            IssueOAuthRefreshTokensTo     = 'AllDevices'
-            NotBeforeSkew                 = 0
-            RefreshTokenProtectionEnabled = $true
-            RequestMFAFromClaimsProviders = $false
-            TokenLifetime                 = 0
+            AccessControlPolicyName       = 'Permit specific group'
+            AccessControlPolicyParameters = MSFT_AdfsAccessControlPolicyParameter
+            @{
+                Group = @(
+                    'CONTOSO\AppGroup1 Users'
+                    'CONTOSO\AppGroup1 Admins'
+                )
+            }
         }
     }
 }

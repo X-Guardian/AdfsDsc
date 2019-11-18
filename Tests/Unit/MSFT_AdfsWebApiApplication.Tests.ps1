@@ -41,7 +41,7 @@ try
             'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'
         )
 
-        $MSFT_AdfsLdapMappingProperties = @(
+        $mockMSFTAdfsLdapMappingProperties = @(
             @{
                 LdapAttribute     = $mockLdapAttributes[0]
                 OutgoingClaimType = $mockOutgoingClaimTypes[0]
@@ -58,13 +58,13 @@ try
         $mockLdapMapping = [CIMInstance[]]@(
             New-CimInstance -ClassName MSFT_AdfsLdapMapping `
                 -Namespace root/microsoft/Windows/DesiredStateConfiguration `
-                -Property $MSFT_AdfsLdapMappingProperties[0] -ClientOnly
+                -Property $mockMSFTAdfsLdapMappingProperties[0] -ClientOnly
             New-CimInstance -ClassName MSFT_AdfsLdapMapping `
                 -Namespace root/microsoft/Windows/DesiredStateConfiguration `
-                -Property $MSFT_AdfsLdapMappingProperties[1] -ClientOnly
+                -Property $mockMSFTAdfsLdapMappingProperties[1] -ClientOnly
         )
 
-        $mockMSFT_AdfsIssuanceTransformRuleProperties = @{
+        $mockMSFTAdfsIssuanceTransformRuleProperties = @{
             TemplateName   = $mockTemplateName
             Name           = $mockRuleName
             AttributeStore = 'Active Directory'
@@ -75,7 +75,7 @@ try
         $mockIssuanceTransformRules = [CIMInstance[]]@(
             New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
                 -Namespace root/microsoft/Windows/DesiredStateConfiguration `
-                -Property $mockMSFT_AdfsIssuanceTransformRuleProperties -ClientOnly
+                -Property $mockMSFTAdfsIssuanceTransformRuleProperties -ClientOnly
         )
 
         $mockLdapClaimsTransformRule = @(
@@ -86,26 +86,41 @@ try
                 '{0}', $mockOutgoingClaimTypes[0], $mockOutgoingClaimTypes[1], $mockLdapAttributes[0], $mockLdapAttributes[1]
         ) | Out-String
 
+        $mockGroups = 'CONTOSO\Group1', 'CONTOSO\Group2'
+
+        $mockMSFTAccessControlPolicyParametersProperties = @{
+            GroupParameter = $mockGroups
+        }
+
+        $mockAccessControlPolicyParameters = New-CimInstance -ClassName MSFT_AdfsAccessControlPolicyParameters `
+            -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+            -Property $mockMSFTAccessControlPolicyParametersProperties -ClientOnly
+
+        $mockGroupAccessControlPolicyParameters = @{
+            GroupParameter = $mockGroups
+        }
+
         $mockResource = @{
             Name                                 = 'AppGroup1 - Web API'
             ApplicationGroupIdentifier           = 'AppGroup1'
             Identifier                           = 'e7bfb303-c5f6-4028-a360-b6293d41338c'
-            Description                          = 'App1 Web Api'
             AccessControlPolicyName              = 'Permit everyone'
-            AllowedAuthenticationClassReferences = @()
-            ClaimsProviderName                   = @()
-            IssuanceAuthorizationRules           = 'rule'
-            DelegationAuthorizationRules         = 'rule'
-            ImpersonationAuthorizationRules      = 'rule'
-            IssuanceTransformRules               = $mockIssuanceTransformRules
+            AccessControlPolicyParameters        = $mockAccessControlPolicyParameters
             AdditionalAuthenticationRules        = 'rule'
-            NotBeforeSkew                        = 5
-            TokenLifetime                        = 90
-            AlwaysRequireAuthentication          = $false
+            AllowedAuthenticationClassReferences = @()
             AllowedClientTypes                   = 'Public'
+            AlwaysRequireAuthentication          = $false
+            ClaimsProviderName                   = @()
+            DelegationAuthorizationRules         = 'rule'
+            Description                          = 'App1 Web Api'
+            ImpersonationAuthorizationRules      = 'rule'
+            IssuanceAuthorizationRules           = 'rule'
+            IssuanceTransformRules               = $mockIssuanceTransformRules
             IssueOAuthRefreshTokensTo            = 'AllDevices'
+            NotBeforeSkew                        = 5
             RefreshTokenProtectionEnabled        = $true
             RequestMFAFromClaimsProviders        = $true
+            TokenLifetime                        = 90
             Ensure                               = 'Present'
         }
 
@@ -113,26 +128,27 @@ try
             Name                                 = 'AppGroup1 - Web API'
             ApplicationGroupIdentifier           = 'AppGroup1'
             Identifier                           = 'e7bfb303-c5f6-4028-a360-b6293d41338c'
-            Description                          = $null
-            AllowedAuthenticationClassReferences = @()
-            ClaimsProviderName                   = @()
-            IssuanceAuthorizationRules           = $null
-            DelegationAuthorizationRules         = $null
-            ImpersonationAuthorizationRules      = $null
-            IssuanceTransformRules               = $null
-            AdditionalAuthenticationRules        = $null
             AccessControlPolicyName              = $null
-            NotBeforeSkew                        = 0
-            TokenLifetime                        = 0
-            AlwaysRequireAuthentication          = $null
+            AccessControlPolicyParameters        = $null
+            AdditionalAuthenticationRules        = $null
+            AllowedAuthenticationClassReferences = @()
             AllowedClientTypes                   = 'None'
+            AlwaysRequireAuthentication          = $null
+            ClaimsProviderName                   = @()
+            DelegationAuthorizationRules         = $null
+            Description                          = $null
+            ImpersonationAuthorizationRules      = $null
+            IssuanceAuthorizationRules           = $null
+            IssuanceTransformRules               = $null
             IssueOAuthRefreshTokensTo            = 'NoDevice'
+            NotBeforeSkew                        = 0
             RefreshTokenProtectionEnabled        = $false
             RequestMFAFromClaimsProviders        = $false
+            TokenLifetime                        = 0
             Ensure                               = 'Absent'
         }
 
-        $mockMSFT_AdfsLdapMappingChangedProperties = @{
+        $mockChangedMSFTAdfsLdapMappingProperties = @{
             LdapAttribute     = 'givenname'
             OutgoingClaimType = 'givenName'
         }
@@ -140,40 +156,51 @@ try
         $mockLdapChangedMapping = [CIMInstance[]]@(
             New-CimInstance -ClassName MSFT_AdfsLdapMapping `
                 -Namespace root/microsoft/Windows/DesiredStateConfiguration `
-                -Property $mockMSFT_AdfsLdapMappingChangedProperties -ClientOnly
+                -Property $mockChangedMSFTAdfsLdapMappingProperties -ClientOnly
         )
 
-        $mockMSFT_AdfsIssuanceTransformChangedRuleProperties = @{
+        $mockChangedMSFTAdfsIssuanceTransformRuleProperties = @{
             TemplateName   = 'LdapClaims'
             Name           = 'Test2'
             AttributeStore = 'ActiveDirectory'
             LdapMapping    = $mockLdapChangedMapping
         }
 
-        $mockIssuanceTransformChangedRules = [CIMInstance[]]@(
+        $mockChangedIssuanceTransformRules = [CIMInstance[]]@(
             New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
                 -Namespace root/microsoft/Windows/DesiredStateConfiguration `
-                -Property $mockMSFT_AdfsIssuanceTransformChangedRuleProperties -ClientOnly
+                -Property $mockChangedMSFTAdfsIssuanceTransformRuleProperties -ClientOnly
         )
+
+        $mockChangedGroups = 'CONTOSO\Group3', 'CONTOSO\Group4'
+
+        $mockChangedMSFTAccessControlPolicyParametersProperties = @{
+            GroupParameter = $mockChangedGroups
+        }
+
+        $mockChangedAccessControlPolicyParameters = New-CimInstance -ClassName MSFT_AccessControlPolicyParameters `
+            -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+            -Property $mockChangedMSFTAccessControlPolicyParametersProperties -ClientOnly
 
         $mockChangedResource = @{
             Identifier                           = 'e7bfb303-c5f6-4028-a360-b6293d41338d'
-            Description                          = 'App2 Web Api'
             AccessControlPolicyName              = 'changed'
-            AllowedAuthenticationClassReferences = 'changed'
-            ClaimsProviderName                   = 'changed'
-            IssuanceAuthorizationRules           = 'changedrule'
-            DelegationAuthorizationRules         = 'changedrule'
-            ImpersonationAuthorizationRules      = 'changedrule'
-            IssuanceTransformRules               = $mockIssuanceTransformChangedRules
+            AccessControlPolicyParameters        = $mockChangedAccessControlPolicyParameters
             AdditionalAuthenticationRules        = 'changedrule'
-            NotBeforeSkew                        = 10
-            TokenLifetime                        = 180
-            AlwaysRequireAuthentication          = $true
+            AllowedAuthenticationClassReferences = 'changed'
             AllowedClientTypes                   = 'Confidential'
+            AlwaysRequireAuthentication          = $true
+            ClaimsProviderName                   = 'changed'
+            DelegationAuthorizationRules         = 'changedrule'
+            Description                          = 'App2 Web Api'
+            ImpersonationAuthorizationRules      = 'changedrule'
+            IssuanceAuthorizationRules           = 'changedrule'
+            IssuanceTransformRules               = $mockChangedIssuanceTransformRules
             IssueOAuthRefreshTokensTo            = 'WorkplaceJoinedDevices'
+            NotBeforeSkew                        = 10
             RefreshTokenProtectionEnabled        = $false
             RequestMFAFromClaimsProviders        = $false
+            TokenLifetime                        = 180
         }
 
         $mockChangedApplicationGroupIdentifier = 'AppGroup2'
@@ -182,22 +209,23 @@ try
             Name                                 = $mockResource.Name
             ApplicationGroupIdentifier           = $mockResource.ApplicationGroupIdentifier
             Identifier                           = $mockResource.Identifier
-            Description                          = $mockResource.Description
             AccessControlPolicyName              = $mockResource.AccessControlPolicyName
+            AccessControlPolicyParameters        = $mockResource.AccessControlPolicyParameters
+            AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
             AllowedAuthenticationClassReferences = $mockResource.AllowedAuthenticationClassReferences
+            AllowedClientTypes                   = $mockResource.AllowedClientTypes
+            AlwaysRequireAuthentication          = $mockResource.AlwaysRequireAuthentication
             ClaimsProviderName                   = $mockResource.ClaimsProviderName
-            IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
             DelegationAuthorizationRules         = $mockResource.DelegationAuthorizationRules
+            Description                          = $mockResource.Description
             ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
             IssuanceTransformRules               = $mockResource.IssuanceTransformRules
-            AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
-            NotBeforeSkew                        = $mockResource.NotBeforeSkew
-            TokenLifetime                        = $mockResource.TokenLifetime
-            AlwaysRequireAuthentication          = $mockResource.AlwaysRequireAuthentication
-            AllowedClientTypes                   = $mockResource.AllowedClientTypes
+            IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
             IssueOAuthRefreshTokensTo            = $mockResource.IssueOAuthRefreshTokensTo
+            NotBeforeSkew                        = $mockResource.NotBeforeSkew
             RefreshTokenProtectionEnabled        = $mockResource.RefreshTokenProtectionEnabled
             RequestMFAFromClaimsProviders        = $mockResource.RequestMFAFromClaimsProviders
+            TokenLifetime                        = $mockResource.TokenLifetime
         }
 
         $mockGetTargetResourcePresentResult = $mockGetTargetResourceResult.Clone()
@@ -218,22 +246,23 @@ try
                     Name                                 = $mockResource.Name
                     ApplicationGroupIdentifier           = $mockResource.ApplicationGroupIdentifier
                     Identifier                           = $mockResource.Identifier
-                    Description                          = $mockResource.Description
                     AccessControlPolicyName              = $mockResource.AccessControlPolicyName
-                    AllowedAuthenticationClassReferences = $mockResource.AllowedAuthenticationClassReferences
-                    ClaimsProviderName                   = $mockResource.ClaimsProviderName
-                    IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
-                    DelegationAuthorizationRules         = $mockResource.DelegationAuthorizationRules
-                    ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
-                    IssuanceTransformRules               = $mockLdapClaimsTransformRule
+                    AccessControlPolicyParameters        = $mockGroupAccessControlPolicyParameters
                     AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
-                    NotBeforeSkew                        = $mockResource.NotBeforeSkew
-                    TokenLifetime                        = $mockResource.TokenLifetime
-                    AlwaysRequireAuthentication          = $mockResource.AlwaysRequireAuthentication
+                    AllowedAuthenticationClassReferences = $mockResource.AllowedAuthenticationClassReferences
                     AllowedClientTypes                   = $mockResource.AllowedClientTypes
+                    AlwaysRequireAuthentication          = $mockResource.AlwaysRequireAuthentication
+                    ClaimsProviderName                   = $mockResource.ClaimsProviderName
+                    DelegationAuthorizationRules         = $mockResource.DelegationAuthorizationRules
+                    Description                          = $mockResource.Description
+                    ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
+                    IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
+                    IssuanceTransformRules               = $mockLdapClaimsTransformRule
                     IssueOAuthRefreshTokensTo            = $mockResource.IssueOAuthRefreshTokensTo
+                    NotBeforeSkew                        = $mockResource.NotBeforeSkew
                     RefreshTokenProtectionEnabled        = $mockResource.RefreshTokenProtectionEnabled
                     RequestMFAFromClaimsProviders        = $mockResource.RequestMFAFromClaimsProviders
+                    TokenLifetime                        = $mockResource.TokenLifetime
                 }
 
                 Mock -CommandName Assert-Module
@@ -251,6 +280,7 @@ try
                 foreach ($property in $mockResource.Keys)
                 {
                     It "Should return the correct $property property" {
+                        # Using ConvertTo-Json to support comparing custom objects
                         $result.$property | ConvertTo-Json | Should -Be ($mockResource.$property | ConvertTo-Json)
                     }
                 }
@@ -304,22 +334,23 @@ try
                     Name                                 = $mockResource.Name
                     ApplicationGroupIdentifier           = $mockResource.ApplicationGroupIdentifier
                     Identifier                           = $mockResource.Identifier
-                    Description                          = $mockResource.Description
                     AccessControlPolicyName              = $mockResource.AccessControlPolicyName
-                    AllowedAuthenticationClassReferences = $mockResource.AllowedAuthenticationClassReferences
-                    ClaimsProviderName                   = $mockResource.ClaimsProviderName
-                    IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
-                    DelegationAuthorizationRules         = $mockResource.DelegationAuthorizationRules
-                    ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
-                    IssuanceTransformRules               = $mockResource.IssuanceTransformRules
+                    AccessControlPolicyParameters        = $mockResource.AccessControlPolicyParameters
                     AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
-                    NotBeforeSkew                        = $mockResource.NotBeforeSkew
-                    TokenLifetime                        = $mockResource.TokenLifetime
-                    AlwaysRequireAuthentication          = $mockResource.AlwaysRequireAuthentication
                     AllowedClientTypes                   = $mockResource.AllowedClientTypes
+                    AllowedAuthenticationClassReferences = $mockResource.AllowedAuthenticationClassReferences
+                    AlwaysRequireAuthentication          = $mockResource.AlwaysRequireAuthentication
+                    ClaimsProviderName                   = $mockResource.ClaimsProviderName
+                    DelegationAuthorizationRules         = $mockResource.DelegationAuthorizationRules
+                    Description                          = $mockResource.Description
+                    ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
+                    IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
+                    IssuanceTransformRules               = $mockResource.IssuanceTransformRules
                     IssueOAuthRefreshTokensTo            = $mockResource.IssueOAuthRefreshTokensTo
+                    NotBeforeSkew                        = $mockResource.NotBeforeSkew
                     RefreshTokenProtectionEnabled        = $mockResource.RefreshTokenProtectionEnabled
                     RequestMFAFromClaimsProviders        = $mockResource.RequestMFAFromClaimsProviders
+                    TokenLifetime                        = $mockResource.TokenLifetime
                 }
 
                 $setTargetResourcePresentParameters = $setTargetResourceParameters.Clone()
@@ -457,22 +488,22 @@ try
                     Name                                 = $mockResource.Name
                     ApplicationGroupIdentifier           = $mockResource.ApplicationGroupIdentifier
                     Identifier                           = $mockResource.Identifier
-                    Description                          = $mockResource.Description
                     AccessControlPolicyName              = $mockResource.AccessControlPolicyName
-                    AllowedAuthenticationClassReferences = $mockResource.AllowedAuthenticationClassReferences
-                    ClaimsProviderName                   = $mockResource.ClaimsProviderName
-                    IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
-                    DelegationAuthorizationRules         = $mockResource.DelegationAuthorizationRules
-                    ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
-                    IssuanceTransformRules               = $mockResource.IssuanceTransformRules
                     AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
-                    NotBeforeSkew                        = $mockResource.NotBeforeSkew
-                    TokenLifetime                        = $mockResource.TokenLifetime
-                    AlwaysRequireAuthentication          = $mockResource.AlwaysRequireAuthentication
                     AllowedClientTypes                   = $mockResource.AllowedClientTypes
+                    AllowedAuthenticationClassReferences = $mockResource.AllowedAuthenticationClassReferences
+                    AlwaysRequireAuthentication          = $mockResource.AlwaysRequireAuthentication
+                    ClaimsProviderName                   = $mockResource.ClaimsProviderName
+                    DelegationAuthorizationRules         = $mockResource.DelegationAuthorizationRules
+                    Description                          = $mockResource.Description
+                    ImpersonationAuthorizationRules      = $mockResource.ImpersonationAuthorizationRules
+                    IssuanceAuthorizationRules           = $mockResource.IssuanceAuthorizationRules
+                    IssuanceTransformRules               = $mockResource.IssuanceTransformRules
                     IssueOAuthRefreshTokensTo            = $mockResource.IssueOAuthRefreshTokensTo
+                    NotBeforeSkew                        = $mockResource.NotBeforeSkew
                     RefreshTokenProtectionEnabled        = $mockResource.RefreshTokenProtectionEnabled
                     RequestMFAFromClaimsProviders        = $mockResource.RequestMFAFromClaimsProviders
+                    TokenLifetime                        = $mockResource.TokenLifetime
                 }
 
                 $testTargetResourcePresentParameters = $testTargetResourceParameters.Clone()

@@ -30,10 +30,10 @@ else
             Ensure      = 'Present'
         }
         AdfsWebApiApplication = @{
-            Name                    = 'DscWebApiApplication1'
-            Description             = 'This is the DscWebApiApplication1 Description'
-            Identifier              = 'e7bfb303-c5f6-4028-a360-b6293d41338c'
-            AccessControlPolicyName = 'Permit Everyone'
+            Name                              = 'DscWebApiApplication1'
+            Description                       = 'This is the DscWebApiApplication1 Description'
+            Identifier                        = 'e7bfb303-c5f6-4028-a360-b6293d41338c'
+            AccessControlPolicyName           = 'Permit specific group'
         }
     }
 }
@@ -76,12 +76,16 @@ Configuration MSFT_AdfsWebApiApplication_Config
 
         AdfsWebApiApplication 'Integration_Test'
         {
-            Name                       = $ConfigurationData.AdfsWebApiApplication.Name
-            Description                = $ConfigurationData.AdfsWebApiApplication.Description
-            ApplicationGroupIdentifier = $ConfigurationData.AdfsApplicationGroup.Name
-            Identifier                 = $ConfigurationData.AdfsWebApiApplication.Identifier
-            AccessControlPolicyName    = $ConfigurationData.AdfsWebApiApplication.AccessControlPolicyName
-            IssuanceTransformRules     = @(
+            Name                          = $ConfigurationData.AdfsWebApiApplication.Name
+            Description                   = $ConfigurationData.AdfsWebApiApplication.Description
+            ApplicationGroupIdentifier    = $ConfigurationData.AdfsApplicationGroup.Name
+            Identifier                    = $ConfigurationData.AdfsWebApiApplication.Identifier
+            AccessControlPolicyName       = $ConfigurationData.AdfsWebApiApplication.AccessControlPolicyName
+            AccessControlPolicyParameters = MSFT_AdfsAccessControlPolicyParameters
+            {
+                GroupParameter = 'GTECK\DscWebApiApplication1 Users'
+            }
+            IssuanceTransformRules        = @(
                 MSFT_AdfsIssuanceTransformRule
                 {
                     TemplateName   = 'LdapClaims'
