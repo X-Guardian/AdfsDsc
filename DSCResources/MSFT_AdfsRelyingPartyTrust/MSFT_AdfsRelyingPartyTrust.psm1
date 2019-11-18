@@ -521,8 +521,8 @@ function Set-TargetResource
             {
                 $propertiesNotInDesiredState += (
                     Compare-IssuanceTransformRule -CurrentValue $targetResource.IssuanceTransformRules `
-                        -DesiredValue $IssuanceTransformRules |
-                    Where-Object -Property InDesiredState -eq $false)
+                        -DesiredValue $IssuanceTransformRules -ParameterName 'IssuanceTransformRules' | `
+                        Where-Object -Property InDesiredState -eq $false)
             }
 
             $propertiesNotInDesiredState += (
@@ -800,8 +800,8 @@ function Test-TargetResource
             {
                 $propertiesNotInDesiredState += (
                     Compare-IssuanceTransformRule -CurrentValue $targetResource.IssuanceTransformRules `
-                        -DesiredValue $IssuanceTransformRules |
-                    Where-Object -Property InDesiredState -eq $false)
+                        -DesiredValue $IssuanceTransformRules -ParameterName 'IssuanceTransformRules' | `
+                        Where-Object -Property InDesiredState -eq $false)
             }
 
             $propertiesNotInDesiredState += (
