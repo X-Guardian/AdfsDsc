@@ -1352,7 +1352,7 @@ function Compare-IssuanceTransformRule
             {
                 if ($DesiredValue[$index].TemplateName -eq 'LdapClaims')
                 {
-                    Write-Debug -Message ($script:LocalizedData.ComparingPropertiesDebugMessage -f
+                    Write-Debug -Message ($script:LocalizedData.ComparingPropertiesWithNameDebugMessage -f
                         'LdapClaims', $CurrentValue[$index].Name)
 
                     if (Compare-Object -ReferenceObject $CurrentValue[$index] -DifferenceObject $DesiredValue[$index] `
@@ -1373,7 +1373,7 @@ function Compare-IssuanceTransformRule
                 }
                 elseif ($DesiredValue[$index].TemplateName -eq 'EmitGroupClaims')
                 {
-                    Write-Debug -Message ($script:LocalizedData.ComparingPropertiesDebugMessage -f
+                    Write-Debug -Message ($script:LocalizedData.ComparingPropertiesWithNameDebugMessage -f
                         'EmitGroupClaims', $CurrentValue[$index].Name)
 
                     if (Compare-Object -ReferenceObject $CurrentValue[$index] -DifferenceObject $DesiredValue[$index] `
@@ -1385,7 +1385,7 @@ function Compare-IssuanceTransformRule
                 }
                 elseif ($DesiredValue[$index].TemplateName -eq 'CustomClaims')
                 {
-                    Write-Debug -Message ($script:LocalizedData.ComparingPropertiesDebugMessage -f
+                    Write-Debug -Message ($script:LocalizedData.ComparingPropertiesWithNameDebugMessage -f
                         'CustomClaims', $CurrentValue[$index].Name)
 
                     $CurrentCustomRule = ($CurrentValue[$index].CustomRule -split '\r?\n' | Out-String).Trim()
