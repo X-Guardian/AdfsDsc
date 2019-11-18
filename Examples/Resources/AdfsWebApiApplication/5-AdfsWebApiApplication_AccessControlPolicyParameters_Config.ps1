@@ -23,7 +23,7 @@
         in Active Directory Federation Services (AD FS).
 #>
 
-Configuration AdfsWebApiApplication_Config
+Configuration AdfsWebApiApplication_AccessControlPolicyParameters_Config
 {
     param()
 
@@ -39,8 +39,8 @@ Configuration AdfsWebApiApplication_Config
             Description                   = 'App1 Web Api'
             AccessControlPolicyName       = 'Permit specific group'
             AccessControlPolicyParameters = MSFT_AdfsAccessControlPolicyParameter
-            @{
-                Group = @(
+            {
+                GroupParameter = @(
                     'CONTOSO\AppGroup1 Users'
                     'CONTOSO\AppGroup1 Admins'
                 )
