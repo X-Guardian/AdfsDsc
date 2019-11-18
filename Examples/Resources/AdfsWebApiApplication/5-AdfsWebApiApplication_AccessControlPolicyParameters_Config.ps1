@@ -38,7 +38,7 @@ Configuration AdfsWebApiApplication_AccessControlPolicyParameters_Config
             Identifier                    = 'e7bfb303-c5f6-4028-a360-b6293d41338c'
             Description                   = 'App1 Web Api'
             AccessControlPolicyName       = 'Permit specific group'
-            AccessControlPolicyParameters = MSFT_AdfsAccessControlPolicyParameter
+            AccessControlPolicyParameters = MSFT_AdfsAccessControlPolicyParameters
             {
                 GroupParameter = @(
                     'CONTOSO\AppGroup1 Users'
