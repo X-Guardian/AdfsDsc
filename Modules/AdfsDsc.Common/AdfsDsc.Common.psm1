@@ -92,8 +92,7 @@ function New-InvalidArgumentException
         $ArgumentName
     )
 
-    $argumentException = New-Object -TypeName 'ArgumentException' `
-        -ArgumentList @($Message, $ArgumentName)
+    $argumentException = New-Object -TypeName 'ArgumentException' -ArgumentList @($Message, $ArgumentName)
 
     $newObjectParameters = @{
         TypeName     = 'System.Management.Automation.ErrorRecord'
@@ -187,13 +186,11 @@ function New-ObjectNotFoundException
 
     if ($null -eq $ErrorRecord)
     {
-        $exception = New-Object -TypeName 'System.Exception' `
-            -ArgumentList @($Message)
+        $exception = New-Object -TypeName 'System.Exception' -ArgumentList @($Message)
     }
     else
     {
-        $exception = New-Object -TypeName 'System.Exception' `
-            -ArgumentList @($Message, $ErrorRecord.Exception)
+        $exception = New-Object -TypeName 'System.Exception' -ArgumentList @($Message, $ErrorRecord.Exception)
     }
 
     $newObjectParameters = @{
@@ -240,13 +237,11 @@ function New-InvalidResultException
 
     if ($null -eq $ErrorRecord)
     {
-        $exception = New-Object -TypeName 'System.Exception' `
-            -ArgumentList @($Message)
+        $exception = New-Object -TypeName 'System.Exception' -ArgumentList @($Message)
     }
     else
     {
-        $exception = New-Object -TypeName 'System.Exception' `
-            -ArgumentList @($Message, $ErrorRecord.Exception)
+        $exception = New-Object -TypeName 'System.Exception' -ArgumentList @($Message, $ErrorRecord.Exception)
     }
 
     $newObjectParameters = @{
@@ -478,14 +473,14 @@ function Compare-ResourcePropertyState
     {
         # Filter out the parameters (keys) not specified in Properties
         $desiredValuesToRemove = $DesiredValues.Keys |
-            Where-Object -FilterScript {
-                $_ -notin $Properties
-            }
+        Where-Object -FilterScript {
+            $_ -notin $Properties
+        }
 
         $desiredValuesToRemove |
-            ForEach-Object -Process {
-                $DesiredValues.Remove($_)
-            }
+        ForEach-Object -Process {
+            $DesiredValues.Remove($_)
+        }
     }
     else
     {
@@ -494,27 +489,27 @@ function Compare-ResourcePropertyState
             if it $PSBoundParameters was used to pass the desired values.
         #>
         $commonParametersToRemove = $DesiredValues.Keys |
-            Where-Object -FilterScript {
-                $_ -in [System.Management.Automation.PSCmdlet]::CommonParameters `
-                    -or $_ -in [System.Management.Automation.PSCmdlet]::OptionalCommonParameters
-            }
+        Where-Object -FilterScript {
+            $_ -in [System.Management.Automation.PSCmdlet]::CommonParameters `
+                -or $_ -in [System.Management.Automation.PSCmdlet]::OptionalCommonParameters
+        }
 
         $commonParametersToRemove |
-            ForEach-Object -Process {
-                $DesiredValues.Remove($_)
-            }
+        ForEach-Object -Process {
+            $DesiredValues.Remove($_)
+        }
     }
 
     # Remove any properties that should be ignored.
     if ($PSBoundParameters.ContainsKey('IgnoreProperties'))
     {
         $IgnoreProperties |
-            ForEach-Object -Process {
-                if ($DesiredValues.ContainsKey($_))
-                {
-                    $DesiredValues.Remove($_)
-                }
+        ForEach-Object -Process {
+            if ($DesiredValues.ContainsKey($_))
+            {
+                $DesiredValues.Remove($_)
             }
+        }
     }
 
     $compareTargetResourceStateReturnValue = @()
@@ -542,7 +537,8 @@ function Compare-ResourcePropertyState
         }
         else
         {
-            Write-Verbose -Message ($script:localizedData.PropertyNotInDesiredState -f $parameterName)
+            Write-Verbose -Message ($script:localizedData.PropertyNotInDesiredState -f
+                $parameterName, $DesiredValues.$parameterName, $CurrentValues.$parameterName)
 
             $parameterState['InDesiredState'] = $false
         }
@@ -606,13 +602,13 @@ function Test-DscPropertyState
 
         if ($null -ne $arrayCompare)
         {
-            Write-Verbose -Message $script:localizedData.ArrayDoesNotMatch -Verbose:$VerbosePreference
+            Write-Verbose -Message $script:localizedData.ArrayDoesNotMatch
 
             $arrayCompare |
-                ForEach-Object -Process {
-                    Write-Verbose -Message ($script:localizedData.ArrayValueThatDoesNotMatch -f `
-                            $_.InputObject, $_.SideIndicator) -Verbose:$VerbosePreference
-                }
+            ForEach-Object -Process {
+                Write-Verbose -Message ($script:localizedData.ArrayValueThatDoesNotMatch -f
+                    $_.InputObject, $_.SideIndicator)
+            }
 
             $returnValue = $false
         }
@@ -640,15 +636,13 @@ function Test-DscPropertyState
 
         if ($desiredType.Name -notin $supportedTypes)
         {
-            Write-Warning -Message ($script:localizedData.UnableToCompareType `
-                    -f $desiredType.Name)
+            Write-Warning -Message ($script:localizedData.UnableToCompareType -f
+                $desiredType.Name)
         }
         else
         {
-            Write-Verbose -Message (
-                $script:localizedData.PropertyValueOfTypeDoesNotMatch `
-                    -f $desiredType.Name, $Values.CurrentValue, $Values.DesiredValue
-            ) -Verbose:$VerbosePreference
+            Write-Verbose -Message ($script:localizedData.PropertyValueOfTypeDoesNotMatch -f
+                $desiredType.Name, $Values.CurrentValue, $Values.DesiredValue)
         }
     }
     else
@@ -838,8 +832,8 @@ function Assert-AdfsService
         if ($adfsService.Status -ne 'Running' -and $insideRetryWindow)
         {
             $retryCount++
-            Write-Verbose -Message ($script:localizedData.WaitingForAdfsServiceMessage -f `
-                    $RetryInterval, $retryCount, $MaxRetries)
+            Write-Verbose -Message ($script:localizedData.WaitingForAdfsServiceMessage -f
+                $RetryInterval, $retryCount, $MaxRetries)
             Start-Sleep -Seconds $RetryInterval
         }
     }
@@ -877,8 +871,8 @@ function Assert-Command
 
     if (!(Get-Command -Name $Command -Module $Module -ErrorAction SilentlyContinue))
     {
-        New-NotImplementedException -Message (
-            $script:localizedData.ResourceNotImplementedError -f $Module, $Command)
+        $errorMessage = $script:localizedData.ResourceNotImplementedError -f $Module, $Command
+        New-NotImplementedException -Message $errorMessage
     }
 }
 
@@ -978,16 +972,16 @@ function Assert-GroupServiceAccount
             }
             Default
             {
-                New-InvalidResultException -Message ( `
-                        $script:localizedData.UnexpectedServiceAccountCategoryError -f `
-                        $adObject.Properties.ObjectCategory, $Name)
+                $errorMessage = ($script:localizedData.UnexpectedServiceAccountCategoryError -f
+                    $adObject.Properties.ObjectCategory, $Name)
+                New-InvalidResultException -Message $errorMessage
             }
         }
     }
     else
     {
-        New-ObjectNotFoundException -Message ( `
-                $script:localizedData.ServiceAccountNotFoundError -f $Name)
+        $errorMessage = $script:localizedData.ServiceAccountNotFoundError -f $Name
+        New-ObjectNotFoundException -Message $errorMessage
     }
 
     $isGroupServiceAccount
@@ -1029,7 +1023,8 @@ function Get-AdfsConfigurationStatus
         }
         default
         {
-            New-InvalidResultException -Message ($script:localizedData.UnknownConfigurationStatusError -f $_)
+            $errorMessage = $script:localizedData.UnknownConfigurationStatusError -f $_
+            New-InvalidResultException -Message $errorMessage
         }
     }
 
@@ -1113,6 +1108,7 @@ function ConvertTo-IssuanceTransformRule
     #>
 
     [CmdletBinding()]
+    [OutputType([System.String])]
     param
     (
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
@@ -1123,6 +1119,8 @@ function ConvertTo-IssuanceTransformRule
     )
     begin
     {
+        Write-Debug -Message ($script:LocalizedData.EnteringFunctionDebugMessage -f $MyInvocation.MyCommand)
+
         $ldapClaimsTransformRule = @(
             '@RuleTemplate = "LdapClaims"'
             '@RuleName = "{1}"'
@@ -1150,7 +1148,9 @@ function ConvertTo-IssuanceTransformRule
         {
             if ($rule.TemplateName -eq 'LdapClaims')
             {
-                Write-Debug 'Processing LdapClaims Template Rule'
+                Write-Debug -Message ($script:LocalizedData.ProcessingPropertyDebugMessage -f
+                    'LdapClaims Template Rule')
+
                 $claimTypes = '"' + ($rule.LdapMapping.OutGoingClaimType -join '", "') + '"'
                 $ldapAttributes = $rule.LdapMapping.LdapAttribute -join ','
                 $output += ($ldapClaimsTransformRule -f '{0}', $rule.Name, $rule.AttributeStore,
@@ -1158,14 +1158,18 @@ function ConvertTo-IssuanceTransformRule
             }
             elseif ($rule.TemplateName -eq 'EmitGroupClaims')
             {
-                Write-Debug 'Processing EmitGroupClaims Template Rule'
+                Write-Debug -Message ($script:LocalizedData.ProcessingPropertyDebugMessage -f
+                    'EmitGroupClaims Template Rule')
+
                 $groupSid = Get-AdGroupSid -GroupName $rule.GroupName
                 $output += ($emitGroupClaimsTransformRule -f $rule.Name, $groupSid, $rule.OutgoingClaimType,
                     $rule.OutgoingClaimValue)
             }
             elseif ($rule.TemplateName -eq 'CustomClaims')
             {
-                Write-Debug 'Processing CustomClaims Template Rule'
+                Write-Debug -Message ($script:LocalizedData.ProcessingPropertyDebugMessage -f
+                    'CustomClaims Template Rule')
+
                 $output += $customTransformRule -f $rule.Name, $rule.CustomRule
             }
             else
@@ -1177,8 +1181,7 @@ function ConvertTo-IssuanceTransformRule
     }
     end
     {
-        Write-Debug "ConvertTo-IssuanceTransformRule output: $output"
-        $output
+        return $output
     }
 }
 
@@ -1190,7 +1193,7 @@ function ConvertFrom-IssuanceTransformRule
 
         .NOTES
 
-            IssuanceTransformRules               = @(
+            IssuanceTransformRules = @(
             MSFT_AdfsIssuanceTransformRule
             {
                 TemplateName    = 'LdapClaims'
@@ -1207,7 +1210,7 @@ function ConvertFrom-IssuanceTransformRule
     #>
 
     [CmdletBinding()]
-    [OutputType([Microsoft.Management.Infrastructure.CimInstance])]
+    [OutputType([Microsoft.Management.Infrastructure.CimInstance[]])]
     param
     (
         [Parameter(Mandatory = $true)]
@@ -1215,6 +1218,8 @@ function ConvertFrom-IssuanceTransformRule
         [System.String[]]
         $Rule
     )
+
+    Write-Debug -Message ($script:LocalizedData.EnteringFunctionDebugMessage -f $MyInvocation.MyCommand)
 
     $ruleLines = $Rule -split '\r?\n'
     $individualRules = [System.Collections.ArrayList]@()
@@ -1234,6 +1239,7 @@ function ConvertFrom-IssuanceTransformRule
             $individualRule += $ruleLine
         }
     }
+
     $MSFT_AdfsIssuanceTransformRule = @()
     if ($individualRules)
     {
@@ -1241,7 +1247,9 @@ function ConvertFrom-IssuanceTransformRule
         {
             if ($individualRule[0] -eq '@RuleTemplate = "LdapClaims"')
             {
-                Write-Debug 'Processing LdapClaims Template Rule'
+                Write-Debug -Message ($script:LocalizedData.ProcessingPropertyDebugMessage -f
+                    'LdapClaims Template Rule')
+
                 $outgoingClaimTypes = @(($individualRule[3].Split('(').Split(')')[2]).Split(',').Trim().Trim('"'))
                 $ldapAttributes = @(($individualRule[3].Split(';')[1]).Split(','))
 
@@ -1265,7 +1273,9 @@ function ConvertFrom-IssuanceTransformRule
             }
             elseif ($individualRule[0] -eq '@RuleTemplate = "EmitGroupClaims"')
             {
-                Write-Debug 'Processing EmitGroupClaims Template Rule'
+                Write-Debug -Message ($script:LocalizedData.ProcessingPropertyDebugMessage -f
+                    'EmitGroupClaims Template Rule')
+
                 $groupSid = $individualRule[2].Split('"')[3]
                 $issuanceTransformRule = @{
                     TemplateName       = 'EmitGroupClaims'
@@ -1277,7 +1287,9 @@ function ConvertFrom-IssuanceTransformRule
             }
             else
             {
-                Write-Debug 'Processing CustomClaims Template Rule'
+                Write-Debug -Message ($script:LocalizedData.ProcessingPropertyDebugMessage -f
+                    'CustomClaims Template Rule')
+
                 $issuanceTransformRule = @{
                     TemplateName = 'CustomClaims'
                     Name         = $individualRule[0].split('"')[1]
@@ -1290,7 +1302,7 @@ function ConvertFrom-IssuanceTransformRule
                 -Property $issuanceTransformRule -ClientOnly
         }
 
-        $MSFT_AdfsIssuanceTransformRule
+        return $MSFT_AdfsIssuanceTransformRule
     }
 }
 
@@ -1307,17 +1319,22 @@ function Compare-IssuanceTransformRule
     (
         [Parameter(Mandatory = $true)]
         [AllowEmptyCollection()]
-        [System.Object[]]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
         $CurrentValue,
 
         [Parameter(Mandatory = $true)]
-        [System.Object[]]
-        $DesiredValue
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $DesiredValue,
+
+        [Parameter(Mandatory = $true)]
+        [System.String]
+        $ParameterName
     )
 
+    Write-Debug -Message ($script:LocalizedData.EnteringFunctionDebugMessage -f $MyInvocation.MyCommand)
 
     $parameterState = @{
-        ParameterName  = 'IssuanceTransformRules'
+        ParameterName  = $ParameterName
         Expected       = $DesiredValue
         Actual         = $CurrentValue
         InDesiredState = $true
@@ -1335,42 +1352,47 @@ function Compare-IssuanceTransformRule
             {
                 if ($DesiredValue[$index].TemplateName -eq 'LdapClaims')
                 {
-                    Write-Debug -Message "Comparing LdapClaims Rule $($CurrentValue[$index].Name)"
+                    Write-Debug -Message ($script:LocalizedData.ComparingPropertiesWithNameDebugMessage -f
+                        'LdapClaims', $CurrentValue[$index].Name)
+
                     if (Compare-Object -ReferenceObject $CurrentValue[$index] -DifferenceObject $DesiredValue[$index] `
                             -Property $CurrentValue[$index].CimInstanceProperties.Name)
                     {
-                        Write-Debug -Message "Comparing LdapClaims False"
                         $parameterState.InDesiredState = $false
                         break
                     }
-                    if (Compare-Object -ReferenceObject $CurrentValue[$index].LdapMapping -DifferenceObject $DesiredValue[$index].LdapMapping `
-                        -Property $CurrentValue[$index].LdapMapping.CimInstanceProperties.Name)
-                        {
-                            Write-Debug -Message "Comparing LdapClaims LdapMapping False"
-                            $parameterState.InDesiredState = $false
-                            break
-                        }
+
+                    if (Compare-Object -ReferenceObject $CurrentValue[$index].LdapMapping `
+                            -DifferenceObject $DesiredValue[$index].LdapMapping `
+                            -Property $CurrentValue[$index].LdapMapping.CimInstanceProperties.Name)
+                    {
+                        $parameterState.InDesiredState = $false
+                        break
+                    }
 
                 }
                 elseif ($DesiredValue[$index].TemplateName -eq 'EmitGroupClaims')
                 {
-                    Write-Debug -Message "Comparing EmitGroupClaims Rule $($CurrentValue[$index].Name)"
+                    Write-Debug -Message ($script:LocalizedData.ComparingPropertiesWithNameDebugMessage -f
+                        'EmitGroupClaims', $CurrentValue[$index].Name)
+
                     if (Compare-Object -ReferenceObject $CurrentValue[$index] -DifferenceObject $DesiredValue[$index] `
                             -Property $CurrentValue[$index].CimInstanceProperties.Name)
                     {
-                        Write-Debug -Message "Comparing EmitGroupClaims False"
                         $parameterState.InDesiredState = $false
                         break
                     }
                 }
                 elseif ($DesiredValue[$index].TemplateName -eq 'CustomClaims')
                 {
-                    Write-Debug -Message "Comparing CustomClaims Rule $($CurrentValue[$index].Name)"
+                    Write-Debug -Message ($script:LocalizedData.ComparingPropertiesWithNameDebugMessage -f
+                        'CustomClaims', $CurrentValue[$index].Name)
+
                     $CurrentCustomRule = ($CurrentValue[$index].CustomRule -split '\r?\n' | Out-String).Trim()
                     $DesiredCustomRule = ($DesiredValue[$index].CustomRule -split '\r?\n' | Out-String).Trim()
-                    if ($CurrentCustomRule -ne $DesiredCustomRule -or $CurrentValue[$index].Name -ne $DesiredValue[$index].Name)
+                    if ($CurrentCustomRule -ne $DesiredCustomRule -or
+                        $CurrentValue[$index].Name -ne $DesiredValue[$index].Name)
                     {
-                        Write-Debug -Message "Comparing CustomClaims False"
                         $parameterState.InDesiredState = $false
                         break
                     }
@@ -1384,9 +1406,189 @@ function Compare-IssuanceTransformRule
             }
             else
             {
-                Write-Debug -Message "TemplateName Changed"
                 $parameterState.InDesiredState = $false
                 break
+            }
+        }
+    }
+
+    return $parameterState
+}
+
+function ConvertTo-AccessControlPolicyParameter
+{
+    <#
+    .SYNOPSIS
+        Converts a CIMInstance MSFT_AdfsAccessControlPolicyParameter object to an AccessControlPolicyParameter
+        Hashtable
+    #>
+
+    [CmdletBinding()]
+    [OutputType([System.Collections.Hashtable])]
+    param
+    (
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [AllowEmptyCollection()]
+        [AllowNull()]
+        [Microsoft.Management.Infrastructure.CimInstance]
+        $InputObject
+    )
+    begin
+    {
+        Write-Debug -Message ($script:LocalizedData.EnteringFunctionDebugMessage -f $MyInvocation.MyCommand)
+    }
+    process
+    {
+        $accessControlPolicyParameter = @{ }
+        foreach ($property in $InputObject.CIMInstanceProperties.Name)
+        {
+            switch ($property)
+            {
+                'GroupParameter'
+                {
+                    Write-Debug -Message ($script:LocalizedData.ProcessingPropertyWithValueDebugMessage -f
+                        $property, ($InputObject.GroupParameter -join ', '))
+
+                    $accessControlPolicyParameter += @{
+                        GroupParameter = $InputObject.GroupParameter
+                    }
+                    break
+                }
+            }
+        }
+
+        return $accessControlPolicyParameter
+    }
+}
+
+function ConvertFrom-AccessControlPolicyParameter
+{
+    <#
+        .SYNOPSIS
+            Converts an AccessControlPolicyParameter Hashtable to a CIMInstance
+            MSFT_AdfsAccessControlPolicyParameter object
+
+        .NOTES
+
+        AccessControlPolicyParameters = MSFT_AdfsAccessControlPolicyParameter
+            @{
+                GroupParameter = @(
+                    'CONTOSO\AppGroup1 Users'
+                    'CONTOSO\AppGroup1 Admins'
+                )
+            }
+    #>
+
+    [CmdletBinding()]
+    [OutputType([Microsoft.Management.Infrastructure.CimInstance])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
+        [System.Collections.Hashtable]
+        $Policy
+    )
+
+    Write-Debug -Message ($script:LocalizedData.EnteringFunctionDebugMessage -f $MyInvocation.MyCommand)
+
+    $policyParameter = @{ }
+
+    foreach ($parameter in $Policy.GetEnumerator().Name)
+    {
+        Write-Debug -Message ($script:LocalizedData.ProcessingPropertyDebugMessage -f "$parameter Parameter")
+
+        Switch -WildCard ($parameter)
+        {
+            'GroupParameter*'
+            {
+                Write-Debug -Message ($script:LocalizedData.ProcessingPropertyWithValueDebugMessage -f
+                    $parameter, ($Policy.$parameter -join ', '))
+
+                $GroupParameter = @()
+                foreach ($parameter in $Policy.$parameter)
+                {
+                    $groupParameter += $parameter
+                }
+
+                $policyParameter += @{
+                    GroupParameter = $groupParameter
+                }
+            }
+        }
+    }
+
+    $MSFTAdfsAccessControlPolicyParameter = New-CimInstance -ClassName MSFT_AdfsAccessControlPolicyParameters `
+        -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+        -Property $policyParameter -ClientOnly
+
+    return $MSFTAdfsAccessControlPolicyParameter
+}
+
+function Compare-AccessControlPolicyParameter
+{
+    <#
+        .SYNOPSIS
+            Compare two access control policy parameters
+    #>
+
+    [CmdletBinding()]
+    [OutputType([System.Collections.Hashtable])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyCollection()]
+        [Microsoft.Management.Infrastructure.CimInstance]
+        $CurrentValue,
+
+        [Parameter(Mandatory = $true)]
+        [Microsoft.Management.Infrastructure.CimInstance]
+
+        $DesiredValue,
+
+        [Parameter(Mandatory = $true)]
+        [System.String]
+        $ParameterName
+    )
+
+    Write-Debug -Message ($script:LocalizedData.EnteringFunctionDebugMessage -f $MyInvocation.MyCommand)
+
+    $parameterState = @{
+        ParameterName  = $ParameterName
+        Expected       = $DesiredValue
+        Actual         = $CurrentValue
+        InDesiredState = $true
+    }
+
+    if ([System.String]::IsNullOrEmpty($CurrentValue))
+    {
+        $parameterState.InDesiredState = $false
+    }
+    else
+    {
+        if (Compare-Object -ReferenceObject $CurrentValue.CimInstanceProperties.Name `
+                -DifferenceObject $DesiredValue.CimInstanceProperties.Name)
+        {
+            Write-Verbose -Message ($script:localizedData.PolicyParameterNotInDesiredState -f
+                $DesiredValue.CimInstanceProperties.Name, $CurrentValue.CimInstanceProperties.Name)
+
+            $parameterState.InDesiredState = $false
+        }
+        else
+        {
+            foreach ($property in $CurrentValue.CimInstanceProperties.Name)
+            {
+
+                Write-Debug -Message ($script:LocalizedData.ComparingPropertiesWithValueDebugMessage -f
+                    $property, $CurrentValue.$property, $DesiredValue.$property)
+
+                if (Compare-Object -ReferenceObject $CurrentValue.$property -DifferenceObject $DesiredValue.$property)
+                {
+                    Write-Verbose -Message ($script:localizedData.PropertyNotInDesiredState -f
+                        $property, ($DesiredValue.$property -join ', '), ($CurrentValue.$property -join ', '))
+
+                    $parameterState.InDesiredState = $false
+                    break
+                }
             }
         }
     }
@@ -1412,6 +1614,7 @@ function Get-AdGroupNameFromSid
 
 
     $groupObject = ([System.DirectoryServices.DirectorySearcher]"(&(objectClass=group)(objectSid=$sid))").FindOne()
+
     if ($groupObject)
     {
         return $groupObject.GetDirectoryEntry().Name
@@ -1439,8 +1642,8 @@ function Get-AdGroupSid
         $GroupName
     )
 
-    Write-Debug "Getting SID for Active Directory group $GroupName"
     $adGroup = ([System.DirectoryServices.DirectorySearcher]"(&(objectClass=group)(name=$GroupName))").FindOne()
+
     if ($adGroup)
     {
         $binarySid = $adGroup.GetDirectoryEntry().ObjectSid.Value
@@ -1479,4 +1682,7 @@ Export-ModuleMember -Function @(
     'ConvertTo-IssuanceTransformRule'
     'ConvertFrom-IssuanceTransformRule'
     'Compare-IssuanceTransformRule'
+    'ConvertFrom-AccessControlPolicyParameter'
+    'ConvertTo-AccessControlPolicyParameter'
+    'Compare-AccessControlPolicyParameter'
 )

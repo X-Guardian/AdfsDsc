@@ -22,55 +22,26 @@
         Required - String
         Specifies an identifier for the Web API application.
 
-    .PARAMETER Description
+    .PARAMETER AccessControlPolicyName
         Write - String
-        Specifies a description for the Web API application.
+        Specifies the name of an access control policy.
 
-    .PARAMETER Ensure
-        Write - String
-        Allowed values: Present, Absent
-        Specifies whether the Web API application should be present or absent. Default value is 'Present'.
-
-    .PARAMETER AllowedAuthenticationClassReferences
-        Write - String
-        Specifies an array of allow authentication class references.
-
-    .PARAMETER ClaimsProviderName
-        Write - String
-        Specifies an array of claims provider names that you can configure for a relying party trust for Home Realm
-        Discovery (HRD) scenario.
-
-    .PARAMETER IssuanceAuthorizationRules
-        Write - String
-        Specifies the issuance authorization rules.
-
-    .PARAMETER DelegationAuthorizationRules
-        Write - String
-        Specifies delegation authorization rules.
-
-    .PARAMETER ImpersonationAuthorizationRules
-        Write - String
-        Specifies the impersonation authorization rules.
-
-    .PARAMETER IssuanceTransformRules
-        Write - String
-        Specifies the issuance transform rules.
+    .PARAMETER AccessControlPolicyParameters
+        Write - MSFT_AccessControlPolicyParameters
+        Specifies Specifies the parameters and their values to pass to the Access Control Policy.
 
     .PARAMETER AdditionalAuthenticationRules
         Write - String
         Specifies additional authentication rules.
 
-    .PARAMETER AccessControlPolicyName
+    .PARAMETER AllowedAuthenticationClassReferences
         Write - String
-        Specifies the name of an access control policy.
+        Specifies an array of allow authentication class references.
 
-    .PARAMETER NotBeforeSkew
-        Write - Sint32
-        Specifies the not before skew value.
-
-    .PARAMETER TokenLifetime
-        Write - Sint32
-        Specifies the token lifetime.
+    .PARAMETER AllowedClientTypes
+        Write - String
+        Allowed values: None, Public, Confidential
+        Specifies allowed client types.
 
     .PARAMETER AlwaysRequireAuthentication
         Write - Boolean
@@ -78,15 +49,39 @@
         authenticated credentials for access. Specify this parameter to require users to always supply credentials to
         access sensitive resources.
 
-    .PARAMETER AllowedClientTypes
+    .PARAMETER ClaimsProviderName
         Write - String
-        Allowed values: None, Public, Confidential
-        Specifies allowed client types.
+        Specifies an array of claims provider names that you can configure for a relying party trust for Home Realm
+        Discovery (HRD) scenario.
+
+    .PARAMETER DelegationAuthorizationRules
+        Write - String
+        Specifies delegation authorization rules.
+
+    .PARAMETER Description
+        Write - String
+        Specifies a description for the Web API application.
+
+    .PARAMETER ImpersonationAuthorizationRules
+        Write - String
+        Specifies the impersonation authorization rules.
+
+    .PARAMETER IssuanceAuthorizationRules
+        Write - String
+        Specifies the issuance authorization rules.
+
+    .PARAMETER IssuanceTransformRules
+        Write - String
+        Specifies the issuance transform rules.
 
     .PARAMETER IssueOAuthRefreshTokensTo
         Write - String
         Allowed values: NoDevice, WorkplaceJoinedDevices, AllDevices
         Specifies the refresh token issuance device types.
+
+    .PARAMETER NotBeforeSkew
+        Write - Sint32
+        Specifies the not before skew value.
 
     .PARAMETER RefreshTokenProtectionEnabled
         Write - Boolean
@@ -95,6 +90,15 @@
     .PARAMETER RequestMFAFromClaimsProviders
         Write - Boolean
         Indicates that the request MFA from claims providers option is used.
+
+    .PARAMETER TokenLifetime
+        Write - Sint32
+        Specifies the token lifetime.
+
+    .PARAMETER Ensure
+        Write - String
+        Allowed values: Present, Absent
+        Specifies whether the Web API application should be present or absent. Default value is 'Present'.
 #>
 
 Set-StrictMode -Version 2.0
@@ -118,8 +122,17 @@ function Get-TargetResource
         Get-TargetResource
 
     .NOTES
-        Used Resource PowerShell Cmdlets:
-        - Get-AdfsWebApiApplication - https://docs.microsoft.com/en-us/powershell/module/adfs/get-adfswebApiapplication
+        Used Cmdlets/Functions:
+
+        Name                                     | Module
+        -----------------------------------------|----------------
+        Get-AdfsWebApiApplication                | Adfs
+        Assert-Module                            | AdfsDsc.Common
+        Assert-Command                           | AdfsDsc.Common
+        Assert-AdfsService                       | AdfsDsc.Common
+        ConvertFrom-IssuanceTransformRule        | AdfsDsc.Common
+        ConvertFrom-AccessControlPolicyParameter | AdfsDsc.Common
+
     #>
 
     [CmdletBinding()]
@@ -139,6 +152,13 @@ function Get-TargetResource
         $Identifier
     )
 
+
+    # Set Verbose and Debug parameters
+    $CommonParms = @{
+        Verbose = $VerbosePreference
+        Debug   = $DebugPreference
+    }
+
     # Check of the Resource PowerShell module is installed
     Assert-Module -ModuleName $script:psModuleName
 
@@ -154,60 +174,69 @@ function Get-TargetResource
 
     if ($targetResource)
     {
-        # Resource exists
-        Write-Debug "Target resource $Name exists"
+        # Resource is Present
+        Write-Debug -Message ($script:localizedData.TargetResourcePresentDebugMessage -f $Name)
+
+        $AccessControlPolicyParameters = ConvertFrom-AccessControlPolicyParameter `
+            -Policy $targetResource.AccessControlPolicyParameters @CommonParms
+
+        $IssuanceTransformRules = ConvertFrom-IssuanceTransformRule `
+            -Rule $targetResource.IssuanceTransformRules @CommonParms
+
         $returnValue = @{
             Name                                 = $targetResource.Name
             ApplicationGroupIdentifier           = $targetResource.ApplicationGroupIdentifier
             Identifier                           = @($targetResource.Identifier)
-            Description                          = $targetResource.Description
-            AllowedAuthenticationClassReferences = @($targetResource.AllowedAuthenticationClassReferences)
-            ClaimsProviderName                   = @($targetResource.ClaimsProviderName)
-            IssuanceAuthorizationRules           = $targetResource.IssuanceAuthorizationRules
-            DelegationAuthorizationRules         = $targetResource.DelegationAuthorizationRules
-            ImpersonationAuthorizationRules      = $targetResource.ImpersonationAuthorizationRules
-            IssuanceTransformRules               = @(ConvertFrom-IssuanceTransformRule -Rule $targetResource.IssuanceTransformRules)
-            AdditionalAuthenticationRules        = $targetResource.AdditionalAuthenticationRules
             AccessControlPolicyName              = $targetResource.AccessControlPolicyName
-            NotBeforeSkew                        = $targetResource.NotBeforeSkew
-            TokenLifetime                        = $targetResource.TokenLifetime
+            AccessControlPolicyParameters        = $AccessControlPolicyParameters
+            AdditionalAuthenticationRules        = $targetResource.AdditionalAuthenticationRules
             AlwaysRequireAuthentication          = $targetResource.AlwaysRequireAuthentication
             AllowedClientTypes                   = @($targetResource.AllowedClientTypes)
+            AllowedAuthenticationClassReferences = @($targetResource.AllowedAuthenticationClassReferences)
+            ClaimsProviderName                   = @($targetResource.ClaimsProviderName)
+            DelegationAuthorizationRules         = $targetResource.DelegationAuthorizationRules
+            Description                          = $targetResource.Description
+            ImpersonationAuthorizationRules      = $targetResource.ImpersonationAuthorizationRules
+            IssuanceAuthorizationRules           = $targetResource.IssuanceAuthorizationRules
+            IssuanceTransformRules               = @($IssuanceTransformRules)
             IssueOAuthRefreshTokensTo            = $targetResource.IssueOAuthRefreshTokensTo
+            NotBeforeSkew                        = $targetResource.NotBeforeSkew
             RefreshTokenProtectionEnabled        = $targetResource.RefreshTokenProtectionEnabled
             RequestMFAFromClaimsProviders        = $targetResource.RequestMFAFromClaimsProviders
+            TokenLifetime                        = $targetResource.TokenLifetime
             Ensure                               = 'Present'
         }
     }
     else
     {
-        # Resource does not exist
-        Write-Debug "Target resource $Name does not exist"
+        # Resource is Absent
+        Write-Debug -Message ($script:localizedData.TargetResourceAbsentDebugMessage -f $Name)
+
         $returnValue = @{
             Name                                 = $Name
             ApplicationGroupIdentifier           = $ApplicationGroupIdentifier
             Identifier                           = @($Identifier)
-            Description                          = $null
-            AllowedAuthenticationClassReferences = @()
-            ClaimsProviderName                   = @()
-            IssuanceAuthorizationRules           = $null
-            DelegationAuthorizationRules         = $null
-            ImpersonationAuthorizationRules      = $null
-            IssuanceTransformRules               = $null
-            AdditionalAuthenticationRules        = $null
             AccessControlPolicyName              = $null
-            NotBeforeSkew                        = 0
-            TokenLifetime                        = 0
-            AlwaysRequireAuthentication          = $null
+            AccessControlPolicyParameters        = $null
+            AdditionalAuthenticationRules        = $null
+            AllowedAuthenticationClassReferences = @()
             AllowedClientTypes                   = @('None')
+            AlwaysRequireAuthentication          = $null
+            ClaimsProviderName                   = @()
+            DelegationAuthorizationRules         = $null
+            Description                          = $null
+            ImpersonationAuthorizationRules      = $null
+            IssuanceAuthorizationRules           = $null
+            IssuanceTransformRules               = $null
             IssueOAuthRefreshTokensTo            = 'NoDevice'
+            NotBeforeSkew                        = 0
             RefreshTokenProtectionEnabled        = $false
             RequestMFAFromClaimsProviders        = $false
+            TokenLifetime                        = 0
             Ensure                               = 'Absent'
         }
     }
 
-    Write-Debug "Returning Value"
     $returnValue
 }
 
@@ -219,10 +248,19 @@ function Set-TargetResource
         Set-TargetResource
 
     .NOTES
-        Used Resource PowerShell Cmdlets:
-        - Add-AdfsWebApiApplication    - https://docs.microsoft.com/en-us/powershell/module/adfs/add-adfswebapiapplication
-        - Remove-AdfsWebApiApplication - https://docs.microsoft.com/en-us/powershell/module/adfs/remove-adfswebapiapplication
-        - Set-AdfsWebApiApplication    - https://docs.microsoft.com/en-us/powershell/module/adfs/set-adfswebapiapplication
+        Used Cmdlets/Functions:
+
+        Name                                   | Module
+        ---------------------------------------|----------------
+        Add-AdfsWebApiApplication              | Adfs
+        Add-AdfsWebApiApplication              | Adfs
+        Remove-AdfsWebApiApplication           | Adfs
+        Set-AdfsWebApiApplication              | Adfs
+        Compare-IssuanceTransformRule          | AdfsDsc.Common
+        Compare-AccessControlPolicyParameter   | AdfsDsc.Common
+        Compare-ResourcePropertyState          | AdfsDsc.Common
+        ConvertTo-IssuanceTransformRule        | AdfsDsc.Common
+        ConvertTo-AccessControlPolicyParameter | AdfsDsc.Common
     #>
 
     [CmdletBinding()]
@@ -242,56 +280,19 @@ function Set-TargetResource
 
         [Parameter()]
         [System.String]
-        $Description,
+        $AccessControlPolicyName,
 
         [Parameter()]
-        [ValidateSet('Present', 'Absent')]
-        [System.String]
-        $Ensure = 'Present',
-
-        [Parameter()]
-        [System.String[]]
-        $AllowedAuthenticationClassReferences,
-
-        [Parameter()]
-        [System.String[]]
-        $ClaimsProviderName,
-
-        [Parameter()]
-        [System.String]
-        $IssuanceAuthorizationRules,
-
-        [Parameter()]
-        [System.String]
-        $DelegationAuthorizationRules,
-
-        [Parameter()]
-        [System.String]
-        $ImpersonationAuthorizationRules,
-
-        [Parameter()]
-        [Microsoft.Management.Infrastructure.CimInstance[]]
-        $IssuanceTransformRules,
+        [Microsoft.Management.Infrastructure.CimInstance]
+        $AccessControlPolicyParameters,
 
         [Parameter()]
         [System.String]
         $AdditionalAuthenticationRules,
 
         [Parameter()]
-        [System.String]
-        $AccessControlPolicyName,
-
-        [Parameter()]
-        [System.Int32]
-        $NotBeforeSkew,
-
-        [Parameter()]
-        [System.Int32]
-        $TokenLifetime,
-
-        [Parameter()]
-        [System.Boolean]
-        $AlwaysRequireAuthentication,
+        [System.String[]]
+        $AllowedAuthenticationClassReferences,
 
         [Parameter()]
         [ValidateSet('None', 'Public', 'Confidential')]
@@ -299,9 +300,41 @@ function Set-TargetResource
         $AllowedClientTypes,
 
         [Parameter()]
+        [System.Boolean]
+        $AlwaysRequireAuthentication,
+
+        [Parameter()]
+        [System.String[]]
+        $ClaimsProviderName,
+
+        [Parameter()]
+        [System.String]
+        $DelegationAuthorizationRules,
+
+        [Parameter()]
+        [System.String]
+        $Description,
+
+        [Parameter()]
+        [System.String]
+        $ImpersonationAuthorizationRules,
+
+        [Parameter()]
+        [System.String]
+        $IssuanceAuthorizationRules,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $IssuanceTransformRules,
+
+        [Parameter()]
         [ValidateSet('NoDevice', 'WorkplaceJoinedDevices', 'AllDevices')]
         [System.String]
         $IssueOAuthRefreshTokensTo,
+
+        [Parameter()]
+        [System.Int32]
+        $NotBeforeSkew,
 
         [Parameter()]
         [System.Boolean]
@@ -309,8 +342,23 @@ function Set-TargetResource
 
         [Parameter()]
         [System.Boolean]
-        $RequestMFAFromClaimsProviders
+        $RequestMFAFromClaimsProviders,
+
+        [Parameter()]
+        [System.Int32]
+        $TokenLifetime,
+
+        [Parameter()]
+        [ValidateSet('Present', 'Absent')]
+        [System.String]
+        $Ensure = 'Present'
     )
+
+    # Set Verbose and Debug parameters
+    $CommonParms = @{
+        Verbose = $VerbosePreference
+        Debug   = $DebugPreference
+    }
 
     # Remove any parameters not used in Splats
     [HashTable]$parameters = $PSBoundParameters
@@ -327,29 +375,43 @@ function Set-TargetResource
     if ($targetResource.Ensure -eq 'Present')
     {
         # Resource is Present
+        Write-Debug -Message ($script:localizedData.TargetResourcePresentDebugMessage -f $Name)
+
         if ($Ensure -eq 'Present')
         {
             # Resource should be Present
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBePresentDebugMessage -f $Name)
+
             $propertiesNotInDesiredState = @()
 
             if ($PSBoundParameters.Keys.Contains('IssuanceTransformRules'))
             {
                 $propertiesNotInDesiredState += (
                     Compare-IssuanceTransformRule -CurrentValue $targetResource.IssuanceTransformRules `
-                        -DesiredValue $IssuanceTransformRules |
-                    Where-Object -Property InDesiredState -eq $false)
+                        -DesiredValue $IssuanceTransformRules -ParameterName 'IssuanceTransformRules' `
+                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+            }
+
+            if ($PSBoundParameters.Keys.Contains('AccessControlPolicyParameters'))
+            {
+                $propertiesNotInDesiredState += (
+                    Compare-AccessControlPolicyParameter -CurrentValue $targetResource.AccessControlPolicyParameters `
+                        -DesiredValue $AccessControlPolicyParameters -ParameterName 'AccessControlPolicyParameters' `
+                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             $propertiesNotInDesiredState += (
                 Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters `
-                    -IgnoreProperties 'IssuanceTransformRules' | Where-Object -Property InDesiredState -eq $false)
+                    -IgnoreProperties 'IssuanceTransformRules', 'AccessControlPolicyParameters' `
+                    @CommonParms | Where-Object -Property InDesiredState -eq $false)
 
             if ($propertiesNotInDesiredState |
-                    Where-Object -Property ParameterName -eq 'ApplicationGroupIdentifier')
+                Where-Object -Property ParameterName -eq 'ApplicationGroupIdentifier')
             {
                 Write-Verbose -Message ($script:localizedData.RemovingResourceMessage -f
                     $Name, $targetResource.ApplicationGroupIdentifier)
                 Remove-AdfsWebApiApplication -TargetName $Name
+
                 Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f
                     $Name, $ApplicationGroupIdentifier)
                 Add-AdfsWebApiApplication @parameters -Verbose:$false
@@ -365,7 +427,14 @@ function Set-TargetResource
                 if ($property.ParameterName -eq 'IssuanceTransformRules')
                 {
                     # Custom processing for 'IssuanceTransformRules' property
-                    $SetParameters.Add($property.ParameterName, ($IssuanceTransformRules | ConvertTo-IssuanceTransformRule))
+                    $setParameters.Add($property.ParameterName, ($IssuanceTransformRules |
+                            ConvertTo-IssuanceTransformRule @CommonParms))
+                }
+                elseif ($property.ParameterName -eq 'AccessControlPolicyParameters')
+                {
+                    # Custom processing for 'AccessControlPolicyParameters' property
+                    $setParameters.Add($property.ParameterName, ($AccessControlPolicyParameters |
+                            ConvertTo-AccessControlPolicyParameter @CommonParms))
                 }
                 else
                 {
@@ -378,6 +447,8 @@ function Set-TargetResource
         else
         {
             # Resource should be Absent
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f $Name)
+
             Write-Verbose -Message ($script:localizedData.RemovingResourceMessage -f
                 $Name, $ApplicationGroupIdentifier)
             Remove-AdfsWebApiApplication -TargetName $Name
@@ -386,13 +457,25 @@ function Set-TargetResource
     else
     {
         # Resource is Absent
+        Write-Debug -Message ($script:localizedData.TargetResourceAbsentDebugMessage -f $Name)
+
         if ($Ensure -eq 'Present')
         {
             # Resource should be Present
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBePresentDebugMessage -f $Name)
+
             if ($parameters.ContainsKey('IssuanceTransformRules'))
             {
                 # Custom processing for 'IssuanceTransformRules' property
-                $parameters.IssuanceTransformRules = $parameters.IssuanceTransformRules | ConvertTo-IssuanceTransformRule
+                $parameters.IssuanceTransformRules = ($parameters.IssuanceTransformRules |
+                    ConvertTo-IssuanceTransformRule @CommonParms)
+            }
+
+            if ($parameters.ContainsKey('AccessControlPolicyParameters'))
+            {
+                # Custom processing for 'AccessControlPolicyParameters' property
+                $parameters.AccessControlPolicyParameters = ($parameters.AccessControlPolicyParameters |
+                    ConvertTo-AccessControlPolicyParameter @CommonParms)
             }
 
             Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f
@@ -402,6 +485,8 @@ function Set-TargetResource
         else
         {
             # Resource should be Absent
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f $Name)
+
             Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $Name)
         }
     }
@@ -412,6 +497,15 @@ function Test-TargetResource
     <#
     .SYNOPSIS
         Test-TargetResource
+
+    .NOTES
+        Used Cmdlets/Functions:
+
+        Name                                 | Module
+        -------------------------------------|------------------
+        Compare-IssuanceTransformRule        | AdfsDsc.Common
+        Compare-AccessControlPolicyParameter | AdfsDsc.Common
+        Compare-ResourcePropertyState        | AdfsDsc.Common
     #>
 
     [CmdletBinding()]
@@ -432,56 +526,19 @@ function Test-TargetResource
 
         [Parameter()]
         [System.String]
-        $Description,
+        $AccessControlPolicyName,
 
         [Parameter()]
-        [ValidateSet('Present', 'Absent')]
-        [System.String]
-        $Ensure = 'Present',
-
-        [Parameter()]
-        [System.String[]]
-        $AllowedAuthenticationClassReferences,
-
-        [Parameter()]
-        [System.String[]]
-        $ClaimsProviderName,
-
-        [Parameter()]
-        [System.String]
-        $IssuanceAuthorizationRules,
-
-        [Parameter()]
-        [System.String]
-        $DelegationAuthorizationRules,
-
-        [Parameter()]
-        [System.String]
-        $ImpersonationAuthorizationRules,
-
-        [Parameter()]
-        [Microsoft.Management.Infrastructure.CimInstance[]]
-        $IssuanceTransformRules,
+        [Microsoft.Management.Infrastructure.CimInstance]
+        $AccessControlPolicyParameters,
 
         [Parameter()]
         [System.String]
         $AdditionalAuthenticationRules,
 
         [Parameter()]
-        [System.String]
-        $AccessControlPolicyName,
-
-        [Parameter()]
-        [System.Int32]
-        $NotBeforeSkew,
-
-        [Parameter()]
-        [System.Int32]
-        $TokenLifetime,
-
-        [Parameter()]
-        [System.Boolean]
-        $AlwaysRequireAuthentication,
+        [System.String[]]
+        $AllowedAuthenticationClassReferences,
 
         [Parameter()]
         [ValidateSet('None', 'Public', 'Confidential')]
@@ -489,9 +546,41 @@ function Test-TargetResource
         $AllowedClientTypes,
 
         [Parameter()]
+        [System.Boolean]
+        $AlwaysRequireAuthentication,
+
+        [Parameter()]
+        [System.String[]]
+        $ClaimsProviderName,
+
+        [Parameter()]
+        [System.String]
+        $DelegationAuthorizationRules,
+
+        [Parameter()]
+        [System.String]
+        $Description,
+
+        [Parameter()]
+        [System.String]
+        $ImpersonationAuthorizationRules,
+
+        [Parameter()]
+        [System.String]
+        $IssuanceAuthorizationRules,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $IssuanceTransformRules,
+
+        [Parameter()]
         [ValidateSet('NoDevice', 'WorkplaceJoinedDevices', 'AllDevices')]
         [System.String]
         $IssueOAuthRefreshTokensTo,
+
+        [Parameter()]
+        [System.Int32]
+        $NotBeforeSkew,
 
         [Parameter()]
         [System.Boolean]
@@ -499,8 +588,23 @@ function Test-TargetResource
 
         [Parameter()]
         [System.Boolean]
-        $RequestMFAFromClaimsProviders
+        $RequestMFAFromClaimsProviders,
+
+        [Parameter()]
+        [System.Int32]
+        $TokenLifetime,
+
+        [Parameter()]
+        [ValidateSet('Present', 'Absent')]
+        [System.String]
+        $Ensure = 'Present'
     )
+
+    # Set Verbose and Debug parameters
+    $CommonParms = @{
+        Verbose = $VerbosePreference
+        Debug   = $DebugPreference
+    }
 
     $getTargetResourceParms = @{
         Name                       = $Name
@@ -512,22 +616,35 @@ function Test-TargetResource
     if ($targetResource.Ensure -eq 'Present')
     {
         # Resource is Present
+        Write-Debug -Message ($script:localizedData.TargetResourcePresentDebugMessage -f $Name)
+
         if ($Ensure -eq 'Present')
         {
             # Resource should be Present
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBePresentDebugMessage -f $Name)
+
             $propertiesNotInDesiredState = @()
 
             if ($PSBoundParameters.Keys.Contains('IssuanceTransformRules'))
             {
                 $propertiesNotInDesiredState += (
                     Compare-IssuanceTransformRule -CurrentValue $targetResource.IssuanceTransformRules `
-                        -DesiredValue $IssuanceTransformRules |
-                        Where-Object -Property InDesiredState -eq $false)
+                        -DesiredValue $IssuanceTransformRules -ParameterName 'IssuanceTransformRules' `
+                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+            }
+
+            if ($PSBoundParameters.Keys.Contains('AccessControlPolicyParameters'))
+            {
+                $propertiesNotInDesiredState += (
+                    Compare-AccessControlPolicyParameter -CurrentValue $targetResource.AccessControlPolicyParameters `
+                        -DesiredValue $AccessControlPolicyParameters -ParameterName 'AccessControlPolicyParameters' `
+                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             $propertiesNotInDesiredState += (
                 Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters `
-                    -IgnoreProperties IssuanceTransformRules | Where-Object -Property InDesiredState -eq $false)
+                    -IgnoreProperties 'IssuanceTransformRules', 'AccessControlPolicyParameters' `
+                    @CommonParms | Where-Object -Property InDesiredState -eq $false)
 
             if ($propertiesNotInDesiredState)
             {
@@ -552,6 +669,8 @@ function Test-TargetResource
         else
         {
             # Resource should be Absent
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f $Name)
+
             Write-Verbose -Message ($script:localizedData.ResourceIsPresentButShouldBeAbsentMessage -f
                 $targetResource.Name)
             $inDesiredState = $false
@@ -560,9 +679,13 @@ function Test-TargetResource
     else
     {
         # Resource is Absent
+        Write-Debug -Message ($script:localizedData.TargetResourceAbsentDebugMessage -f $Name)
+
         if ($Ensure -eq 'Present')
         {
             # Resource should be Present
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBePresentDebugMessage -f $Name)
+
             Write-Verbose -Message ($script:localizedData.ResourceIsAbsentButShouldBePresentMessage -f
                 $targetResource.Name)
             $inDesiredState = $false
@@ -570,6 +693,8 @@ function Test-TargetResource
         else
         {
             # Resource should be Absent
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f $Name)
+
             Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f
                 $targetResource.Name)
             $inDesiredState = $true

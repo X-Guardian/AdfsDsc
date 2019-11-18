@@ -3,7 +3,7 @@
 ConvertFrom-StringData @'
     EvaluatePropertyState                     = Evaluating the state of the property '{0}'. (ADFSCOMMON0001)
     PropertyInDesiredState                    = The parameter '{0}' is in desired state. (ADFSCOMMON0002)
-    PropertyNotInDesiredState                 = The parameter '{0}' is not in desired state. (ADFSCOMMON0003)
+    PropertyNotInDesiredState                 = The parameter '{0}' is not in desired state. Expected {1}, Actual {2} (ADFSCOMMON0003)
     ArrayDoesNotMatch                         = One or more values in an array does not match the desired state. Details of the changes are below. (ADFSCOMMON0004)
     ArrayValueThatDoesNotMatch                = {0} - {1} (ADFSCOMMON0005)
     PropertyValueOfTypeDoesNotMatch           = {0} value does not match. Current value is '{1}', but expected the value '{2}'. (ADFSCOMMON0006)
@@ -18,9 +18,16 @@ ConvertFrom-StringData @'
     ServiceAccountNotFoundError               = Service account {0} not found. (ADFSCOMMON0015)
     ConfigurationStatusNotFoundError          = The ADFS configuration status registry entry does not exist. (ADFSCOMMON0016)
     UnknownConfigurationStatusError           = The ADFS configuration status registry entry contains an unknown value {0}. (ADFSCOMMON0017)
-    UnknownNetBiosNameError                   = The Active Directory NetBIOS name is unknown (ADFSCOMMON0018)
+    UnknownNetBiosNameError                   = The Active Directory NetBIOS name is unknown. (ADFSCOMMON0018)
     UnknownNameFormatError                    = The Active Directory account name is in an unknown format. (ADFSCOMMON0019)
     ActiveDirectoryGroupNotFoundError         = Active Directory Group '{0}' not found. (ADFSCOMMON0020)
-    ActiveDirectoryGroupNotFoundFromSidError  = No Active Directory Group found with Sid '{0}' (ADFSCOMMON0021)
-    UnknownIssuanceTransformRuleTemplateError = Unknown issuance transform rule template '{0}' (ADFSCOMMON0022)
+    ActiveDirectoryGroupNotFoundFromSidError  = No Active Directory Group found with Sid '{0}'. (ADFSCOMMON0021)
+    UnknownIssuanceTransformRuleTemplateError = Unknown issuance transform rule template '{0}'. (ADFSCOMMON0022)
+    PolicyParameterNotInDesiredState          = Resource not in the desired state, Expected properties {0}, actual {1}. (ADFSCOMMON0023)
+
+    EnteringFunctionDebugMessage              = Entering function {0}. (ADFSCOMMONDBG001)
+    ComparingPropertiesWithNameDebugMessage   = Comparing Property {0}, Name [1]. (ADFSCOMMONDBG002)
+    ComparingPropertiesWithValueDebugMessage  = Comparing Property {0}, Currrent value {1}, Desired Value {2}. (ADFSCOMMONDBG003)
+    ProcessingPropertyDebugMessage            = Processing {0}. (ADFSCOMMONDBG004)
+    ProcessingPropertyWithValueDebugMessage   = Processing {0} with value {1}. (ADFSCOMMONDBG005)
 '@
