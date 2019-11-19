@@ -27,6 +27,7 @@ else
 
         AdfsRelyingPartyTrust = @{
             Name                                 = 'DscRelyingPartyTrust1'
+            AccessControlPolicyName              = 'Permit specific group'
             Notes                                = 'This is the DscRelyingPartyTrust1 Description'
             WSFedEndpoint                        = 'https://mail.fabrikam.com/owa'
             Identifier                           = 'https://mail.fabrikam.com/owa'
@@ -41,6 +42,11 @@ else
             EncryptClaims                        = $true
             EnableJWT                            = $false
         }
+
+        AdfsRelyingPartyTrustAccessControlPolicyParameters = @{
+            GroupParameter = 'GTECK\DscRelyingPartyTrust1 Users'
+        }
+
     }
 }
 
@@ -77,6 +83,7 @@ Configuration MSFT_AdfsRelyingPartyTrust_WSFed_Config
         AdfsRelyingPartyTrust 'Integration_Test'
         {
             Name                                 = $ConfigurationData.AdfsRelyingPartyTrust.Name
+            AccessControlPolicyName              = $ConfigurationData.AdfsRelyingPartyTrust.AccessControlPolicyName
             Notes                                = $ConfigurationData.AdfsRelyingPartyTrust.Notes
             WSFedEndpoint                        = $ConfigurationData.AdfsRelyingPartyTrust.WSFedEndpoint
             Identifier                           = $ConfigurationData.AdfsRelyingPartyTrust.Identifier
@@ -90,6 +97,10 @@ Configuration MSFT_AdfsRelyingPartyTrust_WSFed_Config
             MonitoringEnabled                    = $ConfigurationData.AdfsRelyingPartyTrust.MonitoringEnabled
             EncryptClaims                        = $ConfigurationData.AdfsRelyingPartyTrust.EncryptClaims
             EnableJWT                            = $ConfigurationData.AdfsRelyingPartyTrust.EnableJWT
+            AccessControlPolicyParameters        = MSFT_AdfsAccessControlPolicyParameters
+            {
+                GroupParameter = $ConfigurationData.AdfsRelyingPartyTrustAccessControlPolicyParameters.GroupParameter
+            }
             IssuanceTransformRules               = @(
                 MSFT_AdfsIssuanceTransformRule
                 {

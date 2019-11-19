@@ -19,7 +19,8 @@
 
 <#
     .DESCRIPTION
-        This configuration will ...
+        This configuration will add a relying party trust with a Group Claims issuance transform rule in Active
+        Directory Federation Services (AD FS).
 #>
 
 Configuration AdfsRelyingPartyTrust_EmitGroupClaims_IssuanceTransformRules_Config
@@ -31,13 +32,13 @@ Configuration AdfsRelyingPartyTrust_EmitGroupClaims_IssuanceTransformRules_Confi
     {
         AdfsRelyingPartyTrust WebApp1
         {
-            Name                       = 'WebApp1'
-            Enabled                    = $true
-            Notes                      = 'This is a trust for https://webapp1.fabrikam.com'
-            WSFedEndpoint              = 'https://webapp1.fabrikam.com'
-            Identifier                 = 'https://webapp1.fabrikam.com'
-            IssuanceAuthorizationRules = $node.IssuanceAuthorizationRules
-            IssuanceTransformRules        = @(
+            Name                    = 'WebApp1'
+            Enabled                 = $true
+            Notes                   = 'This is a trust for https://webapp1.fabrikam.com'
+            WSFedEndpoint           = 'https://webapp1.fabrikam.com'
+            Identifier              = 'https://webapp1.fabrikam.com'
+            AccessControlPolicyName = 'Permit Everyone'
+            IssuanceTransformRules  = @(
                 MSFT_AdfsIssuanceTransformRule
                 {
                     TemplateName       = 'EmitGroupClaims'
@@ -49,16 +50,4 @@ Configuration AdfsRelyingPartyTrust_EmitGroupClaims_IssuanceTransformRules_Confi
             )
         }
     }
-}
-
-$ConfigurationData = @{
-    AllNodes = @(
-        @{
-            NodeName = 'localhost'
-            IssuanceAuthorizationRules = @'
-@RuleTemplate = "AllowAllAuthzRule"
- => issue(Type = "http://schemas.microsoft.com/authorization/claims/permit", Value = "true");
-'@
-        }
-    )
 }
