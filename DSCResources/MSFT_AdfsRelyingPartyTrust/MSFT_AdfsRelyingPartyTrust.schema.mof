@@ -19,10 +19,18 @@ class MSFT_AdfsIssuanceTransformRule
     [Write, Description("Specifies the custom claim rule")] String CustomRule;
 };
 
+[ClassVersion("1.0.0")]
+class MSFT_AdfsAccessControlPolicyParameters
+{
+    [Write, Description("Specifies the Group Parameter.")] String GroupParameter[];
+};
+
 [ClassVersion("1.0.0.0"), FriendlyName("AdfsRelyingPartyTrust")]
 class MSFT_AdfsRelyingPartyTrust : OMI_BaseResource
 {
     [Key, Description("Specifies the friendly name of this relying party trust.")] String Name;
+    [Write, Description("Specifies the name of an access control policy.")] String AccessControlPolicyName;
+    [Write, EmbeddedInstance("MSFT_AdfsAccessControlPolicyParameters"), Description("Specifies the parameters and their values to pass to the Access Control Policy.")] String AccessControlPolicyParameters;
     [Write, Description("Specifies the additional authorization rules to require additional authentication based on user, device and location attributes after the completion of the first step of authentication. Note: These rules must only be configured after there is at least one authentication provider enabled for additional authentication.")] String AdditionalAuthenticationRules;
     [Write, Description("Specifies an array of alternate return addresses for the application. This is typically used when the application wants to indicate to AD FS what the return URL should be on successful token generation. AD FS requires that all acceptable URLs are entered as trusted information by the administrator.")] String AdditionalWSFedEndpoint[];
     [Write, Description("Indicates whether changes to the federation metadata by the MetadataURL parameter apply automatically to the configuration of the trust relationship. If this parameter has a value of True, partner claims, certificates, and endpoints are updated automatically.")] Boolean AutoUpdateEnabled;

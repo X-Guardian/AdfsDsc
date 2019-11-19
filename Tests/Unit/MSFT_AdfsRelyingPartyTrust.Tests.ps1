@@ -89,7 +89,6 @@ try
             LdapMapping    = $mockLdapMapping
         }
 
-
         $mockIssuanceTransformRules = [CIMInstance[]]@(
             New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
                 -Namespace root/microsoft/Windows/DesiredStateConfiguration `
@@ -104,8 +103,24 @@ try
                 '{0}', $mockOutgoingClaimTypes[0], $mockOutgoingClaimTypes[1], $mockLdapAttributes[0], $mockLdapAttributes[1]
         ) | Out-String
 
+        $mockGroups = 'CONTOSO\Group1', 'CONTOSO\Group2'
+
+        $mockMSFTAccessControlPolicyParametersProperties = @{
+            GroupParameter = $mockGroups
+        }
+
+        $mockAccessControlPolicyParameters = New-CimInstance -ClassName MSFT_AdfsAccessControlPolicyParameters `
+            -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+            -Property $mockMSFTAccessControlPolicyParametersProperties -ClientOnly
+
+        $mockGroupAccessControlPolicyParameters = @{
+            GroupParameter = $mockGroups
+        }
+
         $mockResource = @{
             Name                                 = 'Outlook Web App'
+            AccessControlPolicyName              = 'Permit everyone'
+            AccessControlPolicyParameters        = $mockAccessControlPolicyParameters
             AdditionalAuthenticationRules        = ''
             AdditionalWSFedEndpoint              = ''
             AllowedAuthenticationClassReferences = ''
@@ -143,6 +158,8 @@ try
 
         $mockAbsentResource = @{
             Name                                 = 'Outlook Web App'
+            AccessControlPolicyName              = $null
+            AccessControlPolicyParameters        = $null
             AdditionalAuthenticationRules        = $null
             AdditionalWSFedEndpoint              = @()
             AllowedAuthenticationClassReferences = $null
@@ -178,31 +195,43 @@ try
             Ensure                               = 'Absent'
         }
 
-        $mockMSFT_AdfsLdapMappingChangedProperties = @{
+        $mockChangedMSFTAdfsLdapMappingProperties = @{
             LdapAttribute     = 'givenname'
             OutgoingClaimType = 'givenName'
         }
 
-        $mockLdapChangedMapping = [CIMInstance[]]@(
+        $mockChangedMSFTAdfsLdapMapping = [CIMInstance[]]@(
             New-CimInstance -ClassName MSFT_AdfsLdapMapping `
                 -Namespace root/microsoft/Windows/DesiredStateConfiguration `
-                -Property $mockMSFT_AdfsLdapMappingChangedProperties -ClientOnly
+                -Property $mockChangedMSFTAdfsLdapMappingProperties -ClientOnly
         )
 
-        $mockMSFT_AdfsIssuanceTransformChangedRuleProperties = @{
+        $mockChangedMSFTAdfsIssuanceTransformRuleProperties = @{
             TemplateName   = 'LdapClaims'
             Name           = 'Test2'
             AttributeStore = 'ActiveDirectory'
-            LdapMapping    = $mockLdapChangedMapping
+            LdapMapping    = $mockChangedMSFTAdfsLdapMapping
         }
 
-        $mockIssuanceTransformChangedRules = [CIMInstance[]]@(
+        $mockChangedIssuanceTransformRules = [CIMInstance[]]@(
             New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
                 -Namespace root/microsoft/Windows/DesiredStateConfiguration `
-                -Property $mockMSFT_AdfsIssuanceTransformChangedRuleProperties -ClientOnly
+                -Property $mockChangedMSFTAdfsIssuanceTransformRuleProperties -ClientOnly
         )
 
+        $mockChangedGroups = 'CONTOSO\Group3', 'CONTOSO\Group4'
+
+        $mockChangedMSFTAccessControlPolicyParametersProperties = @{
+            GroupParameter = $mockChangedGroups
+        }
+
+        $mockChangedAccessControlPolicyParameters = New-CimInstance -ClassName MSFT_AccessControlPolicyParameters `
+            -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+            -Property $mockChangedMSFTAccessControlPolicyParametersProperties -ClientOnly
+
         $mockChangedResource = @{
+            AccessControlPolicyName              = 'changed'
+            AccessControlPolicyParameters        = $mockChangedAccessControlPolicyParameters
             AdditionalAuthenticationRules        = 'changed'
             AdditionalWSFedEndpoint              = 'changed'
             AllowedAuthenticationClassReferences = 'changed'
@@ -219,7 +248,7 @@ try
             Identifier                           = 'https://mail.fabrikam.com/owa'
             ImpersonationAuthorizationRules      = 'changed'
             IssuanceAuthorizationRules           = 'changed'
-            IssuanceTransformRules               = $mockIssuanceTransformChangedRules
+            IssuanceTransformRules               = $mockChangedIssuanceTransformRules
             IssueOAuthRefreshTokensTo            = 'NoDevice'
             MetadataUrl                          = 'changed'
             MonitoringEnabled                    = $false
@@ -238,6 +267,8 @@ try
 
         $mockGetTargetResourceResult = @{
             Name                                 = $mockResource.Name
+            AccessControlPolicyName              = $mockResource.AccessControlPolicyName
+            AccessControlPolicyParameters        = $mockResource.AccessControlPolicyParameters
             AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
             AdditionalWSFedEndpoint              = $mockResource.AdditionalWSFedEndpoint
             AllowedAuthenticationClassReferences = $mockResource.AllowedAuthenticationClassReferences
@@ -280,7 +311,7 @@ try
 
         $mockGetAdfsClaimDescriptionResult = New-MockObject -Type Microsoft.IdentityServer.Management.Resources.ClaimDescription
 
-        Describe "$Global:DSCResourceName\Get-TargetResource" -Tag 'Get' {
+        Describe 'MSFT_AdfsRelyingPartyTrust\Get-TargetResource' -Tag 'Get' {
             BeforeAll {
                 $getTargetResourceParameters = @{
                     Name = $mockResource.Name
@@ -288,6 +319,8 @@ try
 
                 $mockGetResourceCommandResult = @{
                     Name                                 = $mockResource.Name
+                    AccessControlPolicyName              = $mockResource.AccessControlPolicyName
+                    AccessControlPolicyParameters        = $mockGroupAccessControlPolicyParameters
                     AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
                     AdditionalWSFedEndpoint              = $mockResource.AdditionalWSFedEndpoint
                     AllowedAuthenticationClassReferences = $mockResource.AllowedAuthenticationClassReferences
@@ -385,10 +418,12 @@ try
             }
         }
 
-        Describe "$Global:DSCResourceName\Set-TargetResource" -Tag 'Set' {
+        Describe 'MSFT_AdfsRelyingPartyTrust\Set-TargetResource' -Tag 'Set' {
             BeforeAll {
                 $setTargetResourceParameters = @{
                     Name                                 = $mockResource.Name
+                    AccessControlPolicyName              = $mockResource.AccessControlPolicyName
+                    AccessControlPolicyParameters        = $mockResource.AccessControlPolicyParameters
                     AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
                     AdditionalWSFedEndpoint              = $mockResource.AdditionalWSFedEndpoint
                     AutoUpdateEnabled                    = $mockResource.AutoUpdateEnabled
@@ -597,10 +632,12 @@ try
             }
         }
 
-        Describe "$Global:DSCResourceName\Test-TargetResource" -Tag 'Test' {
+        Describe 'MSFT_AdfsRelyingPartyTrust\Test-TargetResource' -Tag 'Test' {
             BeforeAll {
                 $testTargetResourceParameters = @{
                     Name                                 = $mockResource.Name
+                    AccessControlPolicyName              = $mockResource.AccessControlPolicyName
+                    AccessControlPolicyParameters        = $mockResource.AccessControlPolicyParameters
                     AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
                     AdditionalWSFedEndpoint              = $mockResource.AdditionalWSFedEndpoint
                     AutoUpdateEnabled                    = $mockResource.AutoUpdateEnabled

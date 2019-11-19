@@ -8,6 +8,14 @@
     Key - String
     Specifies the friendly name of this relying party trust.
 
+.PARAMETER AccessControlPolicyName
+    Write - String
+    Specifies the name of an access control policy.
+
+.PARAMETER AccessControlPolicyParameters
+    Write - String
+    Specifies the parameters and their values to pass to the Access Control Policy.
+
 .PARAMETER AdditionalAuthenticationRules
     Write - String
     Specifies the additional authorization rules to require additional authentication based on user, device and location attributes after the completion of the first step of authentication. Note: These rules must only be configured after there is at least one authentication provider enabled for additional authentication.
@@ -181,13 +189,13 @@ Configuration AdfsRelyingPartyTrust_LdapClaims_IssuanceTransformRules_Config
     {
         AdfsRelyingPartyTrust WebApp1
         {
-            Name                       = 'WebApp1'
-            Enabled                    = $true
-            Notes                      = 'This is a trust for https://webapp1.fabrikam.com'
-            WSFedEndpoint              = 'https://webapp1.fabrikam.com'
-            Identifier                 = 'https://webapp1.fabrikam.com'
-            IssuanceAuthorizationRules = $node.IssuanceAuthorizationRules
-            IssuanceTransformRules        = @(
+            Name                    = 'WebApp1'
+            Enabled                 = $true
+            Notes                   = 'This is a trust for https://webapp1.fabrikam.com'
+            WSFedEndpoint           = 'https://webapp1.fabrikam.com'
+            Identifier              = 'https://webapp1.fabrikam.com'
+            AccessControlPolicyName = 'Permit Everyone'
+            IssuanceTransformRules  = @(
                 MSFT_AdfsIssuanceTransformRule
                 {
                     TemplateName   = 'LdapClaims'
@@ -211,18 +219,6 @@ Configuration AdfsRelyingPartyTrust_LdapClaims_IssuanceTransformRules_Config
     }
 }
 
-$ConfigurationData = @{
-    AllNodes = @(
-        @{
-            NodeName = 'localhost'
-            IssuanceAuthorizationRules = @'
-@RuleTemplate = "AllowAllAuthzRule"
- => issue(Type = "http://schemas.microsoft.com/authorization/claims/permit", Value = "true");
-'@
-        }
-    )
-}
-
 .EXAMPLE 3
 
 This configuration will ...
@@ -236,13 +232,13 @@ Configuration AdfsRelyingPartyTrust_EmitGroupClaims_IssuanceTransformRules_Confi
     {
         AdfsRelyingPartyTrust WebApp1
         {
-            Name                       = 'WebApp1'
-            Enabled                    = $true
-            Notes                      = 'This is a trust for https://webapp1.fabrikam.com'
-            WSFedEndpoint              = 'https://webapp1.fabrikam.com'
-            Identifier                 = 'https://webapp1.fabrikam.com'
-            IssuanceAuthorizationRules = $node.IssuanceAuthorizationRules
-            IssuanceTransformRules        = @(
+            Name                    = 'WebApp1'
+            Enabled                 = $true
+            Notes                   = 'This is a trust for https://webapp1.fabrikam.com'
+            WSFedEndpoint           = 'https://webapp1.fabrikam.com'
+            Identifier              = 'https://webapp1.fabrikam.com'
+            AccessControlPolicyName = 'Permit Everyone'
+            IssuanceTransformRules  = @(
                 MSFT_AdfsIssuanceTransformRule
                 {
                     TemplateName       = 'EmitGroupClaims'
@@ -254,18 +250,6 @@ Configuration AdfsRelyingPartyTrust_EmitGroupClaims_IssuanceTransformRules_Confi
             )
         }
     }
-}
-
-$ConfigurationData = @{
-    AllNodes = @(
-        @{
-            NodeName = 'localhost'
-            IssuanceAuthorizationRules = @'
-@RuleTemplate = "AllowAllAuthzRule"
- => issue(Type = "http://schemas.microsoft.com/authorization/claims/permit", Value = "true");
-'@
-        }
-    )
 }
 
 .EXAMPLE 4
@@ -281,13 +265,13 @@ Configuration AdfsRelyingPartyTrust_CustomClaims_IssuanceTransformRules_Config
     {
         AdfsRelyingPartyTrust WebApp1
         {
-            Name                       = 'WebApp1'
-            Enabled                    = $true
-            Notes                      = 'This is a trust for https://webapp1.fabrikam.com'
-            WSFedEndpoint              = 'https://webapp1.fabrikam.com'
-            Identifier                 = 'https://webapp1.fabrikam.com'
-            IssuanceAuthorizationRules = $node.IssuanceAuthorizationRules
-            IssuanceTransformRules        = @(
+            Name                    = 'WebApp1'
+            Enabled                 = $true
+            Notes                   = 'This is a trust for https://webapp1.fabrikam.com'
+            WSFedEndpoint           = 'https://webapp1.fabrikam.com'
+            Identifier              = 'https://webapp1.fabrikam.com'
+            AccessControlPolicyName = 'Permit Everyone'
+            IssuanceTransformRules  = @(
                 MSFT_AdfsIssuanceTransformRule
                 {
                     TemplateName = 'CustomClaims'
@@ -299,16 +283,36 @@ Configuration AdfsRelyingPartyTrust_CustomClaims_IssuanceTransformRules_Config
     }
 }
 
-$ConfigurationData = @{
-    AllNodes = @(
-        @{
-            NodeName = 'localhost'
-            IssuanceAuthorizationRules = @'
-@RuleTemplate = "AllowAllAuthzRule"
- => issue(Type = "http://schemas.microsoft.com/authorization/claims/permit", Value = "true");
-'@
+.EXAMPLE 5
+
+This configuration will add a relying party trust with access control policy parameters in Active Directory
+Federation Services (AD FS).
+
+Configuration AdfsRelyingPArtyTrust_AccessControlPolicyParameters_Config
+{
+    param()
+
+    Import-DscResource -ModuleName AdfsDsc
+
+    Node localhost
+    {
+        AdfsRelyingPartyTrust WebApp1
+        {
+            Name                          = 'WebApp1'
+            Enabled                       = $true
+            Notes                         = 'This is a trust for https://webapp1.fabrikam.com'
+            WSFedEndpoint                 = 'https://webapp1.fabrikam.com'
+            Identifier                    = 'https://webapp1.fabrikam.com'
+            AccessControlPolicyName       = 'Permit specific group'
+            AccessControlPolicyParameters = MSFT_AdfsAccessControlPolicyParameters
+            {
+                GroupParameter = @(
+                    'CONTOSO\AppGroup1 Users'
+                    'CONTOSO\AppGroup1 Admins'
+                )
+            }
         }
-    )
+    }
 }
 
 

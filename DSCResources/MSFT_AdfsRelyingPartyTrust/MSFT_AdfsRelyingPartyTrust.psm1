@@ -9,6 +9,14 @@
         Key - String
         Specifies the friendly name of this relying party trust.
 
+    .PARAMETER AccessControlPolicyName
+        Write - String
+        Specifies the name of an access control policy.
+
+    .PARAMETER AccessControlPolicyParameters
+        Write - MSFT_AccessControlPolicyParameters
+        Specifies the parameters and their values to pass to the Access Control Policy.
+
     .PARAMETER AdditionalAuthenticationRules
         Write - String
         Specifies the additional authorization rules to require additional authentication based on user, device and
@@ -205,8 +213,16 @@ function Get-TargetResource
         Get-TargetResource
 
     .NOTES
-        Used Resource PowerShell Cmdlets:
-        - Get-AdfsRelyingPartyTrust - https://docs.microsoft.com/en-us/powershell/module/adfs/get-adfsrelyingpartytrust
+        Used Cmdlets/Functions:
+
+        Name                                     | Module
+        -----------------------------------------|----------------
+        Get-AdfsRelyingPartyTrust                | Adfs
+        Assert-Module                            | AdfsDsc.Common
+        Assert-Command                           | AdfsDsc.Common
+        Assert-AdfsService                       | AdfsDsc.Common
+        ConvertFrom-IssuanceTransformRule        | AdfsDsc.Common
+        ConvertFrom-AccessControlPolicyParameter | AdfsDsc.Common
     #>
 
     [CmdletBinding()]
@@ -217,6 +233,11 @@ function Get-TargetResource
         [System.String]
         $Name
     )
+
+    $CommonParms = @{
+        Verbose = $VerbosePreference
+        Debug   = $DebugPreference
+    }
 
     # Check of the Resource PowerShell module is installed
     Assert-Module -ModuleName $script:psModuleName
@@ -239,10 +260,19 @@ function Get-TargetResource
             $claimAccepted += $claim.ShortName
         }
 
-        # Resource exists
-        Write-Debug "Target resource $Name exists"
+        # Resource is Present
+        Write-Debug -Message ($script:localizedData.TargetResourcePresentDebugMessage -f $Name)
+
+        $AccessControlPolicyParameters = ConvertFrom-AccessControlPolicyParameter `
+            -Policy $targetResource.AccessControlPolicyParameters @CommonParms
+
+        $IssuanceTransformRules = ConvertFrom-IssuanceTransformRule `
+            -Rule $targetResource.IssuanceTransformRules @CommonParms
+
         $returnValue = @{
             Name                                 = $targetResource.Name
+            AccessControlPolicyName              = $targetResource.AccessControlPolicyName
+            AccessControlPolicyParameters        = $AccessControlPolicyParameters
             AdditionalAuthenticationRules        = $targetResource.AdditionalAuthenticationRules
             AdditionalWSFedEndpoint              = @($targetResource.AdditionalWSFedEndpoint)
             AllowedAuthenticationClassReferences = $targetResource.AllowedAuthenticationClassReferences
@@ -260,7 +290,7 @@ function Get-TargetResource
             Identifier                           = @($targetResource.Identifier)
             ImpersonationAuthorizationRules      = $targetResource.ImpersonationAuthorizationRules
             IssuanceAuthorizationRules           = $targetResource.IssuanceAuthorizationRules
-            IssuanceTransformRules               = @(ConvertFrom-IssuanceTransformRule -Rule $targetResource.IssuanceTransformRules)
+            IssuanceTransformRules               = @($IssuanceTransformRules)
             IssueOAuthRefreshTokensTo            = $targetResource.IssueOAuthRefreshTokensTo
             MetadataUrl                          = $targetResource.MetadataUrl
             MonitoringEnabled                    = $targetResource.MonitoringEnabled
@@ -280,10 +310,13 @@ function Get-TargetResource
     }
     else
     {
-        # Resource does not exist
-        Write-Debug "Target resource $Name does not exist"
+        # Resource is Absent
+        Write-Debug -Message ($script:localizedData.TargetResourceAbsentDebugMessage -f $Name)
+
         $returnValue = @{
             Name                                 = $Name
+            AccessControlPolicyName              = $null
+            AccessControlPolicyParameters        = $null
             AdditionalAuthenticationRules        = $null
             AdditionalWSFedEndpoint              = @()
             AllowedAuthenticationClassReferences = @()
@@ -320,7 +353,6 @@ function Get-TargetResource
         }
     }
 
-    Write-Debug "Returning Value"
     $returnValue
 }
 
@@ -332,10 +364,21 @@ function Set-TargetResource
         Set-TargetResource
 
     .NOTES
-        Used Resource PowerShell Cmdlets:
-        - Add-AdfsRelyingPartyTrust    - https://docs.microsoft.com/en-us/powershell/module/adfs/add-adfsrelyingpartytrust
-        - Remove-AdfsRelyingPartyTrust - https://docs.microsoft.com/en-us/powershell/module/adfs/remove-adfsrelyingpartytrust
-        - Set-AdfsRelyingPartyTrust    - https://docs.microsoft.com/en-us/powershell/module/adfs/set-adfsrelyingpartytrust
+        Used Cmdlets/Functions:
+
+        Name                                   | Module
+        ---------------------------------------|----------------
+        Add-AdfsRelyingPartyTrust              | Adfs
+        Remove-AdfsRelyingPartyTrust           | Adfs
+        Set-AdfsRelyingPartyTrust              | Adfs
+        Get-AdfsClaimsDescription              | Adfs
+        Enable-AdfsRelyingPartyTrust           | Adfs
+        Disable-AdfsRelyingPartyTrust          | Adfs
+        Compare-IssuanceTransformRule          | AdfsDsc.Common
+        Compare-AccessControlPolicyParameter   | AdfsDsc.Common
+        Compare-ResourcePropertyState          | AdfsDsc.Common
+        ConvertTo-IssuanceTransformRule        | AdfsDsc.Common
+        ConvertTo-AccessControlPolicyParameter | AdfsDsc.Common
     #>
 
     [CmdletBinding()]
@@ -344,6 +387,14 @@ function Set-TargetResource
         [Parameter(Mandatory = $true)]
         [System.String]
         $Name,
+
+        [Parameter()]
+        [System.String]
+        $AccessControlPolicyName,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance]
+        $AccessControlPolicyParameters,
 
         [Parameter()]
         [System.String]
@@ -499,6 +550,12 @@ function Set-TargetResource
         $Ensure = 'Present'
     )
 
+    # Set Verbose and Debug parameters
+    $CommonParms = @{
+        Verbose = $VerbosePreference
+        Debug   = $DebugPreference
+    }
+
     # Remove any parameters not used in Splats
     [HashTable]$parameters = $PSBoundParameters
     $parameters.Remove('Ensure')
@@ -512,22 +569,35 @@ function Set-TargetResource
     if ($targetResource.Ensure -eq 'Present')
     {
         # Resource is Present
+        Write-Debug -Message ($script:localizedData.TargetResourcePresentDebugMessage -f $Name)
+
         if ($Ensure -eq 'Present')
         {
             # Resource should be Present
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBePresentDebugMessage -f $Name)
+
             $propertiesNotInDesiredState = @()
 
             if ($PSBoundParameters.Keys.Contains('IssuanceTransformRules'))
             {
                 $propertiesNotInDesiredState += (
                     Compare-IssuanceTransformRule -CurrentValue $targetResource.IssuanceTransformRules `
-                        -DesiredValue $IssuanceTransformRules -ParameterName 'IssuanceTransformRules' | `
-                        Where-Object -Property InDesiredState -eq $false)
+                        -DesiredValue $IssuanceTransformRules -ParameterName 'IssuanceTransformRules' `
+                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+            }
+
+            if ($PSBoundParameters.Keys.Contains('AccessControlPolicyParameters'))
+            {
+                $propertiesNotInDesiredState += (
+                    Compare-AccessControlPolicyParameter -CurrentValue $targetResource.AccessControlPolicyParameters `
+                        -DesiredValue $AccessControlPolicyParameters -ParameterName 'AccessControlPolicyParameters' `
+                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             $propertiesNotInDesiredState += (
                 Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters `
-                    -IgnoreProperties 'IssuanceTransformRules' | Where-Object -Property InDesiredState -eq $false)
+                    -IgnoreProperties 'IssuanceTransformRules', 'AccessControlPolicyParameters' `
+                    @CommonParms | Where-Object -Property InDesiredState -eq $false)
 
             $SetParameters = @{ }
             foreach ($property in $propertiesNotInDesiredState)
@@ -560,7 +630,14 @@ function Set-TargetResource
                 elseif ($property.ParameterName -eq 'IssuanceTransformRules')
                 {
                     # Custom processing for 'IssuanceTransformRules' property
-                    $SetParameters.Add($property.ParameterName, ($IssuanceTransformRules | ConvertTo-IssuanceTransformRule))
+                    $setParameters.Add($property.ParameterName, ($IssuanceTransformRules |
+                            ConvertTo-IssuanceTransformRule @CommonParms))
+                }
+                elseif ($property.ParameterName -eq 'AccessControlPolicyParameters')
+                {
+                    # Custom processing for 'AccessControlPolicyParameters' property
+                    $setParameters.Add($property.ParameterName, ($AccessControlPolicyParameters |
+                            ConvertTo-AccessControlPolicyParameter @CommonParms))
                 }
                 else
                 {
@@ -576,16 +653,23 @@ function Set-TargetResource
         else
         {
             # Resource should be Absent
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f $Name)
+
             Write-Verbose -Message ($script:localizedData.RemovingResourceMessage -f $Name)
+
             Remove-AdfsRelyingPartyTrust -TargetName $Name
         }
     }
     else
     {
         # Resource is Absent
+        Write-Debug -Message ($script:localizedData.TargetResourceAbsentDebugMessage -f $Name)
+
         if ($Ensure -eq 'Present')
         {
             # Resource should be Present
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBePresentDebugMessage -f $Name)
+
             if ($parameters.ContainsKey('ClaimAccepted'))
             {
                 $ClaimAcceptedDescriptions = @()
@@ -600,15 +684,26 @@ function Set-TargetResource
             if ($parameters.ContainsKey('IssuanceTransformRules'))
             {
                 # Custom processing for 'IssuanceTransformRules' property
-                $parameters.IssuanceTransformRules = $parameters.IssuanceTransformRules | ConvertTo-IssuanceTransformRule
+                $parameters.IssuanceTransformRules = ($parameters.IssuanceTransformRules |
+                    ConvertTo-IssuanceTransformRule @CommonParms)
+            }
+
+            if ($parameters.ContainsKey('AccessControlPolicyParameters'))
+            {
+                # Custom processing for 'AccessControlPolicyParameters' property
+                $parameters.AccessControlPolicyParameters = ($parameters.AccessControlPolicyParameters |
+                    ConvertTo-AccessControlPolicyParameter @CommonParms)
             }
 
             Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f $Name)
+
             Add-AdfsRelyingPartyTrust @parameters -Verbose:$false
         }
         else
         {
             # Resource should be Absent
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f $Name)
+
             Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $Name)
         }
     }
@@ -619,6 +714,16 @@ function Test-TargetResource
     <#
     .SYNOPSIS
         Test-TargetResource
+
+    .NOTES
+        Used Cmdlets/Functions:
+
+        Name                                 | Module
+        -------------------------------------|------------------
+        Compare-IssuanceTransformRule        | AdfsDsc.Common
+        Compare-AccessControlPolicyParameter | AdfsDsc.Common
+        Compare-ResourcePropertyState        | AdfsDsc.Common
+    #>
     #>
 
     [CmdletBinding()]
@@ -628,6 +733,14 @@ function Test-TargetResource
         [Parameter(Mandatory = $true)]
         [System.String]
         $Name,
+
+        [Parameter()]
+        [System.String]
+        $AccessControlPolicyName,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance]
+        $AccessControlPolicyParameters,
 
         [Parameter()]
         [System.String]
@@ -783,6 +896,12 @@ function Test-TargetResource
         $Ensure = 'Present'
     )
 
+    # Set Verbose and Debug parameters
+    $CommonParms = @{
+        Verbose = $VerbosePreference
+        Debug   = $DebugPreference
+    }
+
     $getTargetResourceParms = @{
         Name = $Name
     }
@@ -791,22 +910,35 @@ function Test-TargetResource
     if ($targetResource.Ensure -eq 'Present')
     {
         # Resource is Present
+        Write-Debug -Message ($script:localizedData.TargetResourcePresentDebugMessage -f $Name)
+
         if ($Ensure -eq 'Present')
         {
             # Resource should be Present
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBePresentDebugMessage -f $Name)
+
             $propertiesNotInDesiredState = @()
 
             if ($PSBoundParameters.Keys.Contains('IssuanceTransformRules'))
             {
                 $propertiesNotInDesiredState += (
                     Compare-IssuanceTransformRule -CurrentValue $targetResource.IssuanceTransformRules `
-                        -DesiredValue $IssuanceTransformRules -ParameterName 'IssuanceTransformRules' | `
-                        Where-Object -Property InDesiredState -eq $false)
+                        -DesiredValue $IssuanceTransformRules -ParameterName 'IssuanceTransformRules' `
+                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+            }
+
+            if ($PSBoundParameters.Keys.Contains('AccessControlPolicyParameters'))
+            {
+                $propertiesNotInDesiredState += (
+                    Compare-AccessControlPolicyParameter -CurrentValue $targetResource.AccessControlPolicyParameters `
+                        -DesiredValue $AccessControlPolicyParameters -ParameterName 'AccessControlPolicyParameters' `
+                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             $propertiesNotInDesiredState += (
                 Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters `
-                    -IgnoreProperties IssuanceTransformRules | Where-Object -Property InDesiredState -eq $false)
+                    -IgnoreProperties 'IssuanceTransformRules', 'AccessControlPolicyParameters' `
+                    @CommonParms | Where-Object -Property InDesiredState -eq $false)
 
             if ($propertiesNotInDesiredState)
             {
@@ -831,6 +963,8 @@ function Test-TargetResource
         else
         {
             # Resource should be Absent
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f $Name)
+
             Write-Verbose -Message ($script:localizedData.ResourceIsPresentButShouldBeAbsentMessage -f
                 $targetResource.Name)
             $inDesiredState = $false
@@ -839,9 +973,13 @@ function Test-TargetResource
     else
     {
         # Resource is Absent
+        Write-Debug -Message ($script:localizedData.TargetResourceAbsentDebugMessage -f $Name)
+
         if ($Ensure -eq 'Present')
         {
             # Resource should be Present
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBePresentDebugMessage -f $Name)
+
             Write-Verbose -Message ($script:localizedData.ResourceIsAbsentButShouldBePresentMessage -f
                 $targetResource.Name)
             $inDesiredState = $false
@@ -849,6 +987,8 @@ function Test-TargetResource
         else
         {
             # Resource should be Absent
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f $Name)
+
             Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f
                 $targetResource.Name)
             $inDesiredState = $true
