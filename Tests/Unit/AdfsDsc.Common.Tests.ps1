@@ -4,6 +4,9 @@ $script:modulesFolderPath = Join-Path -Path $script:resourceModulePath -ChildPat
 Import-Module -Name (Join-Path -Path $script:modulesFolderPath -ChildPath 'AdfsDsc.Common.psm1') -Force
 
 InModuleScope 'AdfsDsc.Common' {
+    # Import Stub Module
+    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath "Stubs\$($Global:PSModuleName)Stub.psm1") -Force
+
     Describe 'AdfsDsc.Common\Get-LocalizedData' {
         BeforeAll {
             $mockImportLocalizedData = {
@@ -2282,7 +2285,7 @@ InModuleScope 'AdfsDsc.Common' {
                     GroupParameter = $mockGroup
                 }
 
-                $mockMSFTGroupAccessControlPolicyParameters = New-CimInstance -ClassName MSFT_AdfsAccessControlPolicyParameters `
+                $mockMSFTAdfsGroupAccessControlPolicyParameters = New-CimInstance -ClassName MSFT_AdfsAccessControlPolicyParameters `
                     -Namespace root/microsoft/Windows/DesiredStateConfiguration `
                     -Property $mockGroupParameter -ClientOnly
 
@@ -2292,7 +2295,7 @@ InModuleScope 'AdfsDsc.Common' {
             }
 
             It 'Should return the correct result' {
-                (ConvertTo-AccessControlPolicyParameter -InputObject $mockMSFTGroupAccessControlPolicyParameters | ConvertTo-Json) | `
+                (ConvertTo-AccessControlPolicyParameter -InputObject $mockMSFTAdfsGroupAccessControlPolicyParameters | ConvertTo-Json) | `
                     Should -Be ($mockGroupAccessControlPolicyParameters | ConvertTo-Json)
             }
         }
@@ -2338,7 +2341,7 @@ InModuleScope 'AdfsDsc.Common' {
                         GroupParameter = $mockGroups
                     }
 
-                    $mockCurrentMSFTGroupAccessControlPolicyParameters = New-CimInstance `
+                    $mockCurrentMSFTAdfsGroupAccessControlPolicyParameters = New-CimInstance `
                         -ClassName MSFT_AdfsAccessControlPolicyParameters `
                         -Namespace root/microsoft/Windows/DesiredStateConfiguration `
                         -Property $mockGroupParameter -ClientOnly
@@ -2347,8 +2350,8 @@ InModuleScope 'AdfsDsc.Common' {
                 Context 'When both group parameters are the same' {
                     BeforeAll {
                         $compareAccessControlPolicyParameterResult = Compare-AccessControlPolicyParameter `
-                            -CurrentValue $mockCurrentMSFTGroupAccessControlPolicyParameters `
-                            -DesiredValue $mockCurrentMSFTGroupAccessControlPolicyParameters `
+                            -CurrentValue $mockCurrentMSFTAdfsGroupAccessControlPolicyParameters `
+                            -DesiredValue $mockCurrentMSFTAdfsGroupAccessControlPolicyParameters `
                             -ParameterName $mockParameterName
                     }
 
@@ -2361,20 +2364,20 @@ InModuleScope 'AdfsDsc.Common' {
 
                 Context 'When the group parameters are different' {
                     BeforeAll {
-                        $mockChangedGroups = 'FABRIKAM\App1 Users', 'FABRIKAM\App1 Admins'
+                        $mockDesiredGroups = 'FABRIKAM\App1 Users', 'FABRIKAM\App1 Admins'
 
-                        $mockChangedGroupParameter = @{
-                            GroupParameter = $mockChangedGroups
+                        $mockDesiredGroupParameter = @{
+                            GroupParameter = $mockDesiredGroups
                         }
 
-                        $mockDesiredMSFTGroupAccessControlPolicyParameters = New-CimInstance `
+                        $mockDesiredMSFTAdfsGroupAccessControlPolicyParameters = New-CimInstance `
                             -ClassName MSFT_AdfsAccessControlPolicyParameters `
                             -Namespace root/microsoft/Windows/DesiredStateConfiguration `
-                            -Property $mockChangedGroupParameter -ClientOnly
+                            -Property $mockDesiredGroupParameter -ClientOnly
 
                         $compareAccessControlPolicyParameterResult = Compare-AccessControlPolicyParameter `
-                            -CurrentValue $mockCurrentMSFTGroupAccessControlPolicyParameters `
-                            -DesiredValue $mockDesiredMSFTGroupAccessControlPolicyParameters `
+                            -CurrentValue $mockCurrentMSFTAdfsGroupAccessControlPolicyParameters `
+                            -DesiredValue $mockDesiredMSFTAdfsGroupAccessControlPolicyParameters `
                             -ParameterName $mockParameterName
                     }
 
@@ -2384,6 +2387,105 @@ InModuleScope 'AdfsDsc.Common' {
                         $compareAccessControlPolicyParameterResult.InDesiredState | Should -BeFalse
                     }
                 }
+            }
+        }
+    }
+
+    Describe 'AdfsDsc.Common\ConvertTo-SamlEndpoint' {
+        BeforeAll {
+            $mockAdfsSamlEndpoint = @{
+                Binding     = 'Redirect'
+                Protocol    = 'SAMLAssertionConsumer'
+                Uri         = 'https://fabrikam.com/saml/ac'
+                Index       = 0
+                IsDefault   = $false
+                ResponseUri = ''
+            }
+
+            $mockMSFTAdfsSamlEndpointParameter = @{
+                Binding     = $mockAdfsSamlEndpoint.Binding
+                Protocol    = $mockAdfsSamlEndpoint.Protocol
+                Uri         = $mockAdfsSamlEndpoint.Uri
+                Index       = $mockAdfsSamlEndpoint.Index
+                IsDefault   = $mockAdfsSamlEndpoint.IsDefault
+                ResponseUri = $mockAdfsSamlEndpoint.ResponseUri
+            }
+
+            $mockMSFTAdfsSamlEndpoint = New-CimInstance -ClassName MSFT_AdfsSamlEndpoint `
+                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                -Property $mockMSFTAdfsSamlEndpointParameter -ClientOnly
+
+            Mock -CommandName New-AdfsSamlEndpoint -MockWith { $mockAdfsSamlEndpoint }
+        }
+
+        It 'Should return the correct result' {
+            (ConvertTo-SamlEndpoint -InputObject $mockMSFTAdfsSamlEndpoint | ConvertTo-Json) | `
+                Should -Be ($mockAdfsSamlEndpoint | ConvertTo-Json)
+        }
+
+        It 'Should call the expected mocks' {
+            Assert-MockCalled -CommandName New-AdfsSamlEndpoint -Exactly -Times 1
+        }
+    }
+
+    Describe 'AdfsDsc.Common\Compare-SamlEndpoint' {
+        BeforeAll {
+            $mockParameterName = 'SamlEndpoint'
+
+            $mockMSFTAdfsSamlEndpointParameter = @{
+                Binding     = 'Redirect'
+                Protocol    = 'SAMLAssertionConsumer'
+                Uri         = 'https://fabrikam.com/saml/ac'
+                Index       = 0
+                IsDefault   = $false
+                ResponseUri = ''
+            }
+
+            $mockCurrentMSFTAdfsSamlEndpoint = New-CimInstance -ClassName MSFT_AdfsSamlEndpoint `
+                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                -Property $mockMSFTAdfsSamlEndpointParameter -ClientOnly
+        }
+
+        Context 'When the SamlEndpoints are the same' {
+            BeforeAll {
+                $compareSamlEndpointResult = Compare-SamlEndpoint `
+                    -CurrentValue $mockCurrentMSFTAdfsSamlEndpoint `
+                    -DesiredValue $mockCurrentMSFTAdfsSamlEndpoint `
+                    -ParameterName $mockParameterName
+            }
+
+            It 'Should return the correct result' {
+                $compareSamlEndpointResult | Should -HaveCount 1
+                $compareSamlEndpointResult.ParameterName | Should -Be $mockParameterName
+                $compareSamlEndpointResult.InDesiredState | Should -BeTrue
+            }
+        }
+
+        Context 'When the SamlEndpoints are different' {
+            BeforeAll {
+                $mockDesiredMSFTAdfsSamlEndpointParameter = @{
+                    Binding     = 'Post'
+                    Protocol    = 'SAMLLogout'
+                    Uri         = 'https://contoso.com/saml/ac'
+                    Index       = 1
+                    IsDefault   = $true
+                    ResponseUri = 'https://contoso.com/saml/logout'
+                }
+
+                $mockDesiredMSFTAdfsSamlEndpoint = New-CimInstance -ClassName MSFT_AdfsSamlEndpoint `
+                    -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                    -Property $mockDesiredMSFTAdfsSamlEndpointParameter -ClientOnly
+
+                $compareSamlEndpointResult = Compare-SamlEndpoint `
+                    -CurrentValue $mockCurrentMSFTAdfsSamlEndpoint `
+                    -DesiredValue $mockDesiredMSFTAdfsSamlEndpoint `
+                    -ParameterName $mockParameterName
+            }
+
+            It 'Should return the correct result' {
+                $compareSamlEndpointResult | Should -HaveCount 1
+                $compareSamlEndpointResult.ParameterName | Should -Be $mockParameterName
+                $compareSamlEndpointResult.InDesiredState | Should -BeFalse
             }
         }
     }

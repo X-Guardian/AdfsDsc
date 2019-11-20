@@ -18,14 +18,14 @@ if (Test-Path -Path $configFile)
 else
 {
     $ConfigurationData = @{
-        AllNodes              = @(
+        AllNodes                                           = @(
             @{
                 NodeName        = 'localhost'
                 CertificateFile = $env:DscPublicCertificatePath
             }
         )
 
-        AdfsRelyingPartyTrust = @{
+        AdfsRelyingPartyTrust                              = @{
             Name                                 = 'DscRelyingPartyTrust1'
             AccessControlPolicyName              = 'Permit specific group'
             Notes                                = 'This is the DscRelyingPartyTrust1 Description'
@@ -134,6 +134,16 @@ Configuration MSFT_AdfsRelyingPartyTrust_WSFed_Config
                     Name         = 'DscRelyingPartyTrust1 Custom Claim'
                     CustomRule   = 'c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/groupsid", Value == "S-1-5-21-2624039266-918686060-4041204886-1128", Issuer == "AD AUTHORITY"]
  => issue(Type = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role", Value = "IDScan User", Issuer = c.Issuer, OriginalIssuer = c.OriginalIssuer, ValueType = c.ValueType);'
+                }
+            )
+            SamlEndpoint                         = @(
+                MSFT_AdfsSamlEndpoint
+                {
+                    Binding   = 'POST'
+                    Index     = 0
+                    IsDefault = $false
+                    Protocol  = 'SAMLAssertionConsumer'
+                    Uri       = 'https://example.com'
                 }
             )
         }

@@ -59,7 +59,7 @@ try
             'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'
         )
 
-        $MSFT_AdfsLdapMappingProperties = @(
+        $mockMSFTAdfsLdapMappingProperties = @(
             @{
                 LdapAttribute     = $mockLdapAttributes[0]
                 OutgoingClaimType = $mockOutgoingClaimTypes[0]
@@ -73,26 +73,26 @@ try
         $mockTemplateName = 'LdapClaims'
         $mockRuleName = 'Test'
 
-        $mockLdapMapping = [CIMInstance[]]@(
+        $mockMSFTAdfsLdapMapping = [CIMInstance[]]@(
             New-CimInstance -ClassName MSFT_AdfsLdapMapping `
                 -Namespace root/microsoft/Windows/DesiredStateConfiguration `
-                -Property $MSFT_AdfsLdapMappingProperties[0] -ClientOnly
+                -Property $mockMSFTAdfsLdapMappingProperties[0] -ClientOnly
             New-CimInstance -ClassName MSFT_AdfsLdapMapping `
                 -Namespace root/microsoft/Windows/DesiredStateConfiguration `
-                -Property $MSFT_AdfsLdapMappingProperties[1] -ClientOnly
+                -Property $mockMSFTAdfsLdapMappingProperties[1] -ClientOnly
         )
 
-        $mockMSFT_AdfsIssuanceTransformRuleProperties = @{
+        $mockMSFTAdfsIssuanceTransformRuleProperties = @{
             TemplateName   = $mockTemplateName
             Name           = $mockRuleName
             AttributeStore = 'Active Directory'
-            LdapMapping    = $mockLdapMapping
+            LdapMapping    = $mockMSFTAdfsLdapMapping
         }
 
-        $mockIssuanceTransformRules = [CIMInstance[]]@(
+        $mockMSFTAdfsIssuanceTransformRules = [CIMInstance[]]@(
             New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
                 -Namespace root/microsoft/Windows/DesiredStateConfiguration `
-                -Property $mockMSFT_AdfsIssuanceTransformRuleProperties -ClientOnly
+                -Property $mockMSFTAdfsIssuanceTransformRuleProperties -ClientOnly
         )
 
         $mockLdapClaimsTransformRule = @(
@@ -105,22 +105,49 @@ try
 
         $mockGroups = 'CONTOSO\Group1', 'CONTOSO\Group2'
 
-        $mockMSFTAccessControlPolicyParametersProperties = @{
+        $mockMSFTAdfsAccessControlPolicyParametersProperties = @{
             GroupParameter = $mockGroups
         }
 
-        $mockAccessControlPolicyParameters = New-CimInstance -ClassName MSFT_AdfsAccessControlPolicyParameters `
+        $mockMSFTAdfsAccessControlPolicyParameters = New-CimInstance -ClassName MSFT_AdfsAccessControlPolicyParameters `
             -Namespace root/microsoft/Windows/DesiredStateConfiguration `
-            -Property $mockMSFTAccessControlPolicyParametersProperties -ClientOnly
+            -Property $mockMSFTAdfsAccessControlPolicyParametersProperties -ClientOnly
 
         $mockGroupAccessControlPolicyParameters = @{
             GroupParameter = $mockGroups
         }
 
+        $mockSamlEndpoint = @{
+            Binding     = 'Redirect'
+            Protocol    = 'SAMLAssertionConsumer'
+            Uri         = 'https://fabrikam.com/saml/ac'
+            Index       = 0
+            IsDefault   = $false
+            ResponseUri = ''
+        }
+
+        $mockMSFTAdfsSamlEndpointProperties = @{
+            Binding     = $mockSamlEndpoint.Binding
+            Protocol    = $mockSamlEndpoint.Protocol
+            Uri         = $mockSamlEndpoint.Uri
+            Index       = $mockSamlEndpoint.Index
+            IsDefault   = $mockSamlEndpoint.IsDefault
+            ResponseUri = $mockSamlEndpoint.ResponseUri
+        }
+
+        $mockMSFTADfsSamlEndpoint = [CIMInstance[]]@(
+            New-CimInstance -ClassName MSFT_AdfsSamlEndpoint `
+                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                -Property $mockMSFTAdfsSamlEndpointProperties -ClientOnly
+        )
+
+        $mockAdfsSamlEndpoint = New-MockObject -Type Microsoft.IdentityServer.Management.Resources.SamlEndpoint
+
+
         $mockResource = @{
             Name                                 = 'Outlook Web App'
             AccessControlPolicyName              = 'Permit everyone'
-            AccessControlPolicyParameters        = $mockAccessControlPolicyParameters
+            AccessControlPolicyParameters        = $mockMSFTAdfsAccessControlPolicyParameters
             AdditionalAuthenticationRules        = ''
             AdditionalWSFedEndpoint              = ''
             AllowedAuthenticationClassReferences = ''
@@ -138,7 +165,7 @@ try
             Identifier                           = 'https://mail.contoso.com/owa'
             ImpersonationAuthorizationRules      = ''
             IssuanceAuthorizationRules           = ''
-            IssuanceTransformRules               = $mockIssuanceTransformRules
+            IssuanceTransformRules               = $mockMSFTAdfsIssuanceTransformRules
             IssueOAuthRefreshTokensTo            = 'AllDevices'
             MetadataUrl                          = 'https://fabrikam.com/metadata'
             MonitoringEnabled                    = $true
@@ -147,6 +174,7 @@ try
             ProtocolProfile                      = 'SAML'
             RefreshTokenProtectionEnabled        = $true
             RequestMFAFromClaimsProviders        = $false
+            SamlEndpoint                         = $mockMSFTADfsSamlEndpoint
             SamlResponseSignature                = 'AssertionOnly'
             SignatureAlgorithm                   = 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'
             SignedSamlRequestsRequired           = $true
@@ -186,6 +214,7 @@ try
             ProtocolProfile                      = 'SAML'
             RefreshTokenProtectionEnabled        = $false
             RequestMFAFromClaimsProviders        = $false
+            SamlEndpoint                         = $null
             SamlResponseSignature                = 'AssertionOnly'
             SignatureAlgorithm                   = 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'
             SignedSamlRequestsRequired           = $false
@@ -213,7 +242,7 @@ try
             LdapMapping    = $mockChangedMSFTAdfsLdapMapping
         }
 
-        $mockChangedIssuanceTransformRules = [CIMInstance[]]@(
+        $mockChangedMSFTAdfsIssuanceTransformRules = [CIMInstance[]]@(
             New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
                 -Namespace root/microsoft/Windows/DesiredStateConfiguration `
                 -Property $mockChangedMSFTAdfsIssuanceTransformRuleProperties -ClientOnly
@@ -221,17 +250,32 @@ try
 
         $mockChangedGroups = 'CONTOSO\Group3', 'CONTOSO\Group4'
 
-        $mockChangedMSFTAccessControlPolicyParametersProperties = @{
+        $mockChangedMSFTAdfsAccessControlPolicyParametersProperties = @{
             GroupParameter = $mockChangedGroups
         }
 
-        $mockChangedAccessControlPolicyParameters = New-CimInstance -ClassName MSFT_AccessControlPolicyParameters `
+        $mockChangedMSFTAdfsAccessControlPolicyParameters = New-CimInstance -ClassName MSFT_AccessControlPolicyParameters `
             -Namespace root/microsoft/Windows/DesiredStateConfiguration `
-            -Property $mockChangedMSFTAccessControlPolicyParametersProperties -ClientOnly
+            -Property $mockChangedMSFTAdfsAccessControlPolicyParametersProperties -ClientOnly
+
+        $mockChangedMSFTAdfsSamlEndpointProperties = @{
+            Binding     = 'Post'
+            Protocol    = 'SAMLLogout'
+            Uri         = 'https://contoso.com/saml/ac'
+            Index       = 1
+            IsDefault   = $true
+            ResponseUri = 'https://contoso.com/saml/logout'
+        }
+
+        $mockChangedMSFTADfsSamlEndpoint = [CIMInstance[]]@(
+            New-CimInstance -ClassName MSFT_AdfsSamlEndpoint `
+                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                -Property $mockChangedMSFTAdfsSamlEndpointProperties -ClientOnly
+        )
 
         $mockChangedResource = @{
             AccessControlPolicyName              = 'changed'
-            AccessControlPolicyParameters        = $mockChangedAccessControlPolicyParameters
+            AccessControlPolicyParameters        = $mockChangedMSFTAdfsAccessControlPolicyParameters
             AdditionalAuthenticationRules        = 'changed'
             AdditionalWSFedEndpoint              = 'changed'
             AllowedAuthenticationClassReferences = 'changed'
@@ -248,7 +292,7 @@ try
             Identifier                           = 'https://mail.fabrikam.com/owa'
             ImpersonationAuthorizationRules      = 'changed'
             IssuanceAuthorizationRules           = 'changed'
-            IssuanceTransformRules               = $mockChangedIssuanceTransformRules
+            IssuanceTransformRules               = $mockChangedMSFTAdfsIssuanceTransformRules
             IssueOAuthRefreshTokensTo            = 'NoDevice'
             MetadataUrl                          = 'changed'
             MonitoringEnabled                    = $false
@@ -257,6 +301,7 @@ try
             ProtocolProfile                      = 'WsFederation'
             RefreshTokenProtectionEnabled        = $false
             RequestMFAFromClaimsProviders        = $true
+            SamlEndpoint                         = $mockChangedMSFTADfsSamlEndpoint
             SamlResponseSignature                = 'MessageOnly'
             SignatureAlgorithm                   = 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'
             SignedSamlRequestsRequired           = $false
@@ -295,6 +340,7 @@ try
             ProtocolProfile                      = $mockResource.ProtocolProfile
             RefreshTokenProtectionEnabled        = $mockResource.RefreshTokenProtectionEnabled
             RequestMFAFromClaimsProviders        = $mockResource.RequestMFAFromClaimsProviders
+            SamlEndpoint                         = $mockResource.SamlEndpoint
             SamlResponseSignature                = $mockResource.SamlResponseSignature
             SignatureAlgorithm                   = $mockResource.SignatureAlgorithm
             SignedSamlRequestsRequired           = $mockResource.SignedSamlRequestsRequired
@@ -347,6 +393,7 @@ try
                     ProtocolProfile                      = $mockResource.ProtocolProfile
                     RefreshTokenProtectionEnabled        = $mockResource.RefreshTokenProtectionEnabled
                     RequestMFAFromClaimsProviders        = $mockResource.RequestMFAFromClaimsProviders
+                    SamlEndpoints                        = $mockAdfsSamlEndpoint
                     SamlResponseSignature                = $mockResource.SamlResponseSignature
                     SignatureAlgorithm                   = $mockResource.SignatureAlgorithm
                     SignedSamlRequestsRequired           = $mockResource.SignedSamlRequestsRequired
@@ -359,6 +406,7 @@ try
                 Mock -CommandName Assert-Command
                 Mock -CommandName Assert-AdfsService
                 Mock -CommandName Get-AdfsClaimDescription -MockWith { $mockClaim }
+                Mock -CommandName ConvertFrom-SamlEndpoint -MockWith { $mockMSFTAdfsSamlEndpoint }
             }
 
             Context 'When the Resource is Present' {
@@ -383,6 +431,10 @@ try
                         -ParameterFilter { $Module -eq $Global:PSModuleName -and $Command -eq $ResourceCommand.Get } `
                         -Exactly -Times 1
                     Assert-MockCalled -CommandName Assert-AdfsService -Exactly -Times 1
+                    Assert-MockCalled -CommandName Get-AdfsClaimDescription -Exactly -Times 1
+                    Assert-MockCalled -CommandName ConvertFrom-SamlEndpoint `
+                        -ParameterFilter { $SamlEndpoint -eq $mockAdfsSamlEndpoint } `
+                        -Exactly -Times 1
                     Assert-MockCalled -CommandName $ResourceCommand.Get `
                         -ParameterFilter { $Name -eq $getTargetResourceParameters.Name } `
                         -Exactly -Times 1
@@ -448,6 +500,7 @@ try
                     ProtocolProfile                      = $mockResource.ProtocolProfile
                     RefreshTokenProtectionEnabled        = $mockResource.RefreshTokenProtectionEnabled
                     RequestMFAFromClaimsProviders        = $mockResource.RequestMFAFromClaimsProviders
+                    SamlEndpoint                         = $mockResource.SamlEndpoint
                     SamlResponseSignature                = $mockResource.SamlResponseSignature
                     SignatureAlgorithm                   = $mockResource.SignatureAlgorithm
                     SignedSamlRequestsRequired           = $mockResource.SignedSamlRequestsRequired
@@ -467,6 +520,7 @@ try
                 Mock -CommandName $ResourceCommand.Remove
                 Mock -CommandName Enable-AdfsRelyingPartyTrust
                 Mock -CommandName Disable-AdfsRelyingPartyTrust
+                Mock -CommandName ConvertTo-SamlEndpoint -MockWith { $mockAdfsSamlEndpoint }
             }
 
             Context 'When the Resource is Present' {
@@ -504,6 +558,14 @@ try
                                 Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
                                 Assert-MockCalled -CommandName Enable-AdfsRelyingPartyTrust -Exactly -Times 0
                                 Assert-MockCalled -CommandName Disable-AdfsRelyingPartyTrust -Exactly -Times 0
+                                if ($property -eq 'SamlEndpoint')
+                                {
+                                    Assert-MockCalled -CommandName ConvertTo-SamlEndpoint -Exactly -Times 1
+                                }
+                                else
+                                {
+                                    Assert-MockCalled -CommandName ConvertTo-SamlEndpoint -Exactly -Times 0
+                                }
                             }
                         }
                     }
@@ -533,6 +595,7 @@ try
                             Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 0
                             Assert-MockCalled -CommandName $ResourceCommand.Add -Exactly -Times 0
                             Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
+                            Assert-MockCalled -CommandName ConvertTo-SamlEndpoint -Exactly -Times 0
                         }
                     }
 
@@ -561,6 +624,7 @@ try
                             Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 0
                             Assert-MockCalled -CommandName $ResourceCommand.Add -Exactly -Times 0
                             Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
+                            Assert-MockCalled -CommandName ConvertTo-SamlEndpoint -Exactly -Times 0
                         }
                     }
                 }
@@ -581,6 +645,7 @@ try
                         Assert-MockCalled -CommandName $ResourceCommand.Add -Exactly -Times 0
                         Assert-MockCalled -CommandName Enable-AdfsRelyingPartyTrust -Exactly -Times 0
                         Assert-MockCalled -CommandName Disable-AdfsRelyingPartyTrust -Exactly -Times 0
+                        Assert-MockCalled -CommandName ConvertTo-SamlEndpoint -Exactly -Times 0
                     }
                 }
             }
@@ -610,6 +675,7 @@ try
                         Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
                         Assert-MockCalled -CommandName Enable-AdfsRelyingPartyTrust -Exactly -Times 0
                         Assert-MockCalled -CommandName Disable-AdfsRelyingPartyTrust -Exactly -Times 0
+                        Assert-MockCalled -CommandName ConvertTo-SamlEndpoint -Exactly -Times 1
                     }
                 }
 
@@ -627,6 +693,7 @@ try
                         Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 0
                         Assert-MockCalled -CommandName Enable-AdfsRelyingPartyTrust -Exactly -Times 0
                         Assert-MockCalled -CommandName Disable-AdfsRelyingPartyTrust -Exactly -Times 0
+                        Assert-MockCalled -CommandName ConvertTo-SamlEndpoint -Exactly -Times 0
                     }
                 }
             }
@@ -662,6 +729,7 @@ try
                     ProtocolProfile                      = $mockResource.ProtocolProfile
                     RefreshTokenProtectionEnabled        = $mockResource.RefreshTokenProtectionEnabled
                     RequestMFAFromClaimsProviders        = $mockResource.RequestMFAFromClaimsProviders
+                    SamlEndpoint                         = $mockResource.SamlEndpoint
                     SamlResponseSignature                = $mockResource.SamlResponseSignature
                     SignatureAlgorithm                   = $mockResource.SignatureAlgorithm
                     SignedSamlRequestsRequired           = $mockResource.SignedSamlRequestsRequired

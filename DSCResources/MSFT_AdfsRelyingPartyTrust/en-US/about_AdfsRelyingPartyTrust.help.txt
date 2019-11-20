@@ -151,6 +151,10 @@
     Write - Boolean
     Indicates whether refresh token protection is enabled.
 
+.PARAMETER SamlEndpoint
+    Write - String
+    Specifies an array of Security Assertion Markup Language (SAML) protocol endpoints for this relying party.
+
 .PARAMETER Ensure
     Write - String
     Allowed values: Present, Absent
@@ -178,7 +182,8 @@ Configuration AdfsRelyingPartyTrust_Metadata_Config
 
 .EXAMPLE 2
 
-This configuration will ...
+This configuration will add a relying party trust with an LDAP Claims issuance transform rule in Active
+Directory Federation Services (AD FS).
 
 Configuration AdfsRelyingPartyTrust_LdapClaims_IssuanceTransformRules_Config
 {
@@ -221,7 +226,8 @@ Configuration AdfsRelyingPartyTrust_LdapClaims_IssuanceTransformRules_Config
 
 .EXAMPLE 3
 
-This configuration will ...
+This configuration will add a relying party trust with a Group Claims issuance transform rule in Active
+Directory Federation Services (AD FS).
 
 Configuration AdfsRelyingPartyTrust_EmitGroupClaims_IssuanceTransformRules_Config
 {
@@ -254,7 +260,8 @@ Configuration AdfsRelyingPartyTrust_EmitGroupClaims_IssuanceTransformRules_Confi
 
 .EXAMPLE 4
 
-This configuration will ...
+This configuration will add a relying party trust with a custom claims issuance transform rule in Active
+Directory Federation Services (AD FS).
 
 Configuration AdfsRelyingPartyTrust_CustomClaims_IssuanceTransformRules_Config
 {
