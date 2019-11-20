@@ -2460,6 +2460,38 @@ InModuleScope 'AdfsDsc.Common' {
         }
     }
 
+    Describe 'AdfsDsc.Common\ConvertFrom-SamlEndpoint' {
+        BeforeAll {
+            $mockSamlEndpoint = New-MockObject -Type 'Microsoft.IdentityServer.Management.Resources.SamlEndpoint'
+
+            $mockSamlEndpoint.Binding = 'Redirect'
+            $mockSamlEndpoint.Protocol = 'SAMLLogout'
+            $mockSamlEndpoint.Location = 'https://fabrikam.com/saml/ac'
+            $mockSamlEndpoint.Index = 0
+            $mockSamlEndpoint.IsDefault = $false
+            $mockSamlEndpoint.ResponseLocation = 'https://fabrikam.com/saml/logout'
+
+            $mockMSFTAdfsSamlEndpointParameter = @{
+                Binding     = $mockSamlEndpoint.Binding
+                Protocol    = $mockSamlEndpoint.Protocol
+                Uri         = $mockSamlEndpoint.Location.OriginalString
+                Index       = $mockSamlEndpoint.Index
+                IsDefault   = $mockSamlEndpoint.IsDefault
+                ResponseUri = $mockSamlEndpoint.ResponseLocation.OriginalString
+            }
+
+            $mockMSFTAdfsSamlEndpoint = New-CimInstance -ClassName MSFT_AdfsSamlEndpoint `
+                -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                -Property $mockMSFTAdfsSamlEndpointParameter -ClientOnly
+        }
+
+        It 'Should return the correct result' {
+            ((ConvertFrom-SamlEndpoint -SamlEndpoint $mockSamlEndpoint).CimInstanceProperties | Sort-Object | `
+                ConvertTo-Json) | Should -Be ($mockMSFTAdfsSamlEndpoint.CimInstanceProperties | Sort-Object | `
+                ConvertTo-Json)
+        }
+    }
+
     Describe 'AdfsDsc.Common\Compare-SamlEndpoint' {
         BeforeAll {
             $mockParameterName = 'SamlEndpoint'
