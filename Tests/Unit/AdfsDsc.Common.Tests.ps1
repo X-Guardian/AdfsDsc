@@ -2203,6 +2203,36 @@ InModuleScope 'AdfsDsc.Common' {
                 }
             }
 
+            Context 'When the number of rules has changed' {
+                BeforeAll {
+                    $mockDesiredCustomClaimsMSFTAdfsIssuanceTransformRuleProperties = @{
+                        TemplateName = $mockCustomClaimsTemplateName
+                        Name         = $mockCustomClaimsRuleName
+                        CustomRule   = $mockCustomRule
+                    }
+
+                    $mockDesiredCustomClaimsMSFTAdfsIssuanceTransformRules = [CIMInstance[]]@(
+                        New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
+                            -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                            -Property $mockCurrentCustomClaimsMSFTAdfsIssuanceTransformRuleProperties -ClientOnly
+                        New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
+                            -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                            -Property $mockDesiredCustomClaimsMSFTAdfsIssuanceTransformRuleProperties -ClientOnly
+                    )
+
+                    $compareIssuanceTransformRuleResult = Compare-IssuanceTransformRule `
+                        -CurrentValue $mockCurrentCustomClaimsMSFTAdfsIssuanceTransformRules `
+                        -DesiredValue $mockDesiredCustomClaimsMSFTAdfsIssuanceTransformRules `
+                        -ParameterName $mockParameterName
+                }
+
+                It 'Should return the correct result' {
+                    $compareIssuanceTransformRuleResult | Should -HaveCount 1
+                    $compareIssuanceTransformRuleResult.ParameterName | Should -Be 'IssuanceTransformRules'
+                    $compareIssuanceTransformRuleResult.InDesiredState | Should -BeFalse
+                }
+            }
+
             Context 'When the Rule Name has changed' {
                 BeforeAll {
                     $mockDesiredCustomClaimsRuleName = 'Test2'
@@ -2471,12 +2501,53 @@ InModuleScope 'AdfsDsc.Common' {
                     Uri         = 'https://contoso.com/saml/ac'
                     Index       = 1
                     IsDefault   = $true
-                    ResponseUri = 'https://contoso.com/saml/logout'
+                    ResponseUri = ''
                 }
 
                 $mockDesiredMSFTAdfsSamlEndpoint = New-CimInstance -ClassName MSFT_AdfsSamlEndpoint `
                     -Namespace root/microsoft/Windows/DesiredStateConfiguration `
                     -Property $mockDesiredMSFTAdfsSamlEndpointParameter -ClientOnly
+
+                $compareSamlEndpointResult = Compare-SamlEndpoint `
+                    -CurrentValue $mockCurrentMSFTAdfsSamlEndpoint `
+                    -DesiredValue $mockDesiredMSFTAdfsSamlEndpoint `
+                    -ParameterName $mockParameterName
+            }
+
+            It 'Should return the correct result' {
+                $compareSamlEndpointResult | Should -HaveCount 1
+                $compareSamlEndpointResult.ParameterName | Should -Be $mockParameterName
+                $compareSamlEndpointResult.InDesiredState | Should -BeFalse
+            }
+        }
+
+        Context 'When the number of SamlEndpoints are different' {
+            BeforeAll {
+                $mockDesiredMSFTAdfsSamlEndpointParameter1 = @{
+                    Binding     = 'Redirect'
+                    Protocol    = 'SAMLAssertionConsumer'
+                    Uri         = 'https://fabrikam.com/saml/ac'
+                    Index       = 0
+                    IsDefault   = $false
+                    ResponseUri = ''
+                }
+                $mockDesiredMSFTAdfsSamlEndpointParameter2 = @{
+                    Binding     = 'Post'
+                    Protocol    = 'SAMLLogout'
+                    Uri         = 'https://contoso.com/saml/ac'
+                    Index       = 1
+                    IsDefault   = $true
+                    ResponseUri = ''
+                }
+
+                $mockDesiredMSFTAdfsSamlEndpoint = @(
+                    New-CimInstance -ClassName MSFT_AdfsSamlEndpoint `
+                        -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                        -Property $mockDesiredMSFTAdfsSamlEndpointParameter1 -ClientOnly
+                    New-CimInstance -ClassName MSFT_AdfsSamlEndpoint `
+                        -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+                        -Property $mockDesiredMSFTAdfsSamlEndpointParameter2 -ClientOnly
+                )
 
                 $compareSamlEndpointResult = Compare-SamlEndpoint `
                     -CurrentValue $mockCurrentMSFTAdfsSamlEndpoint `
