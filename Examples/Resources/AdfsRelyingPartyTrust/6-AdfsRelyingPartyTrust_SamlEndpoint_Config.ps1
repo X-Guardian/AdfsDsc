@@ -1,6 +1,6 @@
 <#PSScriptInfo
 .VERSION 1.0.0
-.GUID a7b4beac-7e2d-4a6e-b4ce-2fadef7d7f24
+.GUID 3f13bb31-2cd7-4a3d-b11e-d56efaf213f2
 .AUTHOR Microsoft Corporation
 .COMPANYNAME Microsoft Corporation
 .COPYRIGHT (c) Microsoft Corporation. All rights reserved.
@@ -19,11 +19,11 @@
 
 <#
     .DESCRIPTION
-        This configuration will add a relying party trust with access control policy parameters in Active Directory
-        Federation Services (AD FS).
+        This configuration will add a relying party trust with a SAML Endpoint in Active Directory Federation
+        Services (AD FS).
 #>
 
-Configuration AdfsRelyingPartyTrust_AccessControlPolicyParameters_Config
+Configuration AdfsRelyingPartyTrust_SamlEndpoint_Config
 {
     param()
 
@@ -36,16 +36,18 @@ Configuration AdfsRelyingPartyTrust_AccessControlPolicyParameters_Config
             Name                          = 'WebApp1'
             Enabled                       = $true
             Notes                         = 'This is a trust for https://webapp1.fabrikam.com'
-            WSFedEndpoint                 = 'https://webapp1.fabrikam.com'
             Identifier                    = 'https://webapp1.fabrikam.com'
-            AccessControlPolicyName       = 'Permit specific group'
-            AccessControlPolicyParameters = MSFT_AdfsAccessControlPolicyParameters
-            {
-                GroupParameter = @(
-                    'CONTOSO\AppGroup1 Users'
-                    'CONTOSO\AppGroup1 Admins'
-                )
-            }
+            AccessControlPolicyName       = 'Permit everyone'
+            SamlEndpoint = @(
+                MSFT_AdfsSamlEndpoint
+                {
+                    Binding     = 'POST'
+                    Index       = 0
+                    IsDefault   = $false
+                    Protocol    = 'SAMLAssertionConsumer'
+                    Uri         = 'https://webapp1.fabrikam.com'
+                }
+            )
         }
     }
 }

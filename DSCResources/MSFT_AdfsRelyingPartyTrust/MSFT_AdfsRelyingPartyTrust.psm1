@@ -148,7 +148,7 @@
         Specifies an array of certificates to be used to verify the signature on a request from the relying party.
 
     .PARAMETER SamlEndpoint
-        ** Not Currently Implemented **
+        Write - MSFT_AdfsSamlEndpoint
         Specifies an array of Security Assertion Markup Language (SAML) protocol endpoints for this relying party.
 
     .PARAMETER SamlResponseSignature
@@ -223,6 +223,7 @@ function Get-TargetResource
         Assert-AdfsService                       | AdfsDsc.Common
         ConvertFrom-IssuanceTransformRule        | AdfsDsc.Common
         ConvertFrom-AccessControlPolicyParameter | AdfsDsc.Common
+        ConvertFrom-SamlEndpoint                 | AdfsDsc.Common
     #>
 
     [CmdletBinding()]
@@ -269,6 +270,9 @@ function Get-TargetResource
         $IssuanceTransformRules = ConvertFrom-IssuanceTransformRule `
             -Rule $targetResource.IssuanceTransformRules @CommonParms
 
+        $SamlEndpoint = ConvertFrom-SamlEndpoint `
+            -SamlEndpoint $targetResource.SamlEndpoints @CommonParms
+
         $returnValue = @{
             Name                                 = $targetResource.Name
             AccessControlPolicyName              = $targetResource.AccessControlPolicyName
@@ -276,7 +280,7 @@ function Get-TargetResource
             AdditionalAuthenticationRules        = $targetResource.AdditionalAuthenticationRules
             AdditionalWSFedEndpoint              = @($targetResource.AdditionalWSFedEndpoint)
             AllowedAuthenticationClassReferences = $targetResource.AllowedAuthenticationClassReferences
-            AllowedClientTypes                   = $targetResource.AllowedClientTypes
+            AllowedClientTypes                   = @($targetResource.AllowedClientTypes)
             AlwaysRequireAuthentication          = $targetResource.AlwaysRequireAuthentication
             AutoUpdateEnabled                    = $targetResource.AutoUpdateEnabled
             ClaimAccepted                        = $claimAccepted
@@ -299,6 +303,7 @@ function Get-TargetResource
             ProtocolProfile                      = $targetResource.ProtocolProfile
             RefreshTokenProtectionEnabled        = $targetResource.RefreshTokenProtectionEnabled
             RequestMFAFromClaimsProviders        = $targetResource.RequestMFAFromClaimsProviders
+            SamlEndpoint                         = @($SamlEndpoint)
             SamlResponseSignature                = $targetResource.SamlResponseSignature
             SignatureAlgorithm                   = $targetResource.SignatureAlgorithm
             SignedSamlRequestsRequired           = $targetResource.SignedSamlRequestsRequired
@@ -320,7 +325,7 @@ function Get-TargetResource
             AdditionalAuthenticationRules        = $null
             AdditionalWSFedEndpoint              = @()
             AllowedAuthenticationClassReferences = @()
-            AllowedClientTypes                   = 'None'
+            AllowedClientTypes                   = @('None')
             AlwaysRequireAuthentication          = $false
             AutoUpdateEnabled                    = $false
             ClaimAccepted                        = @()
@@ -343,6 +348,7 @@ function Get-TargetResource
             ProtocolProfile                      = 'SAML'
             RefreshTokenProtectionEnabled        = $false
             RequestMFAFromClaimsProviders        = $false
+            SamlEndpoint                         = $null
             SamlResponseSignature                = 'AssertionOnly'
             SignatureAlgorithm                   = 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'
             SignedSamlRequestsRequired           = $false
@@ -377,8 +383,10 @@ function Set-TargetResource
         Compare-IssuanceTransformRule          | AdfsDsc.Common
         Compare-AccessControlPolicyParameter   | AdfsDsc.Common
         Compare-ResourcePropertyState          | AdfsDsc.Common
+        Compare-SamlEndpoint                   | AdfsDsc.Common
         ConvertTo-IssuanceTransformRule        | AdfsDsc.Common
         ConvertTo-AccessControlPolicyParameter | AdfsDsc.Common
+        ConvertTo-SamlEndpoint                 | AdfsDsc.Common
     #>
 
     [CmdletBinding()]
@@ -511,6 +519,10 @@ function Set-TargetResource
         $RequestMFAFromClaimsProviders,
 
         [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $SamlEndpoint,
+
+        [Parameter()]
         [ValidateSet('AssertionOnly', 'MessageAndAssertion', 'MessageOnly')]
         [System.String]
         $SamlResponseSignature,
@@ -594,9 +606,17 @@ function Set-TargetResource
                         @CommonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
+            if ($PSBoundParameters.Keys.Contains('SamlEndpoint'))
+            {
+                $propertiesNotInDesiredState += (
+                    Compare-SamlEndpoint -CurrentValue $targetResource.SamlEndpoint `
+                        -DesiredValue $SamlEndpoint -ParameterName 'SamlEndpoint' `
+                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+            }
+
             $propertiesNotInDesiredState += (
                 Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters `
-                    -IgnoreProperties 'IssuanceTransformRules', 'AccessControlPolicyParameters' `
+                    -IgnoreProperties 'IssuanceTransformRules', 'AccessControlPolicyParameters', 'SamlEndpoint' `
                     @CommonParms | Where-Object -Property InDesiredState -eq $false)
 
             $SetParameters = @{ }
@@ -638,6 +658,12 @@ function Set-TargetResource
                     # Custom processing for 'AccessControlPolicyParameters' property
                     $setParameters.Add($property.ParameterName, ($AccessControlPolicyParameters |
                             ConvertTo-AccessControlPolicyParameter @CommonParms))
+                }
+                elseif ($property.ParameterName -eq 'SamlEndpoint')
+                {
+                    # Custom processing for 'SamlEndpoint' property
+                    $setParameters.Add($property.ParameterName, ($SamlEndpoint |
+                            ConvertTo-SamlEndpoint @CommonParms))
                 }
                 else
                 {
@@ -695,6 +721,13 @@ function Set-TargetResource
                     ConvertTo-AccessControlPolicyParameter @CommonParms)
             }
 
+            if ($parameters.ContainsKey('SamlEndpoint'))
+            {
+                # Custom processing for 'SamlEndpoint' property
+                $parameters.SamlEndpoint = ($parameters.SamlEndpoint |
+                    ConvertTo-SamlEndpoint @CommonParms)
+            }
+
             Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f $Name)
 
             Add-AdfsRelyingPartyTrust @parameters -Verbose:$false
@@ -723,7 +756,7 @@ function Test-TargetResource
         Compare-IssuanceTransformRule        | AdfsDsc.Common
         Compare-AccessControlPolicyParameter | AdfsDsc.Common
         Compare-ResourcePropertyState        | AdfsDsc.Common
-    #>
+        Compare-SamlEndpoint                 | AdfsDsc.Common
     #>
 
     [CmdletBinding()]
@@ -857,6 +890,10 @@ function Test-TargetResource
         $RequestMFAFromClaimsProviders,
 
         [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $SamlEndpoint,
+
+        [Parameter()]
         [ValidateSet('AssertionOnly', 'MessageAndAssertion', 'MessageOnly')]
         [System.String]
         $SamlResponseSignature,
@@ -935,9 +972,17 @@ function Test-TargetResource
                         @CommonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
+            if ($PSBoundParameters.Keys.Contains('SamlEndpoint'))
+            {
+                $propertiesNotInDesiredState += (
+                    Compare-SamlEndpoint -CurrentValue $targetResource.SamlEndpoint `
+                        -DesiredValue $SamlEndpoint -ParameterName 'SamlEndpoint' `
+                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+            }
+
             $propertiesNotInDesiredState += (
                 Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters `
-                    -IgnoreProperties 'IssuanceTransformRules', 'AccessControlPolicyParameters' `
+                    -IgnoreProperties 'IssuanceTransformRules', 'AccessControlPolicyParameters', 'SamlEndpoint' `
                     @CommonParms | Where-Object -Property InDesiredState -eq $false)
 
             if ($propertiesNotInDesiredState)

@@ -25,6 +25,17 @@ class MSFT_AdfsAccessControlPolicyParameters
     [Write, Description("Specifies the Group Parameter.")] String GroupParameter[];
 };
 
+[ClassVersion("1.0.0")]
+class MSFT_AdfsSamlEndpoint
+{
+    [Write, Description("Specifies the binding type of the endpoint."), ValueMap{"Artifact","POST","Redirect","SOAP"}, Values{"Artifact","POST","Redirect","SOAP"}] String Binding;
+    [Write, Description("Specifies the index that is defined for this endpoint.")] SInt32 Index;
+    [Write, Description("Indicates whether this is a default endpoint for the particular protocol type.")] Boolean IsDefault;
+    [Write, Description("Specifies the type of service at the endpoint."), ValueMap{"SAMLArtifactResolution","SAMLAssertionConsumer","SAMLLogout","SAMLSingleSignOn"}, Values{"SAMLArtifactResolution","SAMLAssertionConsumer","SAMLLogout","SAMLSingleSignOn"}] String Protocol;
+    [Write, Description("Specifies the response URI for the endpoint.")] String ResponseUri;
+    [Write, Description("Specifies the URI of this endpoint.")] String Uri;
+};
+
 [ClassVersion("1.0.0.0"), FriendlyName("AdfsRelyingPartyTrust")]
 class MSFT_AdfsRelyingPartyTrust : OMI_BaseResource
 {
@@ -63,5 +74,6 @@ class MSFT_AdfsRelyingPartyTrust : OMI_BaseResource
     [Write, Description("Specifies an array of allow authentication class references.")] String AllowedAuthenticationClassReferences[];
     [Write, Description("Specifies the refresh token issuance device types."), ValueMap{"NoDevice","WorkplaceJoinedDevices","AllDevices"}, Values{"NoDevice","WorkplaceJoinedDevices","AllDevices"}] String IssueOAuthRefreshTokensTo;
     [Write, Description("Indicates whether refresh token protection is enabled.")] Boolean RefreshTokenProtectionEnabled;
+    [Write, EmbeddedInstance("MSFT_AdfsSamlEndpoint"), Description("Specifies an array of Security Assertion Markup Language (SAML) protocol endpoints for this relying party.")] String SamlEndpoint[];
     [Write, Description("Specifies whether to remove or add the relying party trust."), ValueMap{"Present","Absent"}, Values{"Present","Absent"}] String Ensure;
 };

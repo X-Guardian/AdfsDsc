@@ -876,7 +876,7 @@ function Assert-Command
     }
 }
 
-Function Get-ADObjectByQualifiedName
+function Get-ADObjectByQualifiedName
 {
     <#
         .SYNOPSIS
@@ -958,17 +958,17 @@ function Assert-GroupServiceAccount
             'CN=ms-DS-Group-Managed-Service-Account,CN=Schema,CN=Configuration*'
             {
                 $isGroupServiceAccount = $true
-                Break
+                break
             }
             'CN=ms-DS-Managed-Service-Account*'
             {
                 $isGroupServiceAccount = $false
-                Break
+                break
             }
             'CN=Person,CN=Schema,CN=Configuration*'
             {
                 $isGroupServiceAccount = $false
-                Break
+                break
             }
             Default
             {
@@ -1240,7 +1240,7 @@ function ConvertFrom-IssuanceTransformRule
         }
     }
 
-    $MSFT_AdfsIssuanceTransformRule = @()
+    $MSFTAdfsIssuanceTransformRule = @()
     if ($individualRules)
     {
         foreach ($individualRule in $individualRules)
@@ -1253,14 +1253,14 @@ function ConvertFrom-IssuanceTransformRule
                 $outgoingClaimTypes = @(($individualRule[3].Split('(').Split(')')[2]).Split(',').Trim().Trim('"'))
                 $ldapAttributes = @(($individualRule[3].Split(';')[1]).Split(','))
 
-                $MSFT_AdfsLdapMapping = @()
+                $MSFTAdfsLdapMapping = @()
                 for ($index = 0; $index -lt $ldapAttributes.Count; $index++)
                 {
                     $ldapMapping = @{
                         LdapAttribute     = $ldapAttributes[$index]
                         OutgoingClaimType = $outgoingClaimTypes[$index]
                     }
-                    $MSFT_AdfsLdapMapping += New-CimInstance -ClassName MSFT_AdfsLdapMapping `
+                    $MSFTAdfsLdapMapping += New-CimInstance -ClassName MSFT_AdfsLdapMapping `
                         -Namespace root/microsoft/Windows/DesiredStateConfiguration `
                         -Property $ldapMapping -ClientOnly
                 }
@@ -1268,7 +1268,7 @@ function ConvertFrom-IssuanceTransformRule
                     TemplateName   = 'LdapClaims'
                     Name           = $individualRule[1].split('"')[1]
                     AttributeStore = $individualRule[3].split('"')[1]
-                    LdapMapping    = [CimInstance[]]$MSFT_AdfsLdapMapping
+                    LdapMapping    = [CimInstance[]]$MSFTAdfsLdapMapping
                 }
             }
             elseif ($individualRule[0] -eq '@RuleTemplate = "EmitGroupClaims"')
@@ -1297,12 +1297,12 @@ function ConvertFrom-IssuanceTransformRule
                 }
             }
 
-            $MSFT_AdfsIssuanceTransformRule += New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
+            $MSFTAdfsIssuanceTransformRule += New-CimInstance -ClassName MSFT_AdfsIssuanceTransformRule `
                 -Namespace root/microsoft/Windows/DesiredStateConfiguration `
                 -Property $issuanceTransformRule -ClientOnly
         }
 
-        return $MSFT_AdfsIssuanceTransformRule
+        return $MSFTAdfsIssuanceTransformRule
     }
 }
 
@@ -1340,7 +1340,7 @@ function Compare-IssuanceTransformRule
         InDesiredState = $true
     }
 
-    if ([System.String]::IsNullOrEmpty($CurrentValue))
+    if ([System.String]::IsNullOrEmpty($CurrentValue) -or $CurrentValue.Count -ne $DesiredValue.Count)
     {
         $parameterState.InDesiredState = $false
     }
@@ -1497,7 +1497,7 @@ function ConvertFrom-AccessControlPolicyParameter
     {
         Write-Debug -Message ($script:LocalizedData.ProcessingPropertyDebugMessage -f "$parameter Parameter")
 
-        Switch -WildCard ($parameter)
+        switch -WildCard ($parameter)
         {
             'GroupParameter*'
             {
@@ -1577,7 +1577,6 @@ function Compare-AccessControlPolicyParameter
         {
             foreach ($property in $CurrentValue.CimInstanceProperties.Name)
             {
-
                 Write-Debug -Message ($script:LocalizedData.ComparingPropertiesWithValueDebugMessage -f
                     $property, $CurrentValue.$property, $DesiredValue.$property)
 
@@ -1658,6 +1657,181 @@ function Get-AdGroupSid
     }
 }
 
+function ConvertTo-SamlEndpoint
+{
+    <#
+    .SYNOPSIS
+        Converts a CIMInstance MSFT_AdfsSamlEndpoint object to an array of
+        Microsoft.IdentityServer.Management.Resources.SamlEndpoint objects.
+    #>
+
+    [CmdletBinding()]
+    [OutputType([Microsoft.IdentityServer.Management.Resources.SamlEndpoint[]])]
+    param
+    (
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [AllowEmptyCollection()]
+        [AllowNull()]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $InputObject
+    )
+    begin
+    {
+        Write-Debug -Message ($script:LocalizedData.EnteringFunctionDebugMessage -f $MyInvocation.MyCommand)
+
+        $samlEndpoint = @()
+    }
+    process
+    {
+        foreach ($endpoint in $InputObject)
+        {
+            $newAdfsSamlEndpointParms = @{
+                Binding  = $endpoint.Binding
+                Protocol = $endpoint.Protocol
+                Uri      = $endpoint.Uri
+            }
+
+            if ($endpoint.CimInstanceProperties.Name -contains 'IsDefault')
+            {
+                $newAdfsSamlEndpointParms += @{
+                    ISDefault = $endpoint.IsDefault
+                }
+            }
+
+            if ($endpoint.CimInstanceProperties.Name -contains 'Index')
+            {
+                $newAdfsSamlEndpointParms += @{
+                    Index = $endpoint.Index
+                }
+            }
+
+            if ($endpoint.CimInstanceProperties.Name -contains 'ResponseUri')
+            {
+                $newAdfsSamlEndpointParms += @{
+                    ResponseUri = $endpoint.ResponseUri
+                }
+            }
+
+            $samlEndpoint += New-AdfsSamlEndpoint @newAdfsSamlEndpointParms
+        }
+    }
+    end
+    {
+        return $samlEndpoint
+    }
+}
+
+function ConvertFrom-SamlEndpoint
+{
+    <#
+        .SYNOPSIS
+            Converts an array of Microsoft.IdentityServer.Management.Resources.SamlEndpoint objects to an array of
+            CIMInstance MSFT_AdfsSamlEndpoint objects.
+    #>
+
+    [CmdletBinding()]
+    [OutputType([Microsoft.Management.Infrastructure.CimInstance[]])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
+        [AllowEmptyCollection()]
+        [Microsoft.IdentityServer.Management.Resources.SamlEndpoint[]]
+        $SamlEndpoint
+    )
+
+    Write-Debug -Message ($script:LocalizedData.EnteringFunctionDebugMessage -f $MyInvocation.MyCommand)
+
+    $MSFTAdfsSamlEndpoint = @()
+
+    foreach ($endpoint in $SamlEndpoint)
+    {
+        $mSFTAdfsSamlEndpointProperties = @{
+            Binding   = $endpoint.Binding
+            Protocol  = $endpoint.Protocol
+            Uri       = $endpoint.Location.OriginalString
+            IsDefault = $endpoint.IsDefault
+            Index     = $endpoint.Index
+        }
+
+        if ($endpoint.ResponseLocation)
+        {
+            $mSFTAdfsSamlEndpointProperties += @{
+                ResponseUri = $endpoint.ResponseLocation.OriginalString
+            }
+        }
+
+        $MSFTADfsSamlEndpoint += New-CimInstance -ClassName MSFT_AdfsSamlEndpoint `
+            -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+            -Property $mSFTAdfsSamlEndpointProperties -ClientOnly
+    }
+
+    return $MSFTAdfsSamlEndpoint
+}
+
+function Compare-SamlEndpoint
+{
+    <#
+        .SYNOPSIS
+            Compare two CIMInstance MSFT_AdfsSamlEndpoint object arrays
+    #>
+
+    [CmdletBinding()]
+    [OutputType([System.Collections.Hashtable])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyCollection()]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $CurrentValue,
+
+        [Parameter(Mandatory = $true)]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $DesiredValue,
+
+        [Parameter(Mandatory = $true)]
+        [System.String]
+        $ParameterName
+    )
+
+    Write-Debug -Message ($script:LocalizedData.EnteringFunctionDebugMessage -f $MyInvocation.MyCommand)
+
+    $parameterState = @{
+        ParameterName  = $ParameterName
+        Expected       = $DesiredValue
+        Actual         = $CurrentValue
+        InDesiredState = $true
+    }
+
+    if ([System.String]::IsNullOrEmpty($CurrentValue) -or $CurrentValue.Count -ne $DesiredValue.Count)
+    {
+        $parameterState.InDesiredState = $false
+    }
+    else
+    {
+        $samlEndpointProperties = 'Binding', 'Protocol', 'Uri', 'IsDefault', 'Index', 'ResponseUri'
+
+        for ($index = 0; $index -lt $DesiredValue.Count; $index++)
+        {
+            if ($null -eq $DesiredValue[$index].ResponseUri)
+            {
+                $DesiredValue[$index].ResponseUri = ''
+            }
+
+            if (Compare-Object -ReferenceObject $CurrentValue[$index] -DifferenceObject $DesiredValue[$index] `
+                    -Property $samlEndpointProperties -Debug:$false)
+            {
+                $parameterState.InDesiredState = $false
+                break
+            }
+        }
+    }
+
+    Write-Debug -Message "Returning parameter state InDesiredState $($parameterState.InDesiredState)"
+
+    return $parameterState
+}
+
 $script:localizedData = Get-LocalizedData -ResourceName 'AdfsDsc.Common' -ScriptRoot $PSScriptRoot
 $script:adfsServiceName = 'adfssrv'
 
@@ -1685,4 +1859,7 @@ Export-ModuleMember -Function @(
     'ConvertFrom-AccessControlPolicyParameter'
     'ConvertTo-AccessControlPolicyParameter'
     'Compare-AccessControlPolicyParameter'
+    'ConvertFrom-SamlEndpoint'
+    'ConvertTo-SamlEndpoint'
+    'Compare-SamlEndpoint'
 )
