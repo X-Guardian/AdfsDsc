@@ -85,7 +85,7 @@ try
 
                 It 'Should throw the correct exception' {
                     { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
-                        $script:localizedData.GettingResourceError -f $getTargetResourceParameters.CertificateType )
+                        $script:localizedData.GettingResourceErrorMessage -f $getTargetResourceParameters.CertificateType )
                 }
             }
         }
@@ -136,7 +136,7 @@ try
 
                 It 'Should throw the correct exception' {
                     { Set-TargetResource @setTargetResourceParametersChangedProperty } | Should -Throw (
-                        $script:localizedData.SettingResourceError -f
+                        $script:localizedData.SettingResourceErrorMessage -f
                         $setTargetResourceParametersChangedProperty.CertificateType )
                 }
             }

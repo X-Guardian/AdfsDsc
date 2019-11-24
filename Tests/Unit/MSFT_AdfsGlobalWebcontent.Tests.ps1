@@ -161,7 +161,7 @@ try
 
                 It 'Should throw the correct exception' {
                     { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
-                        $script:localizedData.GettingResourceError -f
+                        $script:localizedData.GettingResourceErrorMessage -f
                         $getTargetResourceParameters.FederationServiceName, $getTargetResourceParameters.Locale )
                 }
             }
@@ -227,7 +227,7 @@ try
 
                 It 'Should throw the correct exception' {
                     { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
-                        $script:localizedData.SettingResourceError -f
+                        $script:localizedData.SettingResourceErrorMessage -f
                         $setTargetResourceParameters.FederationServiceName, $setTargetResourceParameters.Locale )
                 }
             }

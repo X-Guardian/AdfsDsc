@@ -114,7 +114,7 @@ try
 
                 It 'Should throw the correct exception' {
                     { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
-                        $script:localizedData.GettingResourceError -f $getTargetResourceParameters.FederationServiceName )
+                        $script:localizedData.GettingResourceErrorMessage -f $getTargetResourceParameters.FederationServiceName )
                 }
             }
         }
@@ -142,18 +142,18 @@ try
             {
                 Context "When $property has changed" {
                     BeforeAll {
-                        $setTargetResourceParametersChangedProperty = $setTargetResourceParameters.Clone()
-                        $setTargetResourceParametersChangedProperty.$property = $mockChangedResource.$property
+                        $setChangedTargetResourceParametersProperty = $setTargetResourceParameters.Clone()
+                        $setChangedTargetResourceParametersProperty.$property = $mockChangedResource.$property
                     }
 
                     It 'Should not throw' {
-                        { Set-TargetResource @setTargetResourceParametersChangedProperty } | Should -Not -Throw
+                        { Set-TargetResource @setChangedTargetResourceParametersProperty } | Should -Not -Throw
                     }
 
                     It 'Should call the correct mocks' {
                         Assert-MockCalled -CommandName Get-TargetResource `
                             -ParameterFilter { `
-                                $FederationServiceName -eq $setTargetResourceParametersChangedProperty.FederationServiceName } `
+                                $FederationServiceName -eq $setChangedTargetResourceParametersProperty.FederationServiceName } `
                             -Exactly -Times 1
                         Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 1
                     }
@@ -163,11 +163,14 @@ try
             Context "When $($ResourceCommand.Set) throws an exception" {
                 BeforeAll {
                     Mock -CommandName $ResourceCommand.Set -MockWith { Throw 'Error' }
+
+                    $setChangedTargetResourceParametersProperty = $setTargetResourceParameters.Clone()
+                    $setChangedTargetResourceParametersProperty.AdditionalAuthenticationProvider = $mockChangedResource.AdditionalAuthenticationProvider
                 }
 
                 It 'Should throw the correct exception' {
-                    { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
-                        $script:localizedData.SettingResourceError -f
+                    { Set-TargetResource @setChangedTargetResourceParametersProperty } | Should -Throw (
+                        $script:localizedData.SettingResourceErrorMessage -f
                         $setTargetResourceParameters.FederationServiceName )
                 }
             }

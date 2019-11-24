@@ -3,7 +3,7 @@
 ConvertFrom-StringData @'
     EvaluatePropertyState                     = Evaluating the state of the property '{0}'. (ADFSCOMMON0001)
     PropertyInDesiredState                    = The parameter '{0}' is in desired state. (ADFSCOMMON0002)
-    PropertyNotInDesiredState                 = The parameter '{0}' is not in desired state. Expected {1}, Actual {2} (ADFSCOMMON0003)
+    PropertyNotInDesiredState                 = The parameter '{0}' is not in the desired state. Expected '{1}', Actual '{2}'. (ADFSCOMMON0003)
     ArrayDoesNotMatch                         = One or more values in an array does not match the desired state. Details of the changes are below. (ADFSCOMMON0004)
     ArrayValueThatDoesNotMatch                = {0} - {1} (ADFSCOMMON0005)
     PropertyValueOfTypeDoesNotMatch           = {0} value does not match. Current value is '{1}', but expected the value '{2}'. (ADFSCOMMON0006)

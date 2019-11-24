@@ -482,13 +482,14 @@ try
             }
         }
 
-        Describe "$Global:DSCResourceName\Test-TargetResource" -Tag 'Test' {
+        Describe "MSFT_AdfsWebApiApplication\Test-TargetResource" -Tag 'Test' {
             BeforeAll {
                 $testTargetResourceParameters = @{
                     Name                                 = $mockResource.Name
                     ApplicationGroupIdentifier           = $mockResource.ApplicationGroupIdentifier
                     Identifier                           = $mockResource.Identifier
                     AccessControlPolicyName              = $mockResource.AccessControlPolicyName
+                    AccessControlPolicyParameters        = $mockResource.AccessControlPolicyParameters
                     AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
                     AllowedClientTypes                   = $mockResource.AllowedClientTypes
                     AllowedAuthenticationClassReferences = $mockResource.AllowedAuthenticationClassReferences

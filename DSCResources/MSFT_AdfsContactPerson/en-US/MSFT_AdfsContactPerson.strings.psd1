@@ -1,10 +1,12 @@
 # culture="en-US"
 ConvertFrom-StringData @'
-    GettingResourceMessage                   = Getting '{0}'. (ORG0001)
-    SettingResourceMessage                   = Setting '{0}' property '{1}' to '{2}'. (ORG0002)
-    ResourceInDesiredStateMessage            = '{0}' is in the desired state. (ORG0003)
-    ResourcePropertyNotInDesiredStateMessage = '{0}' Property '{1}' is not in the desired state. Expected: '{2}', Actual: '{3}'. (ORG0004)
-    GettingResourceError                     = Error getting '{0}'. (ORG0005)
-    SettingResourceError                     = Error setting '{0}'. (ORG0006)
-    NewAdfsContactPersonError                = Error creating the ADFS Organization for '{0}. (ORG0007)
+    TestingResourceMessage           = Testing '{0}'. (CP001)
+    SettingResourceMessage           = Setting '{0}'. (CP002)
+    SettingResourcePropertyMessage   = Setting '{0}' property '{1}' to '{2}'. (CP003)
+    ResourceInDesiredStateMessage    = '{0}' is in the desired state. (CP004)
+    ResourceNotInDesiredStateMessage = '{0}' is not in the desired state. (CP005)
+
+    GettingResourceErrorMessage      = Error getting '{0}'. (CPERR001)
+    SettingResourceErrorMessage      = Error setting '{0}'. (CPERR002)
+    NewAdfsContactPersonErrorMessage = Error creating a contact person for '{0}'. (CPERR003)
 '@

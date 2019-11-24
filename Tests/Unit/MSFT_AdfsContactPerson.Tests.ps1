@@ -100,7 +100,7 @@ try
 
                 It 'Should throw the correct exception' {
                     { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
-                        $script:localizedData.GettingResourceError -f $getTargetResourceParameters.FederationServiceName )
+                        $script:localizedData.GettingResourceErrorMessage -f $getTargetResourceParameters.FederationServiceName )
                 }
             }
         }
@@ -151,7 +151,7 @@ try
 
                 It 'Should throw the correct exception' {
                     { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
-                        $script:localizedData.NewAdfsContactPersonError -f $setTargetResourceParameters.FederationServiceName )
+                        $script:localizedData.NewAdfsContactPersonErrorMessage -f $setTargetResourceParameters.FederationServiceName )
                 }
             }
 
@@ -162,7 +162,7 @@ try
 
                 It 'Should throw the correct exception' {
                     { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
-                        $script:localizedData.SettingResourceError -f $setTargetResourceParameters.FederationServiceName )
+                        $script:localizedData.SettingResourceErrorMessage -f $setTargetResourceParameters.FederationServiceName )
                 }
             }
         }
