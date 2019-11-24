@@ -147,11 +147,19 @@ function Get-TargetResource
         $Locale
     )
 
+    # Set Verbose and Debug parameters
+    $commonParms = @{
+        Verbose = $VerbosePreference
+        Debug   = $DebugPreference
+    }
+
+    Write-Verbose -Message ($script:localizedData.GettingResourceMessage -f $FederationServiceName, $Locale)
+
     # Check of the Resource PowerShell module is installed
     Assert-Module -ModuleName $script:psModuleName
 
     # Check if the ADFS Service is present and running
-    Assert-AdfsService -Verbose
+    Assert-AdfsService @commonParms
 
     try
     {
@@ -307,10 +315,10 @@ function Set-TargetResource
     }
 
     # Remove any parameters not used in Splats
-    [HashTable]$Parameters = $PSBoundParameters
-    $Parameters.Remove('FederationServiceName')
-    $Parameters.Remove('Locale')
-    $Parameters.Remove('Verbose')
+    [HashTable]$parameters = $PSBoundParameters
+    $parameters.Remove('FederationServiceName')
+    $parameters.Remove('Locale')
+    $parameters.Remove('Verbose')
 
     $getTargetResourceParms = @{
         FederationServiceName = $FederationServiceName
@@ -319,7 +327,7 @@ function Set-TargetResource
     $targetResource = Get-TargetResource @getTargetResourceParms
 
     $propertiesNotInDesiredState = (
-        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $Parameters `
+        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters `
             @commonParms | Where-Object -Property InDesiredState -eq $false)
 
     $SetParameters = @{ }

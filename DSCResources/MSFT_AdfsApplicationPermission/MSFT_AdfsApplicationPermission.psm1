@@ -82,6 +82,9 @@ function Get-TargetResource
         Debug   = $DebugPreference
     }
 
+    Write-Verbose -Message ($script:localizedData.GettingResourceMessage -f
+        $ClientRoleIdentifier, $ServerRoleIdentifier)
+
     # Check of the ADFS PowerShell module is installed
     Assert-Module -ModuleName $script:psModuleName
 

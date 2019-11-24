@@ -73,6 +73,8 @@ function Get-TargetResource
         Debug   = $DebugPreference
     }
 
+    Write-Verbose -Message ($script:localizedData.GettingResourceMessage -f $Name)
+
     # Check of the Resource PowerShell module is installed
     Assert-Module -ModuleName $script:psModuleName
 
@@ -332,8 +334,7 @@ function Test-TargetResource
             # Resource should be Absent
             Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f $Name)
 
-            Write-Verbose -Message ($script:localizedData.ResourceIsPresentButShouldBeAbsentMessage -f
-                $targetResource.Name)
+            Write-Verbose -Message ($script:localizedData.ResourceIsPresentButShouldBeAbsentMessage -f $Name)
 
             $inDesiredState = $false
         }
@@ -348,8 +349,7 @@ function Test-TargetResource
             # Resource should be Present
             Write-Debug -Message ($script:localizedData.TargetResourceShouldBePresentDebugMessage -f $Name)
 
-            Write-Verbose -Message ($script:localizedData.ResourceIsAbsentButShouldBePresentMessage -f
-                $targetResource.Name)
+            Write-Verbose -Message ($script:localizedData.ResourceIsAbsentButShouldBePresentMessage -f $Name)
 
             $inDesiredState = $false
         }
@@ -358,8 +358,7 @@ function Test-TargetResource
             # Resource should be Absent
             Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f $Name)
 
-            Write-Verbose ($script:localizedData.ResourceInDesiredStateMessage -f
-                $targetResource.Name)
+            Write-Verbose ($script:localizedData.ResourceInDesiredStateMessage -f $Name)
 
             $inDesiredState = $true
         }

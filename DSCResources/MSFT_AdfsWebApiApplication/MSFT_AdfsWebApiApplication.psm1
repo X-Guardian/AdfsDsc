@@ -157,6 +157,8 @@ function Get-TargetResource
         Debug   = $DebugPreference
     }
 
+    Write-Verbose -Message ($script:localizedData.GettingResourceMessage -f $Name)
+
     # Check of the Resource PowerShell module is installed
     Assert-Module -ModuleName $script:psModuleName
 
