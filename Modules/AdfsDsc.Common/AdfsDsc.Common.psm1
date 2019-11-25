@@ -1762,11 +1762,11 @@ function ConvertFrom-SamlEndpoint
         }
 
         $mSFTAdfsSamlEndpointProperties = @{
-            Binding   = $endpoint.Binding
-            Protocol  = $endpoint.Protocol
-            Uri       = $endpoint.Location.OriginalString
-            IsDefault = $endpoint.IsDefault
-            Index     = $endpoint.Index
+            Binding     = $endpoint.Binding
+            Protocol    = $endpoint.Protocol
+            Uri         = $endpoint.Location.OriginalString
+            IsDefault   = $endpoint.IsDefault
+            Index       = $endpoint.Index
             ResponseUri = $ResponseUri
         }
 
