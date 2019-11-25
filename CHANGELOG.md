@@ -2,7 +2,6 @@
 
 ## Unreleased
 
-
 ## 1.0.0
 
 - Changes to AdfsWebApiApplication

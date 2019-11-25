@@ -82,11 +82,11 @@ AliasesToExport = @()
 
 # DSC resources to export from this module
 DscResourcesToExport = 'AdfsApplicationGroup', 'AdfsApplicationPermission',
-               'AdfsCertificate', 'AdfsFarm', 'AdfsFarmNode',
-               'AdfsGlobalAuthneticationPolicy', 'AdfsGlobalWebContent',
-               'AdfsNativeClientApplication', 'AdfsProperties',
-               'AdfsRelyingPartyTrust', 'AdfsSslCertificate',
-               'AdfsWebApiApplication'
+               'AdfsCertificate', 'AdfsClaimDescription', 'AdfsContactPerson' ,
+               'AdfsFarm', 'AdfsFarmNode', 'AdfsGlobalAuthenticationPolicy',
+               'AdfsGlobalWebContent', 'AdfsNativeClientApplication',
+               'AdfsOrganization', 'AdfsProperties', 'AdfsRelyingPartyTrust',
+               'AdfsSslCertificate', 'AdfsWebApiApplication'
 
 # List of all modules packaged with this module
 # ModuleList = @()
