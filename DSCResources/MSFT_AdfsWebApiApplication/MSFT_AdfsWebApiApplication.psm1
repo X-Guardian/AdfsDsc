@@ -184,10 +184,10 @@ function Get-TargetResource
         Write-Debug -Message ($script:localizedData.TargetResourcePresentDebugMessage -f $Name)
 
         $AccessControlPolicyParameters = ConvertFrom-AccessControlPolicyParameter `
-            -Policy $targetResource.AccessControlPolicyParameters @CommonParms
+            -Policy $targetResource.AccessControlPolicyParameters @commonParms
 
         $IssuanceTransformRules = ConvertFrom-IssuanceTransformRule `
-            -Rule $targetResource.IssuanceTransformRules @CommonParms
+            -Rule $targetResource.IssuanceTransformRules @commonParms
 
         $returnValue = @{
             Name                                 = $targetResource.Name
@@ -396,7 +396,7 @@ function Set-TargetResource
                 $propertiesNotInDesiredState += (
                     Compare-IssuanceTransformRule -CurrentValue $targetResource.IssuanceTransformRules `
                         -DesiredValue $IssuanceTransformRules -ParameterName 'IssuanceTransformRules' `
-                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                        @commonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             if ($PSBoundParameters.Keys.Contains('AccessControlPolicyParameters'))
@@ -404,13 +404,13 @@ function Set-TargetResource
                 $propertiesNotInDesiredState += (
                     Compare-AccessControlPolicyParameter -CurrentValue $targetResource.AccessControlPolicyParameters `
                         -DesiredValue $AccessControlPolicyParameters -ParameterName 'AccessControlPolicyParameters' `
-                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                        @commonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             $propertiesNotInDesiredState += (
                 Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters `
                     -IgnoreProperties 'IssuanceTransformRules', 'AccessControlPolicyParameters' `
-                    @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                    @commonParms | Where-Object -Property InDesiredState -eq $false)
 
             if ($propertiesNotInDesiredState |
                 Where-Object -Property ParameterName -eq 'ApplicationGroupIdentifier')
@@ -454,13 +454,13 @@ function Set-TargetResource
                 {
                     # Custom processing for 'IssuanceTransformRules' property
                     $setParameters.Add($property.ParameterName, ($IssuanceTransformRules |
-                            ConvertTo-IssuanceTransformRule @CommonParms))
+                            ConvertTo-IssuanceTransformRule @commonParms))
                 }
                 elseif ($property.ParameterName -eq 'AccessControlPolicyParameters')
                 {
                     # Custom processing for 'AccessControlPolicyParameters' property
                     $setParameters.Add($property.ParameterName, ($AccessControlPolicyParameters |
-                            ConvertTo-AccessControlPolicyParameter @CommonParms))
+                            ConvertTo-AccessControlPolicyParameter @commonParms))
                 }
                 else
                 {
@@ -511,14 +511,14 @@ function Set-TargetResource
             {
                 # Custom processing for 'IssuanceTransformRules' property
                 $parameters.IssuanceTransformRules = ($parameters.IssuanceTransformRules |
-                    ConvertTo-IssuanceTransformRule @CommonParms)
+                    ConvertTo-IssuanceTransformRule @commonParms)
             }
 
             if ($parameters.ContainsKey('AccessControlPolicyParameters'))
             {
                 # Custom processing for 'AccessControlPolicyParameters' property
                 $parameters.AccessControlPolicyParameters = ($parameters.AccessControlPolicyParameters |
-                    ConvertTo-AccessControlPolicyParameter @CommonParms)
+                    ConvertTo-AccessControlPolicyParameter @commonParms)
             }
 
             Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f
@@ -684,7 +684,7 @@ function Test-TargetResource
                 $propertiesNotInDesiredState += (
                     Compare-IssuanceTransformRule -CurrentValue $targetResource.IssuanceTransformRules `
                         -DesiredValue $IssuanceTransformRules -ParameterName 'IssuanceTransformRules' `
-                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                        @commonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             if ($PSBoundParameters.Keys.Contains('AccessControlPolicyParameters'))
@@ -692,13 +692,13 @@ function Test-TargetResource
                 $propertiesNotInDesiredState += (
                     Compare-AccessControlPolicyParameter -CurrentValue $targetResource.AccessControlPolicyParameters `
                         -DesiredValue $AccessControlPolicyParameters -ParameterName 'AccessControlPolicyParameters' `
-                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                        @commonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             $propertiesNotInDesiredState += (
                 Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters `
                     -IgnoreProperties 'IssuanceTransformRules', 'AccessControlPolicyParameters' `
-                | Where-Object -Property InDesiredState -eq $false)
+                    @commonParms | Where-Object -Property InDesiredState -eq $false)
 
             if ($propertiesNotInDesiredState)
             {

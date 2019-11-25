@@ -616,7 +616,7 @@ function Set-TargetResource
                 $propertiesNotInDesiredState += (
                     Compare-IssuanceTransformRule -CurrentValue $targetResource.IssuanceTransformRules `
                         -DesiredValue $IssuanceTransformRules -ParameterName 'IssuanceTransformRules' `
-                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                        @commonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             if ($PSBoundParameters.Keys.Contains('AccessControlPolicyParameters'))
@@ -624,7 +624,7 @@ function Set-TargetResource
                 $propertiesNotInDesiredState += (
                     Compare-AccessControlPolicyParameter -CurrentValue $targetResource.AccessControlPolicyParameters `
                         -DesiredValue $AccessControlPolicyParameters -ParameterName 'AccessControlPolicyParameters' `
-                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                        @commonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             if ($PSBoundParameters.Keys.Contains('SamlEndpoint'))
@@ -632,13 +632,13 @@ function Set-TargetResource
                 $propertiesNotInDesiredState += (
                     Compare-SamlEndpoint -CurrentValue $targetResource.SamlEndpoint `
                         -DesiredValue $SamlEndpoint -ParameterName 'SamlEndpoint' `
-                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                        @commonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             $propertiesNotInDesiredState += (
                 Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters `
                     -IgnoreProperties 'IssuanceTransformRules', 'AccessControlPolicyParameters', 'SamlEndpoint' `
-                    @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                    @commonParms | Where-Object -Property InDesiredState -eq $false)
 
             $SetParameters = @{ }
             foreach ($property in $propertiesNotInDesiredState)
@@ -1042,7 +1042,7 @@ function Test-TargetResource
                 $propertiesNotInDesiredState += (
                     Compare-IssuanceTransformRule -CurrentValue $targetResource.IssuanceTransformRules `
                         -DesiredValue $IssuanceTransformRules -ParameterName 'IssuanceTransformRules' `
-                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                        @commonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             if ($PSBoundParameters.Keys.Contains('AccessControlPolicyParameters'))
@@ -1050,7 +1050,7 @@ function Test-TargetResource
                 $propertiesNotInDesiredState += (
                     Compare-AccessControlPolicyParameter -CurrentValue $targetResource.AccessControlPolicyParameters `
                         -DesiredValue $AccessControlPolicyParameters -ParameterName 'AccessControlPolicyParameters' `
-                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                        @commonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             if ($PSBoundParameters.Keys.Contains('SamlEndpoint'))
@@ -1058,13 +1058,13 @@ function Test-TargetResource
                 $propertiesNotInDesiredState += (
                     Compare-SamlEndpoint -CurrentValue $targetResource.SamlEndpoint `
                         -DesiredValue $SamlEndpoint -ParameterName 'SamlEndpoint' `
-                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                        @commonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             $propertiesNotInDesiredState += (
                 Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters `
                     -IgnoreProperties 'IssuanceTransformRules', 'AccessControlPolicyParameters', 'SamlEndpoint' `
-                    @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                    @commonParms | Where-Object -Property InDesiredState -eq $false)
 
             if ($propertiesNotInDesiredState)
             {

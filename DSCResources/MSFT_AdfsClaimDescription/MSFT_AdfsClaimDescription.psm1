@@ -372,7 +372,7 @@ function Test-TargetResource
 
             $propertiesNotInDesiredState = (
                 Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters `
-                @commonParms | Where-Object -Property InDesiredState -eq $false)
+                    @commonParms | Where-Object -Property InDesiredState -eq $false)
 
             if ($propertiesNotInDesiredState)
             {
