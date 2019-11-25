@@ -47,8 +47,13 @@ function Get-TargetResource
         Get-TargetResource
 
     .NOTES
-        Used Resource PowerShell Cmdlets:
-        - Get-AdfsSslCertificate - https://docs.microsoft.com/en-us/powershell/module/adfs/get-adfssslcertificate
+        Used Cmdlets/Functions:
+
+        Name                   | Module
+        -----------------------|----------------
+        Get-AdfsSslCertificate | Adfs
+        Assert-Module          | AdfsDsc.Common
+        Assert-AdfsService     | AdfsDsc.Common
     #>
 
     [CmdletBinding()]
@@ -65,13 +70,19 @@ function Get-TargetResource
         $Thumbprint
     )
 
+    # Set Verbose and Debug parameters
+    $commonParms = @{
+        Verbose = $VerbosePreference
+        Debug   = $DebugPreference
+    }
+
+    Write-Verbose -Message ($script:localizedData.GettingResourceMessage -f $CertificateType)
+
     # Check of the Resource PowerShell module is installed
     Assert-Module -ModuleName $script:psModuleName
 
     # Check if the ADFS Service is present and running
-    Assert-AdfsService -Verbose
-
-    Write-Verbose -Message ($script:localizedData.GettingResourceMessage -f $CertificateType)
+    Assert-AdfsService @commonParms
 
     try
     {
@@ -79,7 +90,7 @@ function Get-TargetResource
     }
     catch
     {
-        $errorMessage = $script:localizedData.GettingResourceError -f $CertificateType
+        $errorMessage = $script:localizedData.GettingResourceErrorMessage -f $CertificateType
         New-InvalidOperationException -Message $errorMessage -Error $_
     }
     $returnValue = @{
@@ -98,8 +109,12 @@ function Set-TargetResource
         Set-TargetResource
 
     .NOTES
-        Used Resource PowerShell Cmdlets:
-        - Set-AdfsSslCertificate - https://docs.microsoft.com/en-us/powershell/module/adfs/set-adfssslcertificate
+        Used Cmdlets/Functions:
+
+        Name                          | Module
+        ------------------------------|----------------
+        Set-AdfsSslCertificate        | Adfs
+        Compare-ResourcePropertyState | AdfsDsc.Common
     #>
 
     [CmdletBinding()]
@@ -119,9 +134,18 @@ function Set-TargetResource
         $RemoteCredential
     )
 
-    [HashTable]$Parameters = $PSBoundParameters
-    $Parameters.Remove('CertificateType')
-    $Parameters.Remove('RemoteCredential')
+    # Set Verbose and Debug parameters
+    $commonParms = @{
+        Verbose = $VerbosePreference
+        Debug   = $DebugPreference
+    }
+
+    Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f $CertificateType)
+
+    # Remove any parameters not used in Splats
+    [HashTable]$parameters = $PSBoundParameters
+    $parameters.Remove('CertificateType')
+    $parameters.Remove('RemoteCredential')
 
     $GetTargetResourceParms = @{
         CertificateType = $CertificateType
@@ -130,15 +154,15 @@ function Set-TargetResource
     $targetResource = Get-TargetResource @GetTargetResourceParms
 
     $propertiesNotInDesiredState = (
-        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $Parameters |
-            Where-Object -Property InDesiredState -eq $false)
+        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters `
+            @commonParms | Where-Object -Property InDesiredState -eq $false)
 
     $setParameters = @{ }
     foreach ($property in $propertiesNotInDesiredState)
     {
-        Write-Verbose -Message (
-            $script:localizedData.SettingResourceMessage -f
+        Write-Verbose -Message ($script:localizedData.SettingResourcePropertyMessage -f
             $CertificateType, $property.ParameterName, ($property.Expected -join ', '))
+
         $setParameters.add($property.ParameterName, $property.Expected)
     }
 
@@ -153,7 +177,7 @@ function Set-TargetResource
     }
     catch
     {
-        $errorMessage = $script:localizedData.SettingResourceError -f $CertificateType
+        $errorMessage = $script:localizedData.SettingResourceErrorMessage -f $CertificateType
         New-InvalidOperationException -Message $errorMessage -Error $_
     }
 }
@@ -163,6 +187,13 @@ function Test-TargetResource
     <#
     .SYNOPSIS
         Test-TargetResource
+
+    .NOTES
+        Used Cmdlets/Functions:
+
+        Name                          | Module
+        ------------------------------|------------------
+        Compare-ResourcePropertyState | AdfsDsc.Common
     #>
 
     [CmdletBinding()]
@@ -183,7 +214,17 @@ function Test-TargetResource
         $RemoteCredential
     )
 
-    $PSBoundParameters.Remove('RemoteCredential') | Out-Null
+    # Set Verbose and Debug parameters
+    $commonParms = @{
+        Verbose = $VerbosePreference
+        Debug   = $DebugPreference
+    }
+
+    # Remove any parameters not used in Splats
+    [HashTable]$parameters = $PSBoundParameters
+    $parameters.Remove('RemoteCredential')
+
+    Write-Verbose -Message ($script:localizedData.TestingResourceMessage -f $CertificateType)
 
     $getTargetResourceParms = @{
         CertificateType = $CertificateType
@@ -192,20 +233,14 @@ function Test-TargetResource
     $targetResource = Get-TargetResource @getTargetResourceParms
 
     $propertiesNotInDesiredState = (
-        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
-            Where-Object -Property InDesiredState -eq $false)
+        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters `
+            @commonParms | Where-Object -Property InDesiredState -eq $false)
 
     if ($propertiesNotInDesiredState)
     {
         # Resource is not in desired state
-        foreach ($property in $propertiesNotInDesiredState)
-        {
-            Write-Verbose -Message (
-                $script:localizedData.ResourcePropertyNotInDesiredStateMessage -f
-                $targetResource.CertificateType, $property.ParameterName,
-                $property.Expected, $property.Actual)
+        Write-Verbose -Message ($script:localizedData.ResourceNotInDesiredStateMessage -f $CertificateType)
 
-        }
         $inDesiredState = $false
     }
     else
@@ -213,6 +248,7 @@ function Test-TargetResource
         # Resource is in desired state
         Write-Verbose -Message (
             $script:localizedData.ResourceInDesiredStateMessage -f $CertificateType)
+
         $inDesiredState = $true
     }
 

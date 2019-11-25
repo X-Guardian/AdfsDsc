@@ -43,7 +43,7 @@ try
             Thumbprint      = $mockResource.Thumbprint
         }
 
-        Describe "$Global:DSCResourceName\Get-TargetResource" -Tag 'Get' {
+        Describe 'MSFT_AdfsCertificate\Get-TargetResource' -Tag 'Get' {
             BeforeAll {
                 $getTargetResourceParameters = @{
                     CertificateType = $mockResource.CertificateType
@@ -85,12 +85,12 @@ try
 
                 It 'Should throw the correct exception' {
                     { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
-                        $script:localizedData.GettingResourceError -f $getTargetResourceParameters.CertificateType )
+                        $script:localizedData.GettingResourceErrorMessage -f $getTargetResourceParameters.CertificateType )
                 }
             }
         }
 
-        Describe "$Global:DSCResourceName\Set-TargetResource" -Tag 'Set' {
+        Describe 'MSFT_AdfsCertificate\Set-TargetResource' -Tag 'Set' {
             BeforeAll {
                 $setTargetResourceParameters = @{
                     CertificateType = $mockResource.CertificateType
@@ -136,13 +136,13 @@ try
 
                 It 'Should throw the correct exception' {
                     { Set-TargetResource @setTargetResourceParametersChangedProperty } | Should -Throw (
-                        $script:localizedData.SettingResourceError -f
+                        $script:localizedData.SettingResourceErrorMessage -f
                         $setTargetResourceParametersChangedProperty.CertificateType )
                 }
             }
         }
 
-        Describe "$Global:DSCResourceName\Test-TargetResource" -Tag 'Test' {
+        Describe 'MSFT_AdfsCertificate\Test-TargetResource' -Tag 'Test' {
             BeforeAll {
                 $testTargetResourceParameters = @{
                     CertificateType = $mockResource.CertificateType

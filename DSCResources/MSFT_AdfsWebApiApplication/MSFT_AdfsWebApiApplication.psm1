@@ -28,7 +28,7 @@
 
     .PARAMETER AccessControlPolicyParameters
         Write - MSFT_AccessControlPolicyParameters
-        Specifies Specifies the parameters and their values to pass to the Access Control Policy.
+        Specifies the parameters and their values to pass to the Access Control Policy.
 
     .PARAMETER AdditionalAuthenticationRules
         Write - String
@@ -132,7 +132,6 @@ function Get-TargetResource
         Assert-AdfsService                       | AdfsDsc.Common
         ConvertFrom-IssuanceTransformRule        | AdfsDsc.Common
         ConvertFrom-AccessControlPolicyParameter | AdfsDsc.Common
-
     #>
 
     [CmdletBinding()]
@@ -152,12 +151,13 @@ function Get-TargetResource
         $Identifier
     )
 
-
     # Set Verbose and Debug parameters
-    $CommonParms = @{
+    $commonParms = @{
         Verbose = $VerbosePreference
         Debug   = $DebugPreference
     }
+
+    Write-Verbose -Message ($script:localizedData.GettingResourceMessage -f $Name)
 
     # Check of the Resource PowerShell module is installed
     Assert-Module -ModuleName $script:psModuleName
@@ -166,11 +166,17 @@ function Get-TargetResource
     Assert-Command -Module $script:psModuleName -Command 'Get-AdfsWebApiApplication'
 
     # Check if the ADFS Service is present and running
-    Assert-AdfsService -Verbose
+    Assert-AdfsService @commonParms
 
-    Write-Verbose -Message ($script:localizedData.GettingResourceMessage -f $Name)
-
-    $targetResource = Get-AdfsWebApiApplication -Name $Name
+    try
+    {
+        $targetResource = Get-AdfsWebApiApplication -Name $Name
+    }
+    catch
+    {
+        $errorMessage = $script:localizedData.GettingResourceErrorMessage -f $Name
+        New-InvalidOperationException -Message $errorMessage -Error $_
+    }
 
     if ($targetResource)
     {
@@ -178,10 +184,10 @@ function Get-TargetResource
         Write-Debug -Message ($script:localizedData.TargetResourcePresentDebugMessage -f $Name)
 
         $AccessControlPolicyParameters = ConvertFrom-AccessControlPolicyParameter `
-            -Policy $targetResource.AccessControlPolicyParameters @CommonParms
+            -Policy $targetResource.AccessControlPolicyParameters @commonParms
 
         $IssuanceTransformRules = ConvertFrom-IssuanceTransformRule `
-            -Rule $targetResource.IssuanceTransformRules @CommonParms
+            -Rule $targetResource.IssuanceTransformRules @commonParms
 
         $returnValue = @{
             Name                                 = $targetResource.Name
@@ -252,7 +258,6 @@ function Set-TargetResource
 
         Name                                   | Module
         ---------------------------------------|----------------
-        Add-AdfsWebApiApplication              | Adfs
         Add-AdfsWebApiApplication              | Adfs
         Remove-AdfsWebApiApplication           | Adfs
         Set-AdfsWebApiApplication              | Adfs
@@ -355,7 +360,7 @@ function Set-TargetResource
     )
 
     # Set Verbose and Debug parameters
-    $CommonParms = @{
+    $commonParms = @{
         Verbose = $VerbosePreference
         Debug   = $DebugPreference
     }
@@ -364,6 +369,8 @@ function Set-TargetResource
     [HashTable]$parameters = $PSBoundParameters
     $parameters.Remove('Ensure')
     $parameters.Remove('Verbose')
+
+    Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f $Name)
 
     $GetTargetResourceParms = @{
         ApplicationGroupIdentifier = $ApplicationGroupIdentifier
@@ -389,7 +396,7 @@ function Set-TargetResource
                 $propertiesNotInDesiredState += (
                     Compare-IssuanceTransformRule -CurrentValue $targetResource.IssuanceTransformRules `
                         -DesiredValue $IssuanceTransformRules -ParameterName 'IssuanceTransformRules' `
-                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                        @commonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             if ($PSBoundParameters.Keys.Contains('AccessControlPolicyParameters'))
@@ -397,44 +404,63 @@ function Set-TargetResource
                 $propertiesNotInDesiredState += (
                     Compare-AccessControlPolicyParameter -CurrentValue $targetResource.AccessControlPolicyParameters `
                         -DesiredValue $AccessControlPolicyParameters -ParameterName 'AccessControlPolicyParameters' `
-                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                        @commonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             $propertiesNotInDesiredState += (
                 Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters `
                     -IgnoreProperties 'IssuanceTransformRules', 'AccessControlPolicyParameters' `
-                    @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                    @commonParms | Where-Object -Property InDesiredState -eq $false)
 
             if ($propertiesNotInDesiredState |
                 Where-Object -Property ParameterName -eq 'ApplicationGroupIdentifier')
             {
                 Write-Verbose -Message ($script:localizedData.RemovingResourceMessage -f
                     $Name, $targetResource.ApplicationGroupIdentifier)
-                Remove-AdfsWebApiApplication -TargetName $Name
+
+                try
+                {
+                    Remove-AdfsWebApiApplication -TargetName $Name
+                }
+                catch
+                {
+                    $errorMessage = $script:localizedData.RemovingResourceErrorMessage -f $Name
+                    New-InvalidOperationException -Message $errorMessage -Error $_
+                }
 
                 Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f
                     $Name, $ApplicationGroupIdentifier)
-                Add-AdfsWebApiApplication @parameters -Verbose:$false
+
+                try
+                {
+                    Add-AdfsWebApiApplication @parameters -Verbose:$false
+                }
+                catch
+                {
+                    $errorMessage = $script:localizedData.AddingResourceErrorMessage -f $Name
+                    New-InvalidOperationException -Message $errorMessage -Error $_
+                }
+
                 break
             }
 
             $setParameters = @{ }
             foreach ($property in $propertiesNotInDesiredState)
             {
-                Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f
+                Write-Verbose -Message ($script:localizedData.SettingResourcePropertyMessage -f
                     $Name, $property.ParameterName, ($property.Expected -join ', '))
 
                 if ($property.ParameterName -eq 'IssuanceTransformRules')
                 {
                     # Custom processing for 'IssuanceTransformRules' property
                     $setParameters.Add($property.ParameterName, ($IssuanceTransformRules |
-                            ConvertTo-IssuanceTransformRule @CommonParms))
+                            ConvertTo-IssuanceTransformRule @commonParms))
                 }
                 elseif ($property.ParameterName -eq 'AccessControlPolicyParameters')
                 {
                     # Custom processing for 'AccessControlPolicyParameters' property
                     $setParameters.Add($property.ParameterName, ($AccessControlPolicyParameters |
-                            ConvertTo-AccessControlPolicyParameter @CommonParms))
+                            ConvertTo-AccessControlPolicyParameter @commonParms))
                 }
                 else
                 {
@@ -442,7 +468,15 @@ function Set-TargetResource
                 }
             }
 
-            Set-AdfsWebApiApplication -TargetName $Name @setParameters
+            try
+            {
+                Set-AdfsWebApiApplication -TargetName $Name @setParameters
+            }
+            catch
+            {
+                $errorMessage = $script:localizedData.SettingResourceErrorMessage -f $Name
+                New-InvalidOperationException -Message $errorMessage -Error $_
+            }
         }
         else
         {
@@ -451,7 +485,16 @@ function Set-TargetResource
 
             Write-Verbose -Message ($script:localizedData.RemovingResourceMessage -f
                 $Name, $ApplicationGroupIdentifier)
-            Remove-AdfsWebApiApplication -TargetName $Name
+
+            try
+            {
+                Remove-AdfsWebApiApplication -TargetName $Name
+            }
+            catch
+            {
+                $errorMessage = $script:localizedData.RemovingResourceErrorMessage -f $Name
+                New-InvalidOperationException -Message $errorMessage -Error $_
+            }
         }
     }
     else
@@ -468,19 +511,28 @@ function Set-TargetResource
             {
                 # Custom processing for 'IssuanceTransformRules' property
                 $parameters.IssuanceTransformRules = ($parameters.IssuanceTransformRules |
-                    ConvertTo-IssuanceTransformRule @CommonParms)
+                    ConvertTo-IssuanceTransformRule @commonParms)
             }
 
             if ($parameters.ContainsKey('AccessControlPolicyParameters'))
             {
                 # Custom processing for 'AccessControlPolicyParameters' property
                 $parameters.AccessControlPolicyParameters = ($parameters.AccessControlPolicyParameters |
-                    ConvertTo-AccessControlPolicyParameter @CommonParms)
+                    ConvertTo-AccessControlPolicyParameter @commonParms)
             }
 
             Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f
                 $Name, $ApplicationGroupIdentifier)
-            Add-AdfsWebApiApplication @parameters -Verbose:$false
+
+            try
+            {
+                Add-AdfsWebApiApplication @parameters -Verbose:$false
+            }
+            catch
+            {
+                $errorMessage = $script:localizedData.AddingResourceErrorMessage -f $Name
+                New-InvalidOperationException -Message $errorMessage -Error $_
+            }
         }
         else
         {
@@ -601,10 +653,12 @@ function Test-TargetResource
     )
 
     # Set Verbose and Debug parameters
-    $CommonParms = @{
+    $commonParms = @{
         Verbose = $VerbosePreference
         Debug   = $DebugPreference
     }
+
+    Write-Verbose -Message ($script:localizedData.TestingResourceMessage -f $Name)
 
     $getTargetResourceParms = @{
         Name                       = $Name
@@ -630,7 +684,7 @@ function Test-TargetResource
                 $propertiesNotInDesiredState += (
                     Compare-IssuanceTransformRule -CurrentValue $targetResource.IssuanceTransformRules `
                         -DesiredValue $IssuanceTransformRules -ParameterName 'IssuanceTransformRules' `
-                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                        @commonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             if ($PSBoundParameters.Keys.Contains('AccessControlPolicyParameters'))
@@ -638,31 +692,26 @@ function Test-TargetResource
                 $propertiesNotInDesiredState += (
                     Compare-AccessControlPolicyParameter -CurrentValue $targetResource.AccessControlPolicyParameters `
                         -DesiredValue $AccessControlPolicyParameters -ParameterName 'AccessControlPolicyParameters' `
-                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                        @commonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             $propertiesNotInDesiredState += (
                 Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters `
                     -IgnoreProperties 'IssuanceTransformRules', 'AccessControlPolicyParameters' `
-                    @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                    @commonParms | Where-Object -Property InDesiredState -eq $false)
 
             if ($propertiesNotInDesiredState)
             {
                 # Resource is not in desired state
-                foreach ($property in $propertiesNotInDesiredState)
-                {
-                    Write-Verbose -Message (
-                        $script:localizedData.ResourcePropertyNotInDesiredStateMessage -f
-                        $targetResource.Name, $property.ParameterName, `
-                            $property.Expected, $property.Actual)
-                }
+                Write-Verbose -Message ($script:localizedData.ResourceNotInDesiredStateMessage -f $Name)
+
                 $inDesiredState = $false
             }
             else
             {
                 # Resource is in desired state
-                Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f
-                    $targetResource.Name)
+                Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $Name)
+
                 $inDesiredState = $true
             }
         }
@@ -671,8 +720,8 @@ function Test-TargetResource
             # Resource should be Absent
             Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f $Name)
 
-            Write-Verbose -Message ($script:localizedData.ResourceIsPresentButShouldBeAbsentMessage -f
-                $targetResource.Name)
+            Write-Verbose -Message ($script:localizedData.ResourceIsPresentButShouldBeAbsentMessage -f $Name)
+
             $inDesiredState = $false
         }
     }
@@ -686,8 +735,8 @@ function Test-TargetResource
             # Resource should be Present
             Write-Debug -Message ($script:localizedData.TargetResourceShouldBePresentDebugMessage -f $Name)
 
-            Write-Verbose -Message ($script:localizedData.ResourceIsAbsentButShouldBePresentMessage -f
-                $targetResource.Name)
+            Write-Verbose -Message ($script:localizedData.ResourceIsAbsentButShouldBePresentMessage -f $Name)
+
             $inDesiredState = $false
         }
         else
@@ -695,8 +744,8 @@ function Test-TargetResource
             # Resource should be Absent
             Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f $Name)
 
-            Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f
-                $targetResource.Name)
+            Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $Name)
+
             $inDesiredState = $true
         }
     }

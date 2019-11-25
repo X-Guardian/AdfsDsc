@@ -65,8 +65,14 @@ function Get-TargetResource
         Get-TargetResource
 
     .NOTES
-        Used Resource PowerShell Cmdlets:
-        - Get-AdfsNativeClientApplication - https://docs.microsoft.com/en-us/powershell/module/adfs/get-adfsnativeclientapplication
+        Used Cmdlets/Functions:
+
+        Name                            | Module
+        --------------------------------|----------------
+        Get-AdfsNativeClientApplication | Adfs
+        Assert-Module                   | AdfsDsc.Common
+        Assert-Command                  | AdfsDsc.Common
+        Assert-AdfsService              | AdfsDsc.Common
     #>
 
     [CmdletBinding()]
@@ -86,6 +92,14 @@ function Get-TargetResource
         $Identifier
     )
 
+    # Set Verbose and Debug parameters
+    $commonParms = @{
+        Verbose = $VerbosePreference
+        Debug   = $DebugPreference
+    }
+
+    Write-Verbose -Message ($script:localizedData.GettingResourceMessage -f $Name)
+
     # Check of the Resource PowerShell module is installed
     Assert-Module -ModuleName $script:psModuleName
 
@@ -93,15 +107,23 @@ function Get-TargetResource
     Assert-Command -Module $script:psModuleName -Command 'Get-AdfsNativeClientApplication'
 
     # Check if the ADFS Service is present and running
-    Assert-AdfsService -Verbose
+    Assert-AdfsService @commonParms
 
-    Write-Verbose -Message ($script:localizedData.GettingResourceMessage -f $Name)
-
-    $targetResource = Get-AdfsNativeClientApplication -Name $Name
+    try
+    {
+        $targetResource = Get-AdfsNativeClientApplication -Name $Name
+    }
+    catch
+    {
+        $errorMessage = $script:localizedData.GettingResourceErrorMessage -f $Name
+        New-InvalidOperationException -Message $errorMessage -Error $_
+    }
 
     if ($targetResource)
     {
-        # Resource exists
+        # Resource is Present
+        Write-Debug -Message ($script:localizedData.TargetResourcePresentDebugMessage -f $Name)
+
         $returnValue = @{
             ApplicationGroupIdentifier = $targetResource.ApplicationGroupIdentifier
             Name                       = $targetResource.Name
@@ -114,7 +136,9 @@ function Get-TargetResource
     }
     else
     {
-        # Resource does not exist
+        # Resource is Absent
+        Write-Debug -Message ($script:localizedData.TargetResourceAbsentDebugMessage -f $Name)
+
         $returnValue = @{
             ApplicationGroupIdentifier = $ApplicationGroupIdentifier
             Name                       = $Name
@@ -123,7 +147,6 @@ function Get-TargetResource
             Description                = $null
             LogoutUri                  = $null
             Ensure                     = 'Absent'
-
         }
     }
 
@@ -137,10 +160,14 @@ function Set-TargetResource
         Set-TargetResource
 
     .NOTES
-        Used Resource PowerShell Cmdlets:
-        - Add-AdfsNativeClientApplication    - https://docs.microsoft.com/en-us/powershell/module/adfs/add-adfsnativeclientapplication
-        - Remove-AdfsNativeClientApplication - https://docs.microsoft.com/en-us/powershell/module/adfs/remove-adfsnativeclientapplication
-        - Set-AdfsNativeClientApplication    - https://docs.microsoft.com/en-us/powershell/module/adfs/set-adfsnativeclientapplication
+        Used Cmdlets/Functions:
+
+        Name                                   | Module
+        ---------------------------------------|----------------
+        Add-AdfsNativeClientApplication        | Adfs
+        Remove-AdfsNativeClientApplication     | Adfs
+        Set-AdfsNativeClientApplication        | Adfs
+        Compare-ResourcePropertyState          | AdfsDsc.Common
     #>
 
     [CmdletBinding()]
@@ -176,10 +203,18 @@ function Set-TargetResource
         $Ensure = 'Present'
     )
 
+    # Set Verbose and Debug parameters
+    $commonParms = @{
+        Verbose = $VerbosePreference
+        Debug   = $DebugPreference
+    }
+
     # Remove any parameters not used in Splats
     [HashTable]$parameters = $PSBoundParameters
     $parameters.Remove('Ensure')
     $parameters.Remove('Verbose')
+
+    Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f $Name)
 
     $GetTargetResourceParms = @{
         Name                       = $Name
@@ -191,55 +226,115 @@ function Set-TargetResource
     if ($targetResource.Ensure -eq 'Present')
     {
         # Resource is Present
+        Write-Debug -Message ($script:localizedData.TargetResourcePresentDebugMessage -f $Name)
+
         if ($Ensure -eq 'Present')
         {
             # Resource should be Present
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBePresentDebugMessage -f $Name)
+
             $propertiesNotInDesiredState = (
-                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters |
-                    Where-Object -Property InDesiredState -eq $false)
+                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters `
+                    @commonParms | Where-Object -Property InDesiredState -eq $false)
 
             if ($propertiesNotInDesiredState |
-                    Where-Object -Property ParameterName -eq 'ApplicationGroupIdentifier')
+                Where-Object -Property ParameterName -eq 'ApplicationGroupIdentifier')
             {
                 Write-Verbose -Message ($script:localizedData.RemovingResourceMessage -f
                     $Name, $targetResource.ApplicationGroupIdentifier)
-                Remove-AdfsNativeClientApplication -TargetName $Name
+
+                try
+                {
+                    Remove-AdfsNativeClientApplication -TargetName $Name
+                }
+                catch
+                {
+                    $errorMessage = $script:localizedData.RemovingResourceErrorMessage -f $Name
+                    New-InvalidOperationException -Message $errorMessage -Error $_
+                }
+
                 Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f
                     $Name, $ApplicationGroupIdentifier)
-                Add-AdfsNativeClientApplication @parameters -Verbose:$false
+
+                try
+                {
+                    Add-AdfsNativeClientApplication @parameters -Verbose:$false
+                }
+                catch
+                {
+                    $errorMessage = $script:localizedData.AddingResourceErrorMessage -f $Name
+                    New-InvalidOperationException -Message $errorMessage -Error $_
+                }
+
                 break
             }
 
             $SetParameters = @{ }
             foreach ($property in $propertiesNotInDesiredState)
             {
-                Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f
+                Write-Verbose -Message ($script:localizedData.SettingResourcePropertyMessage -f
                     $Name, $property.ParameterName, ($property.Expected -join ', '))
+
                 $SetParameters.add($property.ParameterName, $property.Expected)
             }
-            Set-AdfsNativeClientApplication -TargetName $Name @SetParameters
+
+            try
+            {
+                Set-AdfsNativeClientApplication -TargetName $Name @SetParameters
+            }
+            catch
+            {
+                $errorMessage = $script:localizedData.SettingResourceErrorMessage -f $Name
+                New-InvalidOperationException -Message $errorMessage -Error $_
+            }
         }
         else
         {
             # Resource should be Absent
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f $Name)
+
             Write-Verbose -Message ($script:localizedData.RemovingResourceMessage -f
                 $Name, $ApplicationGroupIdentifier)
-            Remove-AdfsNativeClientApplication -TargetName $Name
+
+            try
+            {
+                Remove-AdfsNativeClientApplication -TargetName $Name
+            }
+            catch
+            {
+                $errorMessage = $script:localizedData.RemovingResourceErrorMessage -f $Name
+                New-InvalidOperationException -Message $errorMessage -Error $_
+            }
         }
     }
     else
     {
         # Resource is Absent
+        Write-Debug -Message ($script:localizedData.TargetResourceAbsentDebugMessage -f $Name)
+
         if ($Ensure -eq 'Present')
         {
             # Resource should be Present
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBePresentDebugMessage -f $Name)
+
             Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f
                 $Name, $ApplicationGroupIdentifier)
-            Add-AdfsNativeClientApplication @parameters -Verbose:$false
+
+            try
+            {
+                Add-AdfsNativeClientApplication @parameters -Verbose:$false
+            }
+            catch
+            {
+                $errorMessage = $script:localizedData.AddingResourceErrorMessage -f $Name
+                New-InvalidOperationException -Message $errorMessage -Error $_
+            }
         }
         else
         {
             # Resource should be Absent
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f $Name)
+
             Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $Name)
         }
     }
@@ -250,6 +345,13 @@ function Test-TargetResource
     <#
     .SYNOPSIS
         Test-TargetResource
+
+    .NOTES
+        Used Cmdlets/Functions:
+
+        Name                          | Module
+        ------------------------------|------------------
+        Compare-ResourcePropertyState | AdfsDsc.Common
     #>
 
     [CmdletBinding()]
@@ -286,6 +388,14 @@ function Test-TargetResource
         $Ensure = 'Present'
     )
 
+    # Set Verbose and Debug parameters
+    $commonParms = @{
+        Verbose = $VerbosePreference
+        Debug   = $DebugPreference
+    }
+
+    Write-Verbose -Message ($script:localizedData.TestingResourceMessage -f $Name)
+
     $getTargetResourceParms = @{
         Name                       = $Name
         ApplicationGroupIdentifier = $ApplicationGroupIdentifier
@@ -296,56 +406,66 @@ function Test-TargetResource
     if ($targetResource.Ensure -eq 'Present')
     {
         # Resource is Present
+        Write-Debug -Message ($script:localizedData.TargetResourcePresentDebugMessage -f $Name)
+
         if ($Ensure -eq 'Present')
         {
             # Resource should be Present
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBePresentDebugMessage -f $Name)
+
             $propertiesNotInDesiredState = (
-                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
-                    Where-Object -Property InDesiredState -eq $false)
+                Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters `
+                    @commonParms | Where-Object -Property InDesiredState -eq $false)
 
             if ($propertiesNotInDesiredState)
             {
                 # Resource is not in desired state
-                foreach ($property in $propertiesNotInDesiredState)
-                {
-                    Write-Verbose -Message (
-                        $script:localizedData.ResourcePropertyNotInDesiredStateMessage -f
-                        $targetResource.Name, $property.ParameterName, `
-                            $property.Expected, $property.Actual)
-                        }
+                Write-Verbose -Message ($script:localizedData.ResourceNotInDesiredStateMessage -f $Name)
+
                 $inDesiredState = $false
             }
             else
             {
                 # Resource is in desired state
-                Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f
-                    $targetResource.Name)
+                Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $Name)
+
                 $inDesiredState = $true
             }
         }
         else
         {
             # Resource should be Absent
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f $Name)
+
             Write-Verbose -Message ($script:localizedData.ResourceIsPresentButShouldBeAbsentMessage -f
                 $targetResource.Name)
+
             $inDesiredState = $false
         }
     }
     else
     {
         # Resource is Absent
+        Write-Debug -Message ($script:localizedData.TargetResourceAbsentDebugMessage -f $Name)
+
         if ($Ensure -eq 'Present')
         {
             # Resource should be Present
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBePresentDebugMessage -f $Name)
+
             Write-Verbose -Message ($script:localizedData.ResourceIsAbsentButShouldBePresentMessage -f
                 $targetResource.Name)
+
             $inDesiredState = $false
         }
         else
         {
             # Resource should be Absent
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f $Name)
+
             Write-Verbose ($script:localizedData.ResourceInDesiredStateMessage -f
                 $targetResource.Name)
+
             $inDesiredState = $true
         }
     }

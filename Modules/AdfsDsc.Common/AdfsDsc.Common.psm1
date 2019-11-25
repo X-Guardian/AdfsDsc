@@ -515,7 +515,7 @@ function Compare-ResourcePropertyState
     $compareTargetResourceStateReturnValue = @()
     foreach ($parameterName in $DesiredValues.Keys)
     {
-        Write-Verbose -Message ($script:localizedData.EvaluatePropertyState -f $parameterName)
+        Write-Debug -Message ($script:localizedData.EvaluatePropertyState -f $parameterName)
 
         $parameterState = @{
             ParameterName = $parameterName
@@ -531,14 +531,14 @@ function Compare-ResourcePropertyState
 
         if ($isPropertyInDesiredState)
         {
-            Write-Verbose -Message ($script:localizedData.PropertyInDesiredState -f $parameterName)
+            Write-Debug -Message ($script:localizedData.PropertyInDesiredState -f $parameterName)
 
             $parameterState['InDesiredState'] = $true
         }
         else
         {
             Write-Verbose -Message ($script:localizedData.PropertyNotInDesiredState -f
-                $parameterName, $DesiredValues.$parameterName, $CurrentValues.$parameterName)
+                $parameterName, ($DesiredValues.$parameterName -join ', '), ($CurrentValues.$parameterName -join ', '))
 
             $parameterState['InDesiredState'] = $false
         }
@@ -602,11 +602,11 @@ function Test-DscPropertyState
 
         if ($null -ne $arrayCompare)
         {
-            Write-Verbose -Message $script:localizedData.ArrayDoesNotMatch
+            Write-Debug -Message $script:localizedData.ArrayDoesNotMatch
 
             $arrayCompare |
             ForEach-Object -Process {
-                Write-Verbose -Message ($script:localizedData.ArrayValueThatDoesNotMatch -f
+                Write-Debug -Message ($script:localizedData.ArrayValueThatDoesNotMatch -f
                     $_.InputObject, $_.SideIndicator)
             }
 
@@ -641,7 +641,7 @@ function Test-DscPropertyState
         }
         else
         {
-            Write-Verbose -Message ($script:localizedData.PropertyValueOfTypeDoesNotMatch -f
+            Write-Debug -Message ($script:localizedData.PropertyValueOfTypeDoesNotMatch -f
                 $desiredType.Name, $Values.CurrentValue, $Values.DesiredValue)
         }
     }
@@ -768,9 +768,9 @@ function Assert-DomainMember
     #>
 
     [CmdletBinding()]
-    param()
+    param ()
 
-    if (-not ((Get-CimInstance -ClassName Win32_ComputerSystem -Verbose:$false).PartOfDomain))
+    If (-not ((Get-CimInstance -ClassName Win32_ComputerSystem -Verbose:$false).PartOfDomain))
     {
         New-InvalidOperationException -Message $script:localizedData.NotDomainMemberError
     }
@@ -1484,43 +1484,49 @@ function ConvertFrom-AccessControlPolicyParameter
     param
     (
         [Parameter(Mandatory = $true)]
-        [AllowEmptyString()]
+        [AllowNull()]
         [System.Collections.Hashtable]
         $Policy
     )
 
     Write-Debug -Message ($script:LocalizedData.EnteringFunctionDebugMessage -f $MyInvocation.MyCommand)
 
-    $policyParameter = @{ }
-
-    foreach ($parameter in $Policy.GetEnumerator().Name)
+    if ($Policy)
     {
-        Write-Debug -Message ($script:LocalizedData.ProcessingPropertyDebugMessage -f "$parameter Parameter")
+        $policyParameter = @{ }
 
-        switch -WildCard ($parameter)
+        foreach ($parameter in $Policy.GetEnumerator().Name)
         {
-            'GroupParameter*'
+            Write-Debug -Message ($script:LocalizedData.ProcessingPropertyDebugMessage -f "$parameter Parameter")
+
+            switch -WildCard ($parameter)
             {
-                Write-Debug -Message ($script:LocalizedData.ProcessingPropertyWithValueDebugMessage -f
-                    $parameter, ($Policy.$parameter -join ', '))
-
-                $GroupParameter = @()
-                foreach ($parameter in $Policy.$parameter)
+                'GroupParameter*'
                 {
-                    $groupParameter += $parameter
-                }
+                    Write-Debug -Message ($script:LocalizedData.ProcessingPropertyWithValueDebugMessage -f
+                        $parameter, ($Policy.$parameter -join ', '))
 
-                $policyParameter += @{
-                    GroupParameter = $groupParameter
+                    $GroupParameter = @()
+                    foreach ($parameter in $Policy.$parameter)
+                    {
+                        $groupParameter += $parameter
+                    }
+
+                    $policyParameter += @{
+                        GroupParameter = $groupParameter
+                    }
                 }
             }
         }
+
+        $MSFTAdfsAccessControlPolicyParameter = New-CimInstance -ClassName MSFT_AdfsAccessControlPolicyParameters `
+            -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+            -Property $policyParameter -ClientOnly
     }
-
-    $MSFTAdfsAccessControlPolicyParameter = New-CimInstance -ClassName MSFT_AdfsAccessControlPolicyParameters `
-        -Namespace root/microsoft/Windows/DesiredStateConfiguration `
-        -Property $policyParameter -ClientOnly
-
+    else
+    {
+        $MSFTAdfsAccessControlPolicyParameter = $null
+    }
     return $MSFTAdfsAccessControlPolicyParameter
 }
 
@@ -1746,19 +1752,22 @@ function ConvertFrom-SamlEndpoint
 
     foreach ($endpoint in $SamlEndpoint)
     {
-        $mSFTAdfsSamlEndpointProperties = @{
-            Binding   = $endpoint.Binding
-            Protocol  = $endpoint.Protocol
-            Uri       = $endpoint.Location.OriginalString
-            IsDefault = $endpoint.IsDefault
-            Index     = $endpoint.Index
-        }
-
         if ($endpoint.ResponseLocation)
         {
-            $mSFTAdfsSamlEndpointProperties += @{
-                ResponseUri = $endpoint.ResponseLocation.OriginalString
-            }
+            $ResponseUri = $endpoint.ResponseLocation.OriginalString
+        }
+        else
+        {
+            $ResponseUri = ''
+        }
+
+        $mSFTAdfsSamlEndpointProperties = @{
+            Binding     = $endpoint.Binding
+            Protocol    = $endpoint.Protocol
+            Uri         = $endpoint.Location.OriginalString
+            IsDefault   = $endpoint.IsDefault
+            Index       = $endpoint.Index
+            ResponseUri = $ResponseUri
         }
 
         $MSFTADfsSamlEndpoint += New-CimInstance -ClassName MSFT_AdfsSamlEndpoint `

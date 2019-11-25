@@ -55,7 +55,7 @@ try
             TelephoneNumber       = $mockResource.TelephoneNumber
         }
 
-        Describe "$Global:DSCResourceName\Get-TargetResource" -Tag 'Get' {
+        Describe 'MSFT_AdfsContactPerson\Get-TargetResource' -Tag 'Get' {
             BeforeAll {
                 $getTargetResourceParameters = @{
                     FederationServiceName = $mockResource.FederationServiceName
@@ -100,12 +100,12 @@ try
 
                 It 'Should throw the correct exception' {
                     { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
-                        $script:localizedData.GettingResourceError -f $getTargetResourceParameters.FederationServiceName )
+                        $script:localizedData.GettingResourceErrorMessage -f $getTargetResourceParameters.FederationServiceName )
                 }
             }
         }
 
-        Describe "$Global:DSCResourceName\Set-TargetResource" -Tag 'Set' {
+        Describe 'MSFT_AdfsContactPerson\Set-TargetResource' -Tag 'Set' {
             BeforeAll {
                 $setTargetResourceParameters = @{
                     FederationServiceName = $mockResource.FederationServiceName
@@ -151,7 +151,7 @@ try
 
                 It 'Should throw the correct exception' {
                     { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
-                        $script:localizedData.NewAdfsContactPersonError -f $setTargetResourceParameters.FederationServiceName )
+                        $script:localizedData.NewAdfsContactPersonErrorMessage -f $setTargetResourceParameters.FederationServiceName )
                 }
             }
 
@@ -162,12 +162,12 @@ try
 
                 It 'Should throw the correct exception' {
                     { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
-                        $script:localizedData.SettingResourceError -f $setTargetResourceParameters.FederationServiceName )
+                        $script:localizedData.SettingResourceErrorMessage -f $setTargetResourceParameters.FederationServiceName )
                 }
             }
         }
 
-        Describe "$Global:DSCResourceName\Test-TargetResource" -Tag 'Test' {
+        Describe 'MSFT_AdfsContactPerson\Test-TargetResource' -Tag 'Test' {
             BeforeAll {
                 $testTargetResourceParameters = @{
                     FederationServiceName = $mockResource.FederationServiceName

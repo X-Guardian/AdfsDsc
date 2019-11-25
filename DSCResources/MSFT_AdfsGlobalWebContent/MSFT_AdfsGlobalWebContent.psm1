@@ -125,8 +125,13 @@ function Get-TargetResource
         Get-TargetResource
 
     .NOTES
-        Used Resource PowerShell Cmdlets:
-        - Get-AdfsGlobalWebContent - https://docs.microsoft.com/en-us/powershell/module/adfs/get-adfsglobalwebcontent
+        Used Cmdlets/Functions:
+
+        Name                     | Module
+        -------------------------|----------------
+        Get-AdfsGlobalWebContent | Adfs
+        Assert-Module            | AdfsDsc.Common
+        Assert-AdfsService       | AdfsDsc.Common
     #>
 
     [CmdletBinding()]
@@ -142,13 +147,19 @@ function Get-TargetResource
         $Locale
     )
 
+    # Set Verbose and Debug parameters
+    $commonParms = @{
+        Verbose = $VerbosePreference
+        Debug   = $DebugPreference
+    }
+
+    Write-Verbose -Message ($script:localizedData.GettingResourceMessage -f $FederationServiceName, $Locale)
+
     # Check of the Resource PowerShell module is installed
     Assert-Module -ModuleName $script:psModuleName
 
     # Check if the ADFS Service is present and running
-    Assert-AdfsService -Verbose
-
-    Write-Verbose -Message ($script:localizedData.GettingResourceMessage -f $FederationServiceName, $Locale)
+    Assert-AdfsService @commonParms
 
     try
     {
@@ -156,7 +167,7 @@ function Get-TargetResource
     }
     catch
     {
-        $errorMessage = $script:localizedData.GettingResourceError -f $FederationServiceName, $Locale
+        $errorMessage = $script:localizedData.GettingResourceErrorMessage -f $FederationServiceName, $Locale
         New-InvalidOperationException -Message $errorMessage -Error $_
     }
 
@@ -188,7 +199,6 @@ function Get-TargetResource
     $returnValue
 }
 
-
 function Set-TargetResource
 {
     <#
@@ -196,8 +206,12 @@ function Set-TargetResource
         Set-TargetResource
 
     .NOTES
-        Used Resource PowerShell Cmdlets:
-        - Set-AdfsGlobalWebContent - https://docs.microsoft.com/en-us/powershell/module/adfs/set-adfsglobalwebcontent
+        Used Cmdlets/Functions:
+
+        Name                          | Module
+        ------------------------------|----------------
+        Set-AdfsGlobalWebContent      | Adfs
+        Compare-ResourcePropertyState | AdfsDsc.Common
     #>
 
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', "",
@@ -294,48 +308,63 @@ function Set-TargetResource
         $SignInPageAdditionalAuthenticationDescriptionText
     )
 
-    # Remove any parameters not used in Splats
-    [HashTable]$Parameters = $PSBoundParameters
-    $Parameters.Remove('FederationServiceName')
-    $Parameters.Remove('Locale')
-    $Parameters.Remove('Verbose')
+    # Set Verbose and Debug parameters
+    $commonParms = @{
+        Verbose = $VerbosePreference
+        Debug   = $DebugPreference
+    }
 
-    $GetTargetResourceParms = @{
+    # Remove any parameters not used in Splats
+    [HashTable]$parameters = $PSBoundParameters
+    $parameters.Remove('FederationServiceName')
+    $parameters.Remove('Locale')
+    $parameters.Remove('Verbose')
+
+    $getTargetResourceParms = @{
         FederationServiceName = $FederationServiceName
         Locale                = $Locale
     }
-    $targetResource = Get-TargetResource @GetTargetResourceParms
+    $targetResource = Get-TargetResource @getTargetResourceParms
 
     $propertiesNotInDesiredState = (
-        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $Parameters |
-            Where-Object -Property InDesiredState -eq $false)
+        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters `
+            @commonParms | Where-Object -Property InDesiredState -eq $false)
 
     $SetParameters = @{ }
     foreach ($property in $propertiesNotInDesiredState)
     {
-        Write-Verbose -Message (
-            $script:localizedData.SettingResourceMessage -f
+        Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f
             $FederationServiceName, $Locale, $property.ParameterName, ($property.Expected -join ', '))
-        $SetParameters.add($property.ParameterName, $property.Expected)
+
+        $setParameters.add($property.ParameterName, $property.Expected)
     }
 
-    try
+    if ($setParameters.Count -gt 0)
     {
-        Set-AdfsGlobalWebContent -Locale $Locale @SetParameters
-    }
-    catch
-    {
-        $errorMessage = $script:localizedData.SettingResourceError -f $FederationServiceName, $Locale
-        New-InvalidOperationException -Message $errorMessage -Error $_
+        try
+        {
+            Set-AdfsGlobalWebContent -Locale $Locale @setParameters
+        }
+        catch
+        {
+            $errorMessage = $script:localizedData.SettingResourceErrorMessage -f $FederationServiceName, $Locale
+            New-InvalidOperationException -Message $errorMessage -Error $_
+        }
     }
 }
-
 
 function Test-TargetResource
 {
     <#
     .SYNOPSIS
         Test-TargetResource
+
+    .NOTES
+        Used Cmdlets/Functions:
+
+        Name                          | Module
+        ------------------------------|------------------
+        Compare-ResourcePropertyState | AdfsDsc.Common
     #>
 
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', "",
@@ -433,6 +462,14 @@ function Test-TargetResource
         $SignInPageAdditionalAuthenticationDescriptionText
     )
 
+    # Set Verbose and Debug parameters
+    $commonParms = @{
+        Verbose = $VerbosePreference
+        Debug   = $DebugPreference
+    }
+
+    Write-Verbose -Message ($script:localizedData.TestingResourceMessage -f $FederationServiceName, $Locale)
+
     $getTargetResourceParms = @{
         FederationServiceName = $FederationServiceName
         Locale                = $Locale
@@ -440,25 +477,22 @@ function Test-TargetResource
     $targetResource = Get-TargetResource @getTargetResourceParms
 
     $propertiesNotInDesiredState = (
-        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
-            Where-Object -Property InDesiredState -eq $false)
+        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters `
+            @commonParms | Where-Object -Property InDesiredState -eq $false)
 
     if ($propertiesNotInDesiredState)
     {
         # Resource is not in desired state
-        foreach ($property in $propertiesNotInDesiredState)
-        {
-            Write-Verbose -Message (
-                $script:localizedData.ResourcePropertyNotInDesiredStateMessage -f
-                $FederationServiceName, $Locale, $property.ParameterName)
-        }
+        Write-Verbose -Message ($script:localizedData.ResourceNotInDesiredStateMessage -f
+            $FederationServiceName, $Locale)
+
         $inDesiredState = $false
     }
     else
     {
         # Resource is in desired state
-        Write-Verbose -Message (
-            $script:localizedData.ResourceInDesiredStateMessage -f $FederationServiceName, $Locale)
+        Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $FederationServiceName, $Locale)
+
         $inDesiredState = $true
     }
 

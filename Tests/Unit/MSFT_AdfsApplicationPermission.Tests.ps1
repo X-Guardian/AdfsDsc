@@ -31,6 +31,8 @@ try
             Remove = 'Revoke-AdfsApplicationPermission'
         }
 
+        $mockError = 'Error'
+
         $mockResource = @{
             ClientRoleIdentifier = 'NativeApp1'
             ServerRoleIdentifier = 'https://nativeapp1.contoso.com'
@@ -65,7 +67,7 @@ try
         $mockGetTargetResourceAbsentResult = $mockGetTargetResourceResult.Clone()
         $mockGetTargetResourceAbsentResult.Ensure = 'Absent'
 
-        Describe "$Global:DSCResourceName\Get-TargetResource" -Tag 'Get' {
+        Describe 'MSFT_AdfsApplicationPermission\Get-TargetResource' -Tag 'Get' {
             BeforeAll {
                 $getTargetResourceParameters = @{
                     ClientRoleIdentifier = $mockResource.ClientRoleIdentifier
@@ -141,9 +143,22 @@ try
                         -Exactly -Times 1
                 }
             }
+
+            Context "When $($ResourceCommand.Get) throws an exception" {
+                BeforeAll {
+                    Mock -CommandName $ResourceCommand.Get -MockWith { throw $mockError }
+                }
+
+                It 'Should throw the correct exception' {
+                    { Get-TargetResource @getTargetResourceParameters } | `
+                        Should -Throw ($script:localizedData.GettingResourceErrorMessage -f
+                        $getTargetResourceParameters.ClientRoleIdentifier,
+                        $getTargetResourceParameters.ServerRoleIdentifier)
+                }
+            }
         }
 
-        Describe "$Global:DSCResourceName\Set-TargetResource" -Tag 'Set' {
+        Describe 'MSFT_AdfsApplicationPermission\Set-TargetResource' -Tag 'Set' {
             BeforeAll {
                 $setTargetResourceParameters = @{
                     ClientRoleIdentifier = $mockResource.ClientRoleIdentifier
@@ -197,6 +212,22 @@ try
                             }
                         }
                     }
+
+                    Context "When $($ResourceCommand.Set) throws an exception" {
+                        BeforeAll {
+                            $setTargetResourceParametersChangedProperty = $setTargetResourcePresentParameters.Clone()
+                            $setTargetResourceParametersChangedProperty.Description = $mockChangedResource.Description
+
+                            Mock -CommandName $ResourceCommand.Set -MockWith { throw $mockError }
+                        }
+
+                        It 'Should throw the correct exception' {
+                            { Set-TargetResource @setTargetResourceParametersChangedProperty } | `
+                                Should -Throw ($script:localizedData.SettingResourceErrorMessage -f
+                                $setTargetResourceParametersChangedProperty.ClientRoleIdentifier,
+                                $setTargetResourceParametersChangedProperty.ServerRoleIdentifier)
+                        }
+                    }
                 }
 
                 Context 'When the Resource should be Absent' {
@@ -217,6 +248,19 @@ try
                             -Exactly -Times 1
                         Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 0
                         Assert-MockCalled -CommandName $ResourceCommand.Add -Exactly -Times 0
+                    }
+
+                    Context "When $($ResourceCommand.Remove) throws an exception" {
+                        BeforeAll {
+                            Mock -CommandName $ResourceCommand.Remove -MockWith { throw $mockError }
+                        }
+
+                        It 'Should throw the correct exception' {
+                            { Set-TargetResource @setTargetResourceAbsentParameters } | `
+                                Should -Throw ($script:localizedData.RemovingResourceErrorMessage -f
+                                $setTargetResourceAbsentParameters.ClientRoleIdentifier,
+                                $setTargetResourceAbsentParameters.ServerRoleIdentifier)
+                        }
                     }
                 }
             }
@@ -245,6 +289,19 @@ try
                         Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 0
                         Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
                     }
+
+                    Context "When $($ResourceCommand.Add) throws an exception" {
+                        BeforeAll {
+                            Mock -CommandName $ResourceCommand.Add -MockWith { throw $mockError }
+                        }
+
+                        It 'Should throw the correct exception' {
+                            { Set-TargetResource @setTargetResourcePresentParameters } | `
+                                Should -Throw ($script:localizedData.AddingResourceErrorMessage -f
+                                $setTargetResourcePresentParameters.ClientRoleIdentifier,
+                                $setTargetResourcePresentParameters.ServerRoleIdentifier)
+                        }
+                    }
                 }
 
                 Context 'When the Resource should be Absent' {
@@ -266,7 +323,7 @@ try
             }
         }
 
-        Describe "$Global:DSCResourceName\Test-TargetResource" -Tag 'Test' {
+        Describe 'MSFT_AdfsApplicationPermission\Test-TargetResource' -Tag 'Test' {
             BeforeAll {
                 $testTargetResourceParameters = @{
                     ClientRoleIdentifier = $mockResource.ClientRoleIdentifier

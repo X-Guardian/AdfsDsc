@@ -89,9 +89,18 @@ function Get-TargetResource
         Get-TargetResource
 
     .NOTES
-        Used Resource PowerShell Cmdlets:
-        - Get-AdfsSslCertificate - https://docs.microsoft.com/en-us/powershell/module/adfs/get-adfssslcertificate
-        - Get-AdfsSyncProperties - https://docs.microsoft.com/en-us/powershell/module/adfs/get-adfssyncproperties
+        Used Cmdlets/Functions:
+
+        Name                        | Module
+        ----------------------------|----------------
+        Get-AdfsSslCertificate      | Adfs
+        Get-AdfsSyncProperties      | Adfs
+        Assert-Module               | AdfsDsc.Common
+        Assert-DomainMember         | AdfsDsc.Common
+        Get-AdfsConfigurationStatus | AdfsDsc.Common
+        Assert-AdfsService          | AdfsDsc.Common
+        Assert-GroupServiceAccount  | AdfsDsc.Common
+        New-CimCredentialInstance   | AdfsDsc.Common
     #>
 
     [CmdletBinding()]
@@ -111,19 +120,28 @@ function Get-TargetResource
         $Credential
     )
 
+    # Set Verbose and Debug parameters
+    $commonParms = @{
+        Verbose = $VerbosePreference
+        Debug   = $DebugPreference
+    }
+
+    Write-Verbose -Message ($script:localizedData.GettingResourceMessage -f $FederationServiceName)
+
     # Check of the Resource PowerShell module is installed
     Assert-Module -ModuleName $script:psModuleName
 
     # Test if the computer is a domain member
     Assert-DomainMember
 
-    Write-Verbose -Message ($script:localizedData.GettingResourceMessage -f $FederationServiceName)
-
     # Check if the ADFS service has been configured
     if ((Get-AdfsConfigurationStatus) -eq 'Configured')
     {
+        # Resource is Present
+        Write-Debug -Message ($script:localizedData.TargetResourcePresentDebugMessage -f $FederationServiceName)
+
         # Assert if the ADFS service exists and is running
-        Assert-AdfsService -Verbose
+        Assert-AdfsService @commonParms
 
         try
         {
@@ -131,9 +149,8 @@ function Get-TargetResource
         }
         catch
         {
-            $errorMessage = $script:localizedData.GettingAdfsSslCertificateError -f $FederationServiceName
+            $errorMessage = $script:localizedData.GettingAdfsSslCertificateErrorMessage -f $FederationServiceName
             New-InvalidOperationException -Message $errorMessage -ErrorRecord $_
-
         }
 
         $sslCertificate = $adfsSslCertificate | Select-Object -First 1
@@ -143,7 +160,7 @@ function Get-TargetResource
         }
         else
         {
-            $errorMessage = $script:localizedData.GettingAdfsSslCertificateError -f $FederationServiceName
+            $errorMessage = $script:localizedData.GettingAdfsSslCertificateErrorMessage -f $FederationServiceName
             New-InvalidOperationException -Message $errorMessage
         }
 
@@ -158,7 +175,7 @@ function Get-TargetResource
         }
         else
         {
-            $errorMessage = $script:localizedData.GettingAdfsServiceError -f $FederationServiceName
+            $errorMessage = $script:localizedData.GettingAdfsServiceErrorMessage -f $FederationServiceName
             New-InvalidOperationException -Message $errorMessage
         }
 
@@ -180,7 +197,7 @@ function Get-TargetResource
         }
         catch
         {
-            $errorMessage = $script:localizedData.GettingAdfsSyncPropertiesError -f $FederationServiceName
+            $errorMessage = $script:localizedData.GettingAdfsSyncPropertiesErrorMessage -f $FederationServiceName
             New-InvalidOperationException -Message $errorMessage -ErrorRecord $_
         }
 
@@ -199,7 +216,7 @@ function Get-TargetResource
         }
         else
         {
-            $errorMessage = ($script:localizedData.UnknownAdfsSyncPropertiesObjectTypeError -f
+            $errorMessage = ($script:localizedData.UnknownAdfsSyncPropertiesObjectTypeErrorMessage -f
                 $adfsSyncPropertiesObjectTypeName)
             New-InvalidOperationException -Message $errorMessage
         }
@@ -212,7 +229,7 @@ function Get-TargetResource
         }
         catch
         {
-            $errorMessage = $script:localizedData.GettingAdfsSecurityTokenServiceError -f $FederationServiceName
+            $errorMessage = $script:localizedData.GettingAdfsSecurityTokenServiceErrorMessage -f $FederationServiceName
             New-InvalidOperationException -Message $errorMessage -ErrorRecord $_
         }
 
@@ -231,7 +248,8 @@ function Get-TargetResource
     }
     else
     {
-        Write-Verbose -Message ($script:localizedData.ResourceNotFoundMessage -f $FederationServiceName)
+        # Resource is Absent
+        Write-Debug -Message ($script:localizedData.TargetResourceAbsentDebugMessage -f $FederationServiceName)
 
         $returnValue = @{
             FederationServiceName         = $FederationServiceName
@@ -255,9 +273,13 @@ function Set-TargetResource
         Set-TargetResource
 
     .NOTES
-        Used Resource PowerShell Cmdlets:
-        - Add-AdfsFarmNode    - https://docs.microsoft.com/en-us/powershell/module/adfs/add-adfsfarmnode
-        - Remove-AdfsFarmNode - https://docs.microsoft.com/en-us/powershell/module/adfs/remove-adfsfarmnode
+        Used Cmdlets/Functions:
+
+        Name                | Module
+        --------------------|----------------
+        Add-AdfsFarmNode    | AdfsDsc
+        Remove-AdfsFarmNode | AdfsDsc
+
     #>
 
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidGlobalVars', '',
@@ -307,6 +329,8 @@ function Set-TargetResource
         $Ensure = 'Present'
     )
 
+    Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f $FederationServiceName)
+
     # Remove any parameters not used in Splats
     [HashTable]$parameters = $PSBoundParameters
     $parameters.Remove('Ensure')
@@ -317,7 +341,7 @@ function Set-TargetResource
     if ($PSBoundParameters.ContainsKey('ServiceAccountCredential') -and
         $PSBoundParameters.ContainsKey('GroupServiceAccountIdentifier'))
     {
-        $errorMessage = $script:localizedData.ResourceDuplicateCredentialError -f $FederationServiceName
+        $errorMessage = $script:localizedData.ResourceDuplicateCredentialErrorMessage -f $FederationServiceName
         New-InvalidArgumentException -Message $errorMessage -ArgumentName 'ServiceAccountCredential'
     }
 
@@ -325,7 +349,7 @@ function Set-TargetResource
     if (-not $PSBoundParameters.ContainsKey('ServiceAccountCredential') -and
         -not $PSBoundParameters.ContainsKey('GroupServiceAccountIdentifier'))
     {
-        $errorMessage = $script:localizedData.ResourceMissingCredentialError -f $FederationServiceName
+        $errorMessage = $script:localizedData.ResourceMissingCredentialErrorMessage -f $FederationServiceName
         New-InvalidArgumentException -Message $errorMessage -ArgumentName 'ServiceAccountCredential'
     }
 
@@ -338,19 +362,24 @@ function Set-TargetResource
 
     if ($Ensure -eq 'Present')
     {
-        # Resource should exist
+        # Resource should be Present
+        Write-Debug -Message ($script:localizedData.TargetResourceShouldBePresentDebugMessage -f $FederationServiceName)
+
         if ($targetResource.Ensure -eq 'Absent')
         {
-            # ADFS Service not installed
+            # Resource is Absent
+            Write-Debug -Message ($script:localizedData.TargetResourceAbsentDebugMessage -f $FederationServiceName)
+
+            Write-Verbose -Message ($script:localizedData.InstallingResourceMessage -f $FederationServiceName)
+
             try
             {
-                Write-Verbose -Message ($script:localizedData.InstallingResourceMessage -f
-                    $FederationServiceName)
                 $Result = Add-AdfsFarmNode @parameters -ErrorAction SilentlyContinue
             }
             catch [System.IO.FileNotFoundException]
             {
                 Write-Verbose -Message ($script:localizedData.MissingAdfsAssembliesMessage)
+
                 # Set DSC Reboot required flag
                 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "",
                     Justification = 'Set LCM DSCMachineStatus to indicate reboot required')]
@@ -359,13 +388,14 @@ function Set-TargetResource
             }
             catch
             {
-                $errorMessage = $script:localizedData.InstallationError -f $FederationServiceName
+                $errorMessage = $script:localizedData.InstallationErrorMessage -f $FederationServiceName
                 New-InvalidOperationException -Message $errorMessage -ErrorRecord $_
             }
 
             if ($Result.Status -eq 'Success')
             {
                 Write-Verbose -Message ($script:localizedData.ResourceInstallSuccessMessage -f $FederationServiceName)
+
                 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "",
                     Justification = 'Set LCM DSCMachineStatus to indicate reboot required')]
                 $global:DSCMachineStatus = 1
@@ -376,21 +406,31 @@ function Set-TargetResource
                 New-InvalidOperationException -Message $Result.Message
             }
         }
+        else
+        {
+            # Resource is Present
+            Write-Debug -Message ($script:localizedData.TargetResourcePresentDebugMessage -f $FederationServiceName)
+
+            Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $FederationServiceName)
+        }
     }
     else
     {
-        # Resource should not exist
+        # Resource should be Absent
+        Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f $FederationServiceName)
+
         if ($targetResource.Ensure -eq 'Present')
         {
-            # Resource exists
+            # Resource is Present
+            Write-Debug -Message ($script:localizedData.TargetResourcePresentDebugMessage -f $FederationServiceName)
+
             $parameters.Remove('CertificateThumbprint')
             $parameters.Remove('OverwriteConfiguration')
             $parameters.Remove('SqlConnectionString')
             $parameters.Remove('PrimaryComputerName')
             $parameters.Remove('PrimaryComputerPort')
 
-            Write-Verbose -Message ($script:localizedData.RemovingResourceMessage -f
-                $FederationServiceName)
+            Write-Verbose -Message ($script:localizedData.RemovingResourceMessage -f $FederationServiceName)
 
             try
             {
@@ -398,18 +438,18 @@ function Set-TargetResource
             }
             catch
             {
-                $errorMessage = $script:localizedData.RemovalError -f $FederationServiceName
+                $errorMessage = $script:localizedData.RemovalErrorMessage -f $FederationServiceName
                 New-InvalidOperationException -Message $errorMessage -ErrorRecord $_
             }
         }
         else
         {
-            # Resource does not exist
-            Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f
-                $FederationServiceName)
+            # Resource is Absent
+            Write-Debug -Message ($script:localizedData.TargetResourceAbsentDebugMessage -f $FederationServiceName)
+
+            Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $FederationServiceName)
         }
     }
-
 }
 
 function Test-TargetResource
@@ -479,42 +519,55 @@ function Test-TargetResource
         # Resource exists
         if ($Ensure -eq 'Present')
         {
-            # Resource should exist
-            Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f
-                $targetResource.FederationServiceName)
+            # Resource should be Present
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBePresentDebugMessage -f
+                $FederationServiceName)
+
+            Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $FederationServiceName)
+
             $inDesiredState = $true
         }
         else
         {
-            # Resource should not exist
-            Write-Verbose -Message ($script:localizedData.ResourceExistsButShouldNotMessage -f
-                $targetResource.FederationServiceName)
+            # Resource should be Absent
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f
+                $FederationServiceName)
+
+            Write-Verbose -Message ($script:localizedData.ResourceIsPresentButShouldBeAbsentMessage -f
+                $FederationServiceName)
+
             $inDesiredState = $false
         }
     }
     else
     {
-        # Resource does not exist
+        # Resource is Absent
         if ($Ensure -eq 'Present')
         {
-            # Resource should exist
-            Write-Verbose -Message ($script:localizedData.ResourceDoesNotExistButShouldMessage -f
+            # Resource should be Present
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBePresentDebugMessage -f
                 $FederationServiceName)
+
+            Write-Verbose -Message ($script:localizedData.ResourceIsAbsentButShouldBePresentMessage -f
+                $FederationServiceName)
+
             $inDesiredState = $false
         }
         else
         {
-            # Resource should not exist
-            Write-Verbose -Message ($script:localizedData.ResourceDoesNotExistAndShouldNotMessage -f
+            # Resource should be Absent
+            Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f
                 $FederationServiceName)
+
+            Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $FederationServiceName)
+
             $inDesiredState = $true
         }
     }
 
     if ($inDesiredState)
     {
-        Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f
-            $FederationServiceName)
+        Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $FederationServiceName)
     }
 
     $inDesiredState

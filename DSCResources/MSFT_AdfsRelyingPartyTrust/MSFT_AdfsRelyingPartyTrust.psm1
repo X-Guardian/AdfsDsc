@@ -240,6 +240,8 @@ function Get-TargetResource
         Debug   = $DebugPreference
     }
 
+    Write-Verbose -Message ($script:localizedData.GettingResourceMessage -f $Name)
+
     # Check of the Resource PowerShell module is installed
     Assert-Module -ModuleName $script:psModuleName
 
@@ -247,18 +249,35 @@ function Get-TargetResource
     Assert-Command -Module $script:psModuleName -Command 'Get-AdfsRelyingPartyTrust'
 
     # Check if the ADFS Service is present and running
-    Assert-AdfsService -Verbose
+    Assert-AdfsService @CommonParms
 
-    Write-Verbose -Message ($script:localizedData.GettingResourceMessage -f $Name)
-    $targetResource = Get-AdfsRelyingPartyTrust -Name $Name
+    try
+    {
+        $targetResource = Get-AdfsRelyingPartyTrust -Name $Name
+    }
+    catch
+    {
+        $errorMessage = $script:localizedData.GettingResourceErrorMessage -f $Name
+        New-InvalidOperationException -Message $errorMessage -Error $_
+    }
 
     if ($targetResource)
     {
-        $claimAccepted = @()
-        foreach ($claimDescription in $targetResource.ClaimsAccepted)
+        $claimAcceptedDescriptions = @()
+        foreach ($claim in $targetResource.ClaimsAccepted)
         {
-            $claim = Get-AdfsClaimDescription -ClaimType $claimDescription.ClaimType
-            $claimAccepted += $claim.ShortName
+            try
+            {
+                $claimDescription = Get-AdfsClaimDescription -ClaimType $claim.ClaimType
+            }
+            catch
+            {
+                $errorMessage = ($script:localizedData.GettingClaimDescriptionErrorMessage -f
+                    $claim.ClaimType, $Name)
+                New-InvalidOperationException -Message $errorMessage -Error $_
+            }
+
+            $claimAcceptedDescriptions += $claimDescription.ShortName
         }
 
         # Resource is Present
@@ -283,7 +302,7 @@ function Get-TargetResource
             AllowedClientTypes                   = @($targetResource.AllowedClientTypes)
             AlwaysRequireAuthentication          = $targetResource.AlwaysRequireAuthentication
             AutoUpdateEnabled                    = $targetResource.AutoUpdateEnabled
-            ClaimAccepted                        = $claimAccepted
+            ClaimAccepted                        = $claimAcceptedDescriptions
             ClaimsProviderName                   = @($targetResource.ClaimsProviderName)
             DelegationAuthorizationRules         = $targetResource.DelegationAuthorizationRules
             Enabled                              = $targetResource.Enabled
@@ -377,7 +396,7 @@ function Set-TargetResource
         Add-AdfsRelyingPartyTrust              | Adfs
         Remove-AdfsRelyingPartyTrust           | Adfs
         Set-AdfsRelyingPartyTrust              | Adfs
-        Get-AdfsClaimsDescription              | Adfs
+        Get-AdfsClaimDescription               | Adfs
         Enable-AdfsRelyingPartyTrust           | Adfs
         Disable-AdfsRelyingPartyTrust          | Adfs
         Compare-IssuanceTransformRule          | AdfsDsc.Common
@@ -573,6 +592,8 @@ function Set-TargetResource
     $parameters.Remove('Ensure')
     $parameters.Remove('Verbose')
 
+    Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f $Name)
+
     $getTargetResourceParms = @{
         Name = $Name
     }
@@ -595,7 +616,7 @@ function Set-TargetResource
                 $propertiesNotInDesiredState += (
                     Compare-IssuanceTransformRule -CurrentValue $targetResource.IssuanceTransformRules `
                         -DesiredValue $IssuanceTransformRules -ParameterName 'IssuanceTransformRules' `
-                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                        @commonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             if ($PSBoundParameters.Keys.Contains('AccessControlPolicyParameters'))
@@ -603,7 +624,7 @@ function Set-TargetResource
                 $propertiesNotInDesiredState += (
                     Compare-AccessControlPolicyParameter -CurrentValue $targetResource.AccessControlPolicyParameters `
                         -DesiredValue $AccessControlPolicyParameters -ParameterName 'AccessControlPolicyParameters' `
-                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                        @commonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             if ($PSBoundParameters.Keys.Contains('SamlEndpoint'))
@@ -611,40 +632,65 @@ function Set-TargetResource
                 $propertiesNotInDesiredState += (
                     Compare-SamlEndpoint -CurrentValue $targetResource.SamlEndpoint `
                         -DesiredValue $SamlEndpoint -ParameterName 'SamlEndpoint' `
-                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                        @commonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             $propertiesNotInDesiredState += (
                 Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters `
                     -IgnoreProperties 'IssuanceTransformRules', 'AccessControlPolicyParameters', 'SamlEndpoint' `
-                    @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                    @commonParms | Where-Object -Property InDesiredState -eq $false)
 
             $SetParameters = @{ }
             foreach ($property in $propertiesNotInDesiredState)
             {
-                Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f
+                Write-Verbose -Message ($script:localizedData.SettingResourcePropertyMessage -f
                     $Name, $property.ParameterName, ($property.Expected -join ', '))
 
                 if ($property.ParameterName -eq 'ClaimAccepted')
                 {
                     # Custom processing for 'ClaimAccepted' property
-                    $ClaimAcceptedDescriptions = @()
+                    $claimAcceptedDescriptions = @()
                     foreach ($claim in $property.Expected)
                     {
-                        $ClaimAcceptedDescriptions += Get-AdfsClaimDescription -ShortName $claim
+                        try
+                        {
+                            $claimAcceptedDescriptions += Get-AdfsClaimDescription -ShortName $claim
+                        }
+                        catch
+                        {
+                            $errorMessage = ($script:localizedData.GettingClaimDescriptionErrorMessage -f
+                                $claim, $Name)
+                            New-InvalidOperationException -Message $errorMessage -Error $_
+                        }
                     }
-                    $SetParameters.Add($property.ParameterName, $ClaimAcceptedDescriptions)
+                    $SetParameters.Add($property.ParameterName, $claimAcceptedDescriptions)
                 }
                 elseif ($property.ParameterName -eq 'Enabled')
                 {
                     # Custom processing for 'Enabled' property
                     if ($property.Expected -eq $true)
                     {
-                        Enable-AdfsRelyingPartyTrust -TargetName $Name
+                        try
+                        {
+                            Enable-AdfsRelyingPartyTrust -TargetName $Name
+                        }
+                        catch
+                        {
+                            $errorMessage = $script:localizedData.EnablingResourceErrorMessage -f $Name
+                            New-InvalidOperationException -Message $errorMessage -Error $_
+                        }
                     }
                     else
                     {
-                        Disable-AdfsRelyingPartyTrust -TargetName $Name
+                        try
+                        {
+                            Disable-AdfsRelyingPartyTrust -TargetName $Name
+                        }
+                        catch
+                        {
+                            $errorMessage = $script:localizedData.DisablingResourceErrorMessage -f $Name
+                            New-InvalidOperationException -Message $errorMessage -Error $_
+                        }
                     }
                 }
                 elseif ($property.ParameterName -eq 'IssuanceTransformRules')
@@ -673,7 +719,15 @@ function Set-TargetResource
 
             if ($setParameters.count -gt 0)
             {
-                Set-AdfsRelyingPartyTrust -TargetName $Name @setParameters
+                try
+                {
+                    Set-AdfsRelyingPartyTrust -TargetName $Name @setParameters
+                }
+                catch
+                {
+                    $errorMessage = $script:localizedData.SettingResourceErrorMessage -f $Name
+                    New-InvalidOperationException -Message $errorMessage -Error $_
+                }
             }
         }
         else
@@ -683,7 +737,15 @@ function Set-TargetResource
 
             Write-Verbose -Message ($script:localizedData.RemovingResourceMessage -f $Name)
 
-            Remove-AdfsRelyingPartyTrust -TargetName $Name
+            try
+            {
+                Remove-AdfsRelyingPartyTrust -TargetName $Name
+            }
+            catch
+            {
+                $errorMessage = $script:localizedData.RemovingResourceErrorMessage -f $Name
+                New-InvalidOperationException -Message $errorMessage -Error $_
+            }
         }
     }
     else
@@ -698,13 +760,22 @@ function Set-TargetResource
 
             if ($parameters.ContainsKey('ClaimAccepted'))
             {
-                $ClaimAcceptedDescriptions = @()
+                $claimAcceptedDescriptions = @()
                 foreach ($claim in $parameters.ClaimAccepted)
                 {
-                    $ClaimAcceptedDescriptions += Get-AdfsClaimDescription -ShortName $claim
+                    try
+                    {
+                        $claimAcceptedDescriptions += Get-AdfsClaimDescription -ShortName $claim
+                    }
+                    catch
+                    {
+                        $errorMessage = ($script:localizedData.GettingClaimDescriptionErrorMessage -f
+                            $claim, $Name)
+                        New-InvalidOperationException -Message $errorMessage -Error $_
+                    }
                 }
 
-                $parameters.ClaimAccepted = $ClaimAcceptedDescriptions
+                $parameters.ClaimAccepted = $claimAcceptedDescriptions
             }
 
             if ($parameters.ContainsKey('IssuanceTransformRules'))
@@ -730,7 +801,15 @@ function Set-TargetResource
 
             Write-Verbose -Message ($script:localizedData.AddingResourceMessage -f $Name)
 
-            Add-AdfsRelyingPartyTrust @parameters -Verbose:$false
+            try
+            {
+                Add-AdfsRelyingPartyTrust @parameters -Verbose:$false
+            }
+            catch
+            {
+                $errorMessage = $script:localizedData.AddingResourceErrorMessage -f $Name
+                New-InvalidOperationException -Message $errorMessage -Error $_
+            }
         }
         else
         {
@@ -939,6 +1018,8 @@ function Test-TargetResource
         Debug   = $DebugPreference
     }
 
+    Write-Verbose -Message ($script:localizedData.TestingResourceMessage -f $Name)
+
     $getTargetResourceParms = @{
         Name = $Name
     }
@@ -961,7 +1042,7 @@ function Test-TargetResource
                 $propertiesNotInDesiredState += (
                     Compare-IssuanceTransformRule -CurrentValue $targetResource.IssuanceTransformRules `
                         -DesiredValue $IssuanceTransformRules -ParameterName 'IssuanceTransformRules' `
-                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                        @commonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             if ($PSBoundParameters.Keys.Contains('AccessControlPolicyParameters'))
@@ -969,7 +1050,7 @@ function Test-TargetResource
                 $propertiesNotInDesiredState += (
                     Compare-AccessControlPolicyParameter -CurrentValue $targetResource.AccessControlPolicyParameters `
                         -DesiredValue $AccessControlPolicyParameters -ParameterName 'AccessControlPolicyParameters' `
-                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                        @commonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             if ($PSBoundParameters.Keys.Contains('SamlEndpoint'))
@@ -977,31 +1058,26 @@ function Test-TargetResource
                 $propertiesNotInDesiredState += (
                     Compare-SamlEndpoint -CurrentValue $targetResource.SamlEndpoint `
                         -DesiredValue $SamlEndpoint -ParameterName 'SamlEndpoint' `
-                        @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                        @commonParms | Where-Object -Property InDesiredState -eq $false)
             }
 
             $propertiesNotInDesiredState += (
                 Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters `
                     -IgnoreProperties 'IssuanceTransformRules', 'AccessControlPolicyParameters', 'SamlEndpoint' `
-                    @CommonParms | Where-Object -Property InDesiredState -eq $false)
+                    @commonParms | Where-Object -Property InDesiredState -eq $false)
 
             if ($propertiesNotInDesiredState)
             {
                 # Resource is not in desired state
-                foreach ($property in $propertiesNotInDesiredState)
-                {
-                    Write-Verbose -Message (
-                        $script:localizedData.ResourcePropertyNotInDesiredStateMessage -f
-                        $targetResource.Name, $property.ParameterName, `
-                            $property.Expected, $property.Actual)
-                }
+                Write-Verbose -Message ($script:localizedData.ResourceNotInDesiredStateMessage -f $Name)
+
                 $inDesiredState = $false
             }
             else
             {
                 # Resource is in desired state
-                Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f
-                    $targetResource.Name)
+                Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $Name)
+
                 $inDesiredState = $true
             }
         }
@@ -1010,8 +1086,8 @@ function Test-TargetResource
             # Resource should be Absent
             Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f $Name)
 
-            Write-Verbose -Message ($script:localizedData.ResourceIsPresentButShouldBeAbsentMessage -f
-                $targetResource.Name)
+            Write-Verbose -Message ($script:localizedData.ResourceIsPresentButShouldBeAbsentMessage -f $Name)
+
             $inDesiredState = $false
         }
     }
@@ -1025,8 +1101,8 @@ function Test-TargetResource
             # Resource should be Present
             Write-Debug -Message ($script:localizedData.TargetResourceShouldBePresentDebugMessage -f $Name)
 
-            Write-Verbose -Message ($script:localizedData.ResourceIsAbsentButShouldBePresentMessage -f
-                $targetResource.Name)
+            Write-Verbose -Message ($script:localizedData.ResourceIsAbsentButShouldBePresentMessage -f $Name)
+
             $inDesiredState = $false
         }
         else
@@ -1034,8 +1110,8 @@ function Test-TargetResource
             # Resource should be Absent
             Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f $Name)
 
-            Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f
-                $targetResource.Name)
+            Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $Name)
+
             $inDesiredState = $true
         }
     }

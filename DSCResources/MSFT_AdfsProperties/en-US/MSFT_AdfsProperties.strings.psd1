@@ -1,9 +1,12 @@
 # culture="en-US"
 ConvertFrom-StringData @'
-    GettingResourceMessage                   = Getting '{0}'. (PRO0001)
-    SettingResourceMessage                   = Setting '{0}' property '{1}' to '{2}'. (PRO0002)
-    ResourceInDesiredStateMessage            = '{0}' is in the desired state. (PRO0003)
-    ResourcePropertyNotInDesiredStateMessage = '{0}' Property '{1}' is not in the desired state, expected '{2}', actual '{3}'. (PRO0004)
-    GettingResourceError                     = Error getting '{0}'. (PRO0005)
-    SettingResourceError                     = Error setting '{0}'. (PRO0006)
+    GettingResourceMessage           = Getting '{0}'. (PRO001)
+    TestingResourceMessage           = Testing '{0}'. (PRO002)
+    SettingResourceMessage           = Setting '{0}'. (PRO003)
+    SettingResourcePropertyMessage   = Setting '{0}' property '{1}' to '{2}'. (PRO004)
+    ResourceInDesiredStateMessage    = '{0}' is in the desired state. (PRO005)
+    ResourceNotInDesiredStateMessage = '{0}' is not in the desired state. (PRO006)
+
+    GettingResourceErrorMessage      = Error getting '{0}'. (PROERR001)
+    SettingResourceErrorMessage      = Error setting '{0}'. (PROERR002)
 '@

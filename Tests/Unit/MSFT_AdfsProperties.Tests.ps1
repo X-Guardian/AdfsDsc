@@ -223,7 +223,7 @@ try
             PromptLoginFallbackAuthenticationType      = $mockResource.PromptLoginFallbackAuthenticationType
         }
 
-        Describe "$Global:DSCResourceName\Get-TargetResource" -Tag 'Get' {
+        Describe 'MSFT_AdfsProperties\Get-TargetResource' -Tag 'Get' {
             BeforeAll {
                 $getTargetResourceParameters = @{
                     FederationServiceName = $mockResource.FederationServiceName
@@ -323,12 +323,12 @@ try
 
                 It 'Should throw the correct exception' {
                     { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
-                        $script:localizedData.GettingResourceError -f $getTargetResourceParameters.FederationServiceName )
+                        $script:localizedData.GettingResourceErrorMessage -f $getTargetResourceParameters.FederationServiceName )
                 }
             }
         }
 
-        Describe "$Global:DSCResourceName\Set-TargetResource" -Tag 'Set' {
+        Describe 'MSFT_AdfsProperties\Set-TargetResource' -Tag 'Set' {
             BeforeAll {
                 $setTargetResourceParameters = @{
                     FederationServiceName                      = $mockResource.FederationServiceName
@@ -425,12 +425,12 @@ try
 
                 It 'Should throw the correct exception' {
                     { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
-                        $script:localizedData.SettingResourceError -f $setTargetResourceParameters.FederationServiceName )
+                        $script:localizedData.SettingResourceErrorMessage -f $setTargetResourceParameters.FederationServiceName )
                 }
             }
         }
 
-        Describe "$Global:DSCResourceName\Test-TargetResource" -Tag 'Test' {
+        Describe 'MSFT_AdfsProperties\Test-TargetResource' -Tag 'Test' {
             BeforeAll {
                 $testTargetResourceParameters = @{
                     FederationServiceName = $mockResource.FederationServiceName

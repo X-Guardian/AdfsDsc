@@ -31,6 +31,8 @@ try
             Remove = 'Remove-AdfsNativeClientApplication'
         }
 
+        $mockError = 'Error'
+
         $mockResource = @{
             ApplicationGroupIdentifier = 'AppGroup1'
             Name                       = 'NativeApp1'
@@ -75,7 +77,7 @@ try
         $mockGetTargetResourceAbsentResult = $mockGetTargetResourceResult.Clone()
         $mockGetTargetResourceAbsentResult.Ensure = 'Absent'
 
-        Describe "$Global:DSCResourceName\Get-TargetResource" -Tag 'Get' {
+        Describe 'MSFT_AdfsNativeClientApplication\Get-TargetResource' -Tag 'Get' {
             BeforeAll {
                 $getTargetResourceParameters = @{
                     Name                       = $mockResource.Name
@@ -152,9 +154,21 @@ try
                         -Exactly -Times 1
                 }
             }
+
+            Context "When $($ResourceCommand.Get) throws an exception" {
+                BeforeAll {
+                    Mock -CommandName $ResourceCommand.Get -MockWith { throw $mockError }
+                }
+
+                It 'Should throw the correct exception' {
+                    { Get-TargetResource @getTargetResourceParameters } | `
+                        Should -Throw ($script:localizedData.GettingResourceErrorMessage -f
+                        $getTargetResourceParameters.Name)
+                }
+            }
         }
 
-        Describe "$Global:DSCResourceName\Set-TargetResource" -Tag 'Set' {
+        Describe 'MSFT_AdfsNativeClientApplication\Set-TargetResource' -Tag 'Set' {
             BeforeAll {
                 $setTargetResourceParameters = @{
                     Name                       = $mockResource.Name
@@ -206,6 +220,30 @@ try
                                 -ParameterFilter { $Name -eq $setTargetResourcePresentAGIChangedParameters.Name } `
                                 -Exactly -Times 1
                         }
+
+                        Context "When $($ResourceCommand.Remove) throws an exception" {
+                            BeforeAll {
+                                Mock -CommandName $ResourceCommand.Remove -MockWith { throw $mockError }
+                            }
+
+                            It 'Should throw the correct exception' {
+                                { Set-TargetResource @setTargetResourcePresentAGIChangedParameters } | `
+                                    Should -Throw ($script:localizedData.RemovingResourceErrorMessage -f
+                                    $setTargetResourcePresentAGIChangedParameters.Name)
+                            }
+                        }
+
+                        Context "When $($ResourceCommand.Add) throws an exception" {
+                            BeforeAll {
+                                Mock -CommandName $ResourceCommand.Add -MockWith { throw $mockError }
+                            }
+
+                            It 'Should throw the correct exception' {
+                                { Set-TargetResource @setTargetResourcePresentAGIChangedParameters } | `
+                                    Should -Throw ($script:localizedData.AddingResourceErrorMessage -f
+                                    $setTargetResourcePresentAGIChangedParameters.Name)
+                            }
+                        }
                     }
 
                     Context 'When the Application Group Identifier has not changed' {
@@ -234,6 +272,21 @@ try
                                 }
                             }
                         }
+
+                        Context "When $($ResourceCommand.Set) throws an exception" {
+                            BeforeAll {
+                                $setTargetResourceParametersChangedProperty = $setTargetResourcePresentParameters.Clone()
+                                $setTargetResourceParametersChangedProperty.Description = $mockChangedResource.Description
+
+                                Mock -CommandName $ResourceCommand.Set -MockWith { throw $mockError }
+                            }
+
+                            It 'Should throw the correct exception' {
+                                { Set-TargetResource @setTargetResourceParametersChangedProperty } | `
+                                    Should -Throw ($script:localizedData.SettingResourceErrorMessage -f
+                                    $setTargetResourceParametersChangedProperty.Name)
+                            }
+                        }
                     }
                 }
 
@@ -252,6 +305,18 @@ try
                             -Exactly -Times 1
                         Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 0
                         Assert-MockCalled -CommandName $ResourceCommand.Add -Exactly -Times 0
+                    }
+
+                    Context "When $($ResourceCommand.Remove) throws an exception" {
+                        BeforeAll {
+                            Mock -CommandName $ResourceCommand.Remove -MockWith { throw $mockError }
+                        }
+
+                        It 'Should throw the correct exception' {
+                            { Set-TargetResource @setTargetResourceAbsentParameters } | `
+                                Should -Throw ($script:localizedData.RemovingResourceErrorMessage -f
+                                $setTargetResourceAbsentParameters.Name)
+                        }
                     }
                 }
             }
@@ -276,6 +341,18 @@ try
                         Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 0
                         Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
                     }
+
+                    Context "When $($ResourceCommand.Add) throws an exception" {
+                        BeforeAll {
+                            Mock -CommandName $ResourceCommand.Add -MockWith { throw $mockError }
+                        }
+
+                        It 'Should throw the correct exception' {
+                            { Set-TargetResource @setTargetResourcePresentParameters } | `
+                                Should -Throw ($script:localizedData.AddingResourceErrorMessage -f
+                                $setTargetResourcePresentParameters.Name)
+                        }
+                    }
                 }
 
                 Context 'When the Resource should be Absent' {
@@ -295,7 +372,7 @@ try
             }
         }
 
-        Describe "$Global:DSCResourceName\Test-TargetResource" -Tag 'Test' {
+        Describe 'MSFT_AdfsNativeClientApplication\Test-TargetResource' -Tag 'Test' {
             $testTargetResourceParameters = @{
                 Name                       = $mockResource.Name
                 ApplicationGroupIdentifier = $mockResource.ApplicationGroupIdentifier

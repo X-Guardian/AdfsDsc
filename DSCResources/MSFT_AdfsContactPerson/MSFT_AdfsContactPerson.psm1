@@ -30,7 +30,7 @@
         Specifies an array of telephone numbers of the contact person.
 #>
 
-Set-StrictMode -Version Latest
+Set-StrictMode -Version 2.0
 
 $script:dscModuleName = 'AdfsDsc'
 $script:psModuleName = 'ADFS'
@@ -51,8 +51,13 @@ function Get-TargetResource
         Get-TargetResource
 
     .NOTES
-        Used Resource PowerShell Cmdlets:
-        - Get-AdfsProperties - https://docs.microsoft.com/en-us/powershell/module/adfs/get-adfsproperties
+        Used Cmdlets/Functions:
+
+        Name                     | Module
+        -------------------------|----------------
+        Get-AdfsProperties       | Adfs
+        Assert-Module            | AdfsDsc.Common
+        Assert-AdfsService       | AdfsDsc.Common
     #>
 
     [CmdletBinding()]
@@ -64,13 +69,19 @@ function Get-TargetResource
         $FederationServiceName
     )
 
+    # Set Verbose and Debug parameters
+    $commonParms = @{
+        Verbose = $VerbosePreference
+        Debug   = $DebugPreference
+    }
+
+    Write-Verbose -Message ($script:localizedData.GettingResourceMessage -f $FederationServiceName)
+
     # Check of the ADFS PowerShell module is installed
     Assert-Module -ModuleName $script:psModuleName
 
     # Check if the ADFS Service is present and running
-    Assert-AdfsService -Verbose
-
-    Write-Verbose -Message ($script:localizedData.GettingResourceMessage -f $FederationServiceName)
+    Assert-AdfsService @commonParms
 
     try
     {
@@ -78,7 +89,7 @@ function Get-TargetResource
     }
     catch
     {
-        $errorMessage = $script:localizedData.GettingResourceError -f $FederationServiceName
+        $errorMessage = $script:localizedData.GettingResourceErrorMessage -f $FederationServiceName
         New-InvalidOperationException -Message $errorMessage -Error $_
     }
 
@@ -101,9 +112,13 @@ function Set-TargetResource
         Set-TargetResource
 
     .NOTES
-        Used Resource PowerShell Cmdlets:
-        - New-AdfsContactPerson - https://docs.microsoft.com/en-us/powershell/module/adfs/new-adfscontactperson
-        - Set-AdfsProperties    - https://docs.microsoft.com/en-us/powershell/module/adfs/set-adfsproperties
+        Used Cmdlets/Functions:
+
+        Name                          | Module
+        ------------------------------|----------------
+        New-AdfsContactPerson         | Adfs
+        Set-AdfsProperties            | Adfs
+        Compare-ResourcePropertyState | AdfsDsc.Common
     #>
 
     [CmdletBinding()]
@@ -134,6 +149,14 @@ function Set-TargetResource
         $TelephoneNumber
     )
 
+    # Set Verbose and Debug parameters
+    $commonParms = @{
+        Verbose = $VerbosePreference
+        Debug   = $DebugPreference
+    }
+
+    Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f $FederationServiceName)
+
     # Remove any parameters not used in Splats
     [HashTable]$parameters = $PSBoundParameters
     $parameters.Remove('FederationServiceName')
@@ -145,13 +168,12 @@ function Set-TargetResource
     $targetResource = Get-TargetResource @GetTargetResourceParms
 
     $propertiesNotInDesiredState = (
-        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters |
-            Where-Object -Property InDesiredState -eq $false)
+        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters `
+            @commonParms | Where-Object -Property InDesiredState -eq $false)
 
     foreach ($property in $propertiesNotInDesiredState)
     {
-        Write-Verbose -Message (
-            $script:localizedData.SettingResourceMessage -f
+        Write-Verbose -Message ($script:localizedData.SettingResourcePropertyMessage -f
             $FederationServiceName, $property.ParameterName, ($property.Expected -join ', '))
     }
 
@@ -161,16 +183,17 @@ function Set-TargetResource
     }
     catch
     {
-        $errorMessage = $script:localizedData.NewAdfsContactPersonError -f $FederationServiceName
+        $errorMessage = $script:localizedData.NewAdfsContactPersonErrorMessage -f $FederationServiceName
         New-InvalidOperationException -Message $errorMessage -Error $_
     }
+
     try
     {
         Set-AdfsProperties -ContactPerson $contactPerson
     }
     catch
     {
-        $errorMessage = $script:localizedData.SettingResourceError -f $FederationServiceName
+        $errorMessage = $script:localizedData.SettingResourceErrorMessage -f $FederationServiceName
         New-InvalidOperationException -Message $errorMessage -Error $_
     }
 }
@@ -180,6 +203,13 @@ function Test-TargetResource
     <#
     .SYNOPSIS
         Test-TargetResource
+
+    .NOTES
+        Used Cmdlets/Functions:
+
+        Name                          | Module
+        ------------------------------|------------------
+        Compare-ResourcePropertyState | AdfsDsc.Common
     #>
 
     [CmdletBinding()]
@@ -211,31 +241,35 @@ function Test-TargetResource
         $TelephoneNumber
     )
 
+    # Set Verbose and Debug parameters
+    $commonParms = @{
+        Verbose = $VerbosePreference
+        Debug   = $DebugPreference
+    }
+
+    Write-Verbose -Message ($script:localizedData.TestingResourceMessage -f $FederationServiceName)
+
     $getTargetResourceParms = @{
         FederationServiceName = $FederationServiceName
     }
     $targetResource = Get-TargetResource @getTargetResourceParms
 
     $propertiesNotInDesiredState = (
-        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters |
-            Where-Object -Property InDesiredState -eq $false)
+        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters `
+            @commonParms | Where-Object -Property InDesiredState -eq $false)
 
     if ($propertiesNotInDesiredState)
     {
         # Resource is not in desired state
-        foreach ($property in $propertiesNotInDesiredState)
-        {
-            Write-Verbose -Message (
-                $script:localizedData.ResourcePropertyNotInDesiredStateMessage -f
-                $targetResource.FederationServiceName, $property.ParameterName, `
-                    $property.Expected, $property.Actual)
-        }
+        Write-Verbose -Message ($script:localizedData.ResourceNotInDesiredStateMessage -f $FederationServiceName)
+
         $inDesiredState = $false
     }
     else
     {
         # Resource is in desired state
         Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $FederationServiceName)
+
         $inDesiredState = $true
     }
 

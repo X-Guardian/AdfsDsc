@@ -87,7 +87,7 @@ try
         $mockGetTargetResourceAbsentResult = $mockGetTargetResourceResult.Clone()
         $mockGetTargetResourceAbsentResult.Ensure = 'Absent'
 
-        Describe "$Global:DSCResourceName\Get-TargetResource" -Tag 'Get' {
+        Describe 'MSFT_AdfsFarm\Get-TargetResource' -Tag 'Get' {
             BeforeAll {
                 $getTargetResourceParameters = @{
                     FederationServiceName = $mockResource.FederationServiceName
@@ -190,7 +190,7 @@ try
 
                     It 'Should throw the correct exception' {
                         { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
-                            $script:localizedData.GettingAdfsSslCertificateError -f
+                            $script:localizedData.GettingAdfsSslCertificateErrorMessage -f
                             $mockResource.FederationServiceName)
                     }
                 }
@@ -202,7 +202,7 @@ try
 
                     It 'Should throw the correct exception' {
                         { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
-                            $script:localizedData.GettingAdfsSslCertificateError -f
+                            $script:localizedData.GettingAdfsSslCertificateErrorMessage -f
                             $mockResource.FederationServiceName)
                     }
                 }
@@ -215,7 +215,7 @@ try
 
                     It 'Should throw the correct exception' {
                         { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
-                            $script:localizedData.GettingAdfsServiceError -f
+                            $script:localizedData.GettingAdfsServiceErrorMessage -f
                             $mockResource.FederationServiceName)
                     }
                 }
@@ -258,7 +258,7 @@ try
 
                     It 'Should throw the correct exception' {
                         { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
-                            $script:localizedData.GettingAdfsSecurityTokenServiceError -f
+                            $script:localizedData.GettingAdfsSecurityTokenServiceErrorMessage -f
                             $mockResource.FederationServiceName)
                     }
                 }
@@ -270,7 +270,7 @@ try
 
                     It 'Should throw the correct exception' {
                         { Get-TargetResource @getTargetResourceParameters } | Should -Throw (
-                            $script:localizedData.GettingAdfsPropertiesError -f
+                            $script:localizedData.GettingAdfsPropertiesErrorMessage -f
                             $mockResource.FederationServiceName)
                     }
                 }
@@ -306,7 +306,7 @@ try
             }
         }
 
-        Describe "$Global:DSCResourceName\Set-TargetResource" -Tag 'Set' {
+        Describe 'MSFT_AdfsFarm\Set-TargetResource' -Tag 'Set' {
             BeforeAll {
                 $setTargetResourceParameters = @{
                     FederationServiceName         = $mockGsaResource.FederationServiceName
@@ -341,7 +341,7 @@ try
 
                 It 'Should throw the correct error' {
                     { Set-TargetResource @setTargetResourceBothCredentialParameters } |
-                        Should -Throw ($script:localizedData.ResourceDuplicateCredentialError -f
+                        Should -Throw ($script:localizedData.ResourceDuplicateCredentialErrorMessage -f
                             $mockResource.FederationServiceName)
                 }
             }
@@ -354,7 +354,7 @@ try
 
                 It 'Should throw the correct error' {
                     { Set-TargetResource @setTargetResourceBothCredentialParameters } |
-                        Should -Throw ($script:localizedData.ResourceMissingCredentialError -f
+                        Should -Throw ($script:localizedData.ResourceMissingCredentialErrorMessage -f
                             $mockResource.FederationServiceName)
                 }
             }
@@ -401,7 +401,7 @@ try
 
                     It 'Should throw the correct error' {
                         { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
-                            $script:localizedData.InstallationError -f $setTargetResourceParameters.FederationServiceName)
+                            $script:localizedData.InstallationErrorMessage -f $setTargetResourceParameters.FederationServiceName)
                     }
                 }
 
@@ -428,7 +428,7 @@ try
             }
         }
 
-        Describe "$Global:DSCResourceName\Test-TargetResource" -Tag 'Test' {
+        Describe 'MSFT_AdfsFarm\Test-TargetResource' -Tag 'Test' {
             BeforeAll {
                 $testTargetResourceParameters = @{
                     FederationServiceName = $mockResource.FederationServiceName

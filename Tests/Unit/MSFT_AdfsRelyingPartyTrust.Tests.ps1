@@ -31,6 +31,8 @@ try
             Remove = 'Remove-AdfsRelyingPartyTrust'
         }
 
+        $mockError = 'Error'
+
         $mockClaim = @{
             ClaimType = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'
             ShortName = 'email'
@@ -439,6 +441,18 @@ try
                         -ParameterFilter { $Name -eq $getTargetResourceParameters.Name } `
                         -Exactly -Times 1
                 }
+
+                Context 'When Get-AdfsClaimDescription throws an exception' {
+                    BeforeAll {
+                        Mock -CommandName Get-AdfsClaimDescription -MockWith { throw $mockError }
+                    }
+
+                    It 'Should throw the correct exception' {
+                        { Get-TargetResource @getTargetResourceParameters } | `
+                            Should -Throw ($script:localizedData.GettingClaimDescriptionErrorMessage -f
+                            $mockClaim.ClaimType, $getTargetResourceParameters.Name)
+                    }
+                }
             }
 
             Context 'When the Resource is Absent' {
@@ -466,6 +480,18 @@ try
                     Assert-MockCalled -CommandName $ResourceCommand.Get `
                         -ParameterFilter { $Name -eq $getTargetResourceParameters.Name } `
                         -Exactly -Times 1
+                }
+            }
+
+            Context "When $($ResourceCommand.Get) throws an exception" {
+                BeforeAll {
+                    Mock -CommandName $ResourceCommand.Get -MockWith { throw $mockError }
+                }
+
+                It 'Should throw the correct exception' {
+                    { Get-TargetResource @getTargetResourceParameters } | `
+                        Should -Throw ($script:localizedData.GettingResourceErrorMessage -f
+                        $getTargetResourceParameters.Name)
                 }
             }
         }
@@ -597,6 +623,18 @@ try
                             Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
                             Assert-MockCalled -CommandName ConvertTo-SamlEndpoint -Exactly -Times 0
                         }
+
+                        Context 'When Enable-AdfsRelyingPartyTrust throws an exception' {
+                            BeforeAll {
+                                Mock -CommandName Enable-AdfsRelyingPartyTrust -MockWith { throw $mockError }
+                            }
+
+                            It 'Should throw the correct exception' {
+                                { Set-TargetResource @setTargetResourceParametersChangedProperty } | `
+                                    Should -Throw ($script:localizedData.EnablingResourceErrorMessage -f
+                                    $setTargetResourceParametersChangedProperty.Name)
+                            }
+                        }
                     }
 
                     Context 'When Enabled property has changed to false' {
@@ -626,6 +664,49 @@ try
                             Assert-MockCalled -CommandName $ResourceCommand.Remove -Exactly -Times 0
                             Assert-MockCalled -CommandName ConvertTo-SamlEndpoint -Exactly -Times 0
                         }
+
+                        Context 'When Disable-AdfsRelyingPartyTrust throws an exception' {
+                            BeforeAll {
+                                Mock -CommandName Disable-AdfsRelyingPartyTrust -MockWith { throw $mockError }
+                            }
+
+                            It 'Should throw the correct exception' {
+                                { Set-TargetResource @setTargetResourceParametersChangedProperty } | `
+                                    Should -Throw ($script:localizedData.DisablingResourceErrorMessage -f
+                                    $setTargetResourceParametersChangedProperty.Name)
+                            }
+                        }
+                    }
+
+                    Context 'When Get-AdfsClaimDescription throws an exception' {
+                        BeforeAll {
+                            $setTargetResourceParametersChangedProperty = $setTargetResourcePresentParameters.Clone()
+                            $setTargetResourceParametersChangedProperty.ClaimAccepted = $mockChangedResource.ClaimAccepted
+
+                            Mock -CommandName Get-AdfsClaimDescription -MockWith { throw $mockError }
+                        }
+
+                        It 'Should throw the correct exception' {
+                            { Set-TargetResource @setTargetResourceParametersChangedProperty } | `
+                                Should -Throw ($script:localizedData.GettingClaimDescriptionErrorMessage -f
+                                $setTargetResourceParametersChangedProperty.ClaimAccepted,
+                                $setTargetResourceParametersChangedProperty.Name)
+                        }
+                    }
+
+                    Context "When $($ResourceCommand.Set) throws an exception" {
+                        BeforeAll {
+                            $setTargetResourceParametersChangedProperty = $setTargetResourcePresentParameters.Clone()
+                            $setTargetResourceParametersChangedProperty.AccessControlPolicyName = $mockChangedResource.AccessControlPolicyName
+
+                            Mock -CommandName $ResourceCommand.Set -MockWith { throw $mockError }
+                        }
+
+                        It 'Should throw the correct exception' {
+                            { Set-TargetResource @setTargetResourceParametersChangedProperty } | `
+                                Should -Throw ($script:localizedData.SettingResourceErrorMessage -f
+                                $setTargetResourceParametersChangedProperty.Name)
+                        }
                     }
                 }
 
@@ -646,6 +727,18 @@ try
                         Assert-MockCalled -CommandName Enable-AdfsRelyingPartyTrust -Exactly -Times 0
                         Assert-MockCalled -CommandName Disable-AdfsRelyingPartyTrust -Exactly -Times 0
                         Assert-MockCalled -CommandName ConvertTo-SamlEndpoint -Exactly -Times 0
+                    }
+
+                    Context "When $($ResourceCommand.Remove) throws an exception" {
+                        BeforeAll {
+                            Mock -CommandName $ResourceCommand.Remove -MockWith { throw $mockError }
+                        }
+
+                        It 'Should throw the correct exception' {
+                            { Set-TargetResource @setTargetResourceAbsentParameters } | `
+                                Should -Throw ($script:localizedData.RemovingResourceErrorMessage -f
+                                $setTargetResourceAbsentParameters.Name)
+                        }
                     }
                 }
             }
@@ -676,6 +769,31 @@ try
                         Assert-MockCalled -CommandName Enable-AdfsRelyingPartyTrust -Exactly -Times 0
                         Assert-MockCalled -CommandName Disable-AdfsRelyingPartyTrust -Exactly -Times 0
                         Assert-MockCalled -CommandName ConvertTo-SamlEndpoint -Exactly -Times 1
+                    }
+
+                    Context 'When Get-AdfsClaimDescription throws an exception' {
+                        BeforeAll {
+                            Mock -CommandName Get-AdfsClaimDescription -MockWith { throw $mockError }
+                        }
+
+                        It 'Should throw the correct exception' {
+                            { Set-TargetResource @setTargetResourcePresentParameters } | `
+                                Should -Throw ($script:localizedData.GettingClaimDescriptionErrorMessage -f
+                                $setTargetResourcePresentParameters.ClaimAccepted,
+                                $setTargetResourcePresentParameters.Name)
+                        }
+                    }
+
+                    Context "When $($ResourceCommand.Add) throws an exception" {
+                        BeforeAll {
+                            Mock -CommandName $ResourceCommand.Add -MockWith { throw $mockError }
+                        }
+
+                        It 'Should throw the correct exception' {
+                            { Set-TargetResource @setTargetResourcePresentParameters } | `
+                                Should -Throw ($script:localizedData.AddingResourceErrorMessage -f
+                                $setTargetResourcePresentParameters.Name)
+                        }
                     }
                 }
 

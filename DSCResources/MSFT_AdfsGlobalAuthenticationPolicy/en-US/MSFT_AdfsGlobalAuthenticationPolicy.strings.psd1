@@ -1,9 +1,12 @@
 # culture="en-US"
 ConvertFrom-StringData @'
-    GettingResourceMessage                   = Getting '{0}'. (GAP0001)
-    SettingResourceMessage                   = Setting '{0}' property '{1}' to '{2}'. (GAP0002)
-    ResourceInDesiredStateMessage            = '{0}' is in the desired state. (GAP0003)
-    ResourcePropertyNotInDesiredStateMessage = '{0}' Property '{1}' is not in the desired state. Expected: '{2}', Actual: '{3}'. (GAP0004)
-    GettingResourceError                      = Error getting '{0}'. (GAP0005)
-    SettingResourceError                      = Error setting '{0}'. (GAP0006)
+    GettingResourceMessage           = Getting '{0}'. (GAP001)
+    TestingResourceMessage           = Testing '{0}'. (GAP002)
+    SettingResourceMessage           = Setting '{0}'. (GAP003)
+    SettingResourcePropertyMessage   = Setting '{0}' property '{1}' to '{2}'. (GAP004)
+    ResourceInDesiredStateMessage    = '{0}' is in the desired state. (GAP005)
+    ResourceNotInDesiredStateMessage = '{0}' is in the desired state. (GAP006)
+
+    GettingResourceErrorMessage      = Error getting '{0}'. (GAPERR001)
+    SettingResourceErrorMessage      = Error setting '{0}'. (GAPERR002)
 '@
