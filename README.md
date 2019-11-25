@@ -3,7 +3,7 @@
 The **AdfsDsc** module contains DSC resources for deployment and
 configuration of Active Directory Federation Services.
 
-These DSC resources allow you to configure...
+These DSC resources allow you to configure a new ADFS server farm, add new server nodes to an existing ADFS server farm and manage the configuration of ADFS, relying party trusts, application groups and associated resources.
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
