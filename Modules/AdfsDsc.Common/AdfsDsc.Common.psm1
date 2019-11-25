@@ -1484,43 +1484,49 @@ function ConvertFrom-AccessControlPolicyParameter
     param
     (
         [Parameter(Mandatory = $true)]
-        [AllowEmptyString()]
+        [AllowNull()]
         [System.Collections.Hashtable]
         $Policy
     )
 
     Write-Debug -Message ($script:LocalizedData.EnteringFunctionDebugMessage -f $MyInvocation.MyCommand)
 
-    $policyParameter = @{ }
-
-    foreach ($parameter in $Policy.GetEnumerator().Name)
+    if ($Policy)
     {
-        Write-Debug -Message ($script:LocalizedData.ProcessingPropertyDebugMessage -f "$parameter Parameter")
+        $policyParameter = @{ }
 
-        switch -WildCard ($parameter)
+        foreach ($parameter in $Policy.GetEnumerator().Name)
         {
-            'GroupParameter*'
+            Write-Debug -Message ($script:LocalizedData.ProcessingPropertyDebugMessage -f "$parameter Parameter")
+
+            switch -WildCard ($parameter)
             {
-                Write-Debug -Message ($script:LocalizedData.ProcessingPropertyWithValueDebugMessage -f
-                    $parameter, ($Policy.$parameter -join ', '))
-
-                $GroupParameter = @()
-                foreach ($parameter in $Policy.$parameter)
+                'GroupParameter*'
                 {
-                    $groupParameter += $parameter
-                }
+                    Write-Debug -Message ($script:LocalizedData.ProcessingPropertyWithValueDebugMessage -f
+                        $parameter, ($Policy.$parameter -join ', '))
 
-                $policyParameter += @{
-                    GroupParameter = $groupParameter
+                    $GroupParameter = @()
+                    foreach ($parameter in $Policy.$parameter)
+                    {
+                        $groupParameter += $parameter
+                    }
+
+                    $policyParameter += @{
+                        GroupParameter = $groupParameter
+                    }
                 }
             }
         }
+
+        $MSFTAdfsAccessControlPolicyParameter = New-CimInstance -ClassName MSFT_AdfsAccessControlPolicyParameters `
+            -Namespace root/microsoft/Windows/DesiredStateConfiguration `
+            -Property $policyParameter -ClientOnly
     }
-
-    $MSFTAdfsAccessControlPolicyParameter = New-CimInstance -ClassName MSFT_AdfsAccessControlPolicyParameters `
-        -Namespace root/microsoft/Windows/DesiredStateConfiguration `
-        -Property $policyParameter -ClientOnly
-
+    else
+    {
+        $MSFTAdfsAccessControlPolicyParameter = $null
+    }
     return $MSFTAdfsAccessControlPolicyParameter
 }
 
