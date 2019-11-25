@@ -12,7 +12,7 @@
 # RootModule = ''
 
 # Version number of this module.
-ModuleVersion = '0.1.37'
+ModuleVersion = '1.0.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -81,11 +81,11 @@ CmdletsToExport = @()
 AliasesToExport = @()
 
 # DSC resources to export from this module
-DscResourcesToExport = 'AdfsApplicationGroup', 'AdfsApplicationPermission', 
-               'AdfsCertificate', 'AdfsFarm', 'AdfsFarmNode', 
-               'AdfsGlobalAuthneticationPolicy', 'AdfsGlobalWebContent', 
-               'AdfsNativeClientApplication', 'AdfsProperties', 
-               'AdfsRelyingPartyTrust', 'AdfsSslCertificate', 
+DscResourcesToExport = 'AdfsApplicationGroup', 'AdfsApplicationPermission',
+               'AdfsCertificate', 'AdfsFarm', 'AdfsFarmNode',
+               'AdfsGlobalAuthneticationPolicy', 'AdfsGlobalWebContent',
+               'AdfsNativeClientApplication', 'AdfsProperties',
+               'AdfsRelyingPartyTrust', 'AdfsSslCertificate',
                'AdfsWebApiApplication'
 
 # List of all modules packaged with this module
@@ -115,7 +115,7 @@ PrivateData = @{
         ReleaseNotes = 'https://github.com/X-Guardian/AdfsDsc/blob/master/CHANGELOG.md'
 
         # Prerelease string of this module
-        # Prerelease = ''
+        # Prerelease = '-alpha'
 
         # Flag to indicate whether the module requires explicit user acceptance for install/update/save
         # RequireLicenseAcceptance = $false

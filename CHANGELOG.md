@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 1.0.0
+
 - Changes to AdfsWebApiApplication
   - Added support for access control policy parameters ([issue #19](https://github.com/X-Guardian/AdfsDsc/issues/19)).
 - Changes to AdfsRelyingPartyTrust
