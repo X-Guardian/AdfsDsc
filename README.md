@@ -1,4 +1,4 @@
-# ADfsDsc
+# AdfsDsc
 
 The **AdfsDsc** module contains DSC resources for deployment and
 configuration of Active Directory Federation Services.
