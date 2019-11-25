@@ -249,7 +249,7 @@ function Set-TargetResource
                 }
                 catch
                 {
-                    $errorMessage = $script:localizedData.GettingResourceErrorMessage -f $Name
+                    $errorMessage = $script:localizedData.RemovingResourceErrorMessage -f $Name
                     New-InvalidOperationException -Message $errorMessage -Error $_
                 }
 

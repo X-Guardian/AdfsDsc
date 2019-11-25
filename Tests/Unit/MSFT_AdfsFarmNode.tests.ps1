@@ -110,7 +110,7 @@ try
             Credential            = $mockCredential
         }
 
-        Describe "$Global:DSCResourceName\Get-TargetResource" -Tag 'Get' {
+        Describe 'MSFT_AdfsFarmNode\Get-TargetResource' -Tag 'Get' {
             $mockGetAdfsSslCertificateResult = @(
                 @{
                     Hostname        = 'sts.contoso.com'
@@ -374,7 +374,7 @@ try
             }
         }
 
-        Describe "$Global:DSCResourceName\Set-TargetResource" -Tag 'Set' {
+        Describe 'MSFT_AdfsFarmNode\Set-TargetResource' -Tag 'Set' {
             BeforeAll {
                 $setTargetResourceParameters = @{
                     FederationServiceName         = $mockGsaWidResource.FederationServiceName
@@ -554,7 +554,7 @@ try
             }
         }
 
-        Describe "$Global:DSCResourceName\Test-TargetResource" -Tag 'Test' {
+        Describe 'MSFT_AdfsFarmNode\Test-TargetResource' -Tag 'Test' {
             BeforeAll {
                 $testTargetResourceParameters = @{
                     FederationServiceName         = $mockGsaWidResource.FederationServiceName

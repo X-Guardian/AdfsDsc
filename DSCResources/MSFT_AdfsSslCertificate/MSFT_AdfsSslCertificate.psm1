@@ -220,7 +220,11 @@ function Test-TargetResource
         Debug   = $DebugPreference
     }
 
-    $PSBoundParameters.Remove('RemoteCredential') | Out-Null
+    # Remove any parameters not used in Splats
+    [HashTable]$parameters = $PSBoundParameters
+    $parameters.Remove('RemoteCredential')
+
+    Write-Verbose -Message ($script:localizedData.TestingResourceMessage -f $CertificateType)
 
     $getTargetResourceParms = @{
         CertificateType = $CertificateType
@@ -229,7 +233,7 @@ function Test-TargetResource
     $targetResource = Get-TargetResource @getTargetResourceParms
 
     $propertiesNotInDesiredState = (
-        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters `
+        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters `
         @commonParms | Where-Object -Property InDesiredState -eq $false)
 
     if ($propertiesNotInDesiredState)

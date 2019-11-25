@@ -102,7 +102,7 @@ try
             SignInPageAdditionalAuthenticationDescriptionText  = $mockResource.SignInPageAdditionalAuthenticationDescriptionText
         }
 
-        Describe "$Global:DSCResourceName\Get-TargetResource" -Tag 'Get' {
+        Describe 'MSFT_AdfsGlobalWebContent\Get-TargetResource' -Tag 'Get' {
             BeforeAll {
                 $getTargetResourceParameters = @{
                     FederationServiceName = $mockResource.FederationServiceName
@@ -167,7 +167,7 @@ try
             }
         }
 
-        Describe "$Global:DSCResourceName\Set-TargetResource" -Tag 'Set' {
+        Describe 'MSFT_AdfsGlobalWebContent\Set-TargetResource' -Tag 'Set' {
             BeforeAll {
                 $setTargetResourceParameters = @{
                     FederationServiceName                              = $mockResource.FederationServiceName
@@ -233,7 +233,7 @@ try
             }
         }
 
-        Describe "$Global:DSCResourceName\Test-TargetResource" -Tag 'Test' {
+        Describe 'MSFT_AdfsGlobalWebContent\Test-TargetResource' -Tag 'Test' {
             BeforeAll {
                 $testTargetResourceParameters = @{
                     FederationServiceName                              = $mockResource.FederationServiceName

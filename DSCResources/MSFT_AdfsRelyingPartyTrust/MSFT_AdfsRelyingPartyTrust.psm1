@@ -263,21 +263,21 @@ function Get-TargetResource
 
     if ($targetResource)
     {
-        $claimAccepted = @()
-        foreach ($claimDescription in $targetResource.ClaimsAccepted)
+        $claimAcceptedDescriptions = @()
+        foreach ($claim in $targetResource.ClaimsAccepted)
         {
             try
             {
-                $claim = Get-AdfsClaimDescription -ClaimType $claimDescription.ClaimType
+                $claimDescription = Get-AdfsClaimDescription -ClaimType $claim.ClaimType
             }
             catch
             {
                 $errorMessage = ($script:localizedData.GettingClaimDescriptionErrorMessage -f
-                    $claimDescription.ClaimType, $Name)
+                    $claim.ClaimType, $Name)
                 New-InvalidOperationException -Message $errorMessage -Error $_
             }
 
-            $claimAccepted += $claim.ShortName
+            $claimAcceptedDescriptions += $claimDescription.ShortName
         }
 
         # Resource is Present
@@ -302,7 +302,7 @@ function Get-TargetResource
             AllowedClientTypes                   = @($targetResource.AllowedClientTypes)
             AlwaysRequireAuthentication          = $targetResource.AlwaysRequireAuthentication
             AutoUpdateEnabled                    = $targetResource.AutoUpdateEnabled
-            ClaimAccepted                        = $claimAccepted
+            ClaimAccepted                        = $claimAcceptedDescriptions
             ClaimsProviderName                   = @($targetResource.ClaimsProviderName)
             DelegationAuthorizationRules         = $targetResource.DelegationAuthorizationRules
             Enabled                              = $targetResource.Enabled
@@ -649,21 +649,21 @@ function Set-TargetResource
                 if ($property.ParameterName -eq 'ClaimAccepted')
                 {
                     # Custom processing for 'ClaimAccepted' property
-                    $ClaimAcceptedDescriptions = @()
+                    $claimAcceptedDescriptions = @()
                     foreach ($claim in $property.Expected)
                     {
                         try
                         {
-                            $ClaimAcceptedDescriptions += Get-AdfsClaimDescription -ShortName $claim
+                            $claimAcceptedDescriptions += Get-AdfsClaimDescription -ShortName $claim
                         }
                         catch
                         {
                             $errorMessage = ($script:localizedData.GettingClaimDescriptionErrorMessage -f
-                                $claimDescription.ClaimType, $Name)
+                                $claim, $Name)
                             New-InvalidOperationException -Message $errorMessage -Error $_
                         }
                     }
-                    $SetParameters.Add($property.ParameterName, $ClaimAcceptedDescriptions)
+                    $SetParameters.Add($property.ParameterName, $claimAcceptedDescriptions)
                 }
                 elseif ($property.ParameterName -eq 'Enabled')
                 {
@@ -760,22 +760,22 @@ function Set-TargetResource
 
             if ($parameters.ContainsKey('ClaimAccepted'))
             {
-                $ClaimAcceptedDescriptions = @()
+                $claimAcceptedDescriptions = @()
                 foreach ($claim in $parameters.ClaimAccepted)
                 {
                     try
                     {
-                        $ClaimAcceptedDescriptions += Get-AdfsClaimDescription -ShortName $claim
+                        $claimAcceptedDescriptions += Get-AdfsClaimDescription -ShortName $claim
                     }
                     catch
                     {
                         $errorMessage = ($script:localizedData.GettingClaimDescriptionErrorMessage -f
-                            $claimDescription.ClaimType, $Name)
+                            $claim, $Name)
                         New-InvalidOperationException -Message $errorMessage -Error $_
                     }
                 }
 
-                $parameters.ClaimAccepted = $ClaimAcceptedDescriptions
+                $parameters.ClaimAccepted = $claimAcceptedDescriptions
             }
 
             if ($parameters.ContainsKey('IssuanceTransformRules'))
