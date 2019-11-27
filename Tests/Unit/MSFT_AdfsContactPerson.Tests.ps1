@@ -61,14 +61,16 @@ try
                     FederationServiceName = $mockResource.FederationServiceName
                 }
 
+                $mockContactPerson = New-MockObject -Type Microsoft.IdentityServer.Management.Resources.ContactPerson
+
+                $mockContactPerson.Company         = $mockResource.Company
+                $mockContactPerson.EmailAddresses  = $mockResource.EmailAddress
+                $mockContactPerson.GivenName       = $mockResource.GivenName
+                $mockContactPerson.Surname         = $mockResource.Surname
+                $mockContactPerson.PhoneNumbers    = $mockResource.TelephoneNumber
+
                 $mockGetResourceCommandResult = @{
-                    ContactPerson = @{
-                        Company         = $mockResource.Company
-                        EmailAddress    = $mockResource.EmailAddress
-                        GivenName       = $mockResource.GivenName
-                        Surname         = $mockResource.Surname
-                        TelephoneNumber = $mockResource.TelephoneNumber
-                    }
+                    ContactPerson = $mockContactPerson
                 }
 
                 Mock -CommandName Assert-Module
