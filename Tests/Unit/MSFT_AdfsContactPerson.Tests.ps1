@@ -61,38 +61,76 @@ try
                     FederationServiceName = $mockResource.FederationServiceName
                 }
 
-                $mockContactPerson = New-MockObject -Type Microsoft.IdentityServer.Management.Resources.ContactPerson
-
-                $mockContactPerson.Company         = $mockResource.Company
-                $mockContactPerson.EmailAddresses  = $mockResource.EmailAddress
-                $mockContactPerson.GivenName       = $mockResource.GivenName
-                $mockContactPerson.Surname         = $mockResource.Surname
-                $mockContactPerson.PhoneNumbers    = $mockResource.TelephoneNumber
-
-                $mockGetResourceCommandResult = @{
-                    ContactPerson = $mockContactPerson
-                }
-
                 Mock -CommandName Assert-Module
                 Mock -CommandName "Assert-$($Global:PSModuleName)Service"
-                Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
-
-                $result = Get-TargetResource @getTargetResourceParameters
             }
 
-            foreach ($property in $mockResource.Keys)
-            {
-                It "Should return the correct $property property" {
-                    $result.$property | Should -Be $mockResource.$property
+            Context 'When the contact person is not empty' {
+                BeforeAll {
+                    $mockContactPerson = New-MockObject -Type Microsoft.IdentityServer.Management.Resources.ContactPerson
+
+                    $mockContactPerson.Company = $mockResource.Company
+                    $mockContactPerson.EmailAddresses = $mockResource.EmailAddress
+                    $mockContactPerson.GivenName = $mockResource.GivenName
+                    $mockContactPerson.Surname = $mockResource.Surname
+                    $mockContactPerson.PhoneNumbers = $mockResource.TelephoneNumber
+
+                    $mockGetResourceCommandResult = @{
+                        ContactPerson = $mockContactPerson
+                    }
+
+                    Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
+
+                    $result = Get-TargetResource @getTargetResourceParameters
+                }
+
+                foreach ($property in $mockResource.Keys)
+                {
+                    It "Should return the correct $property property" {
+                        $result.$property | Should -Be $mockResource.$property
+                    }
+                }
+
+                It 'Should call the expected mocks' {
+                    Assert-MockCalled -CommandName Assert-Module `
+                        -ParameterFilter { $ModuleName -eq $Global:PSModuleName } `
+                        -Exactly -Times 1
+                    Assert-MockCalled -CommandName "Assert-$($Global:PSModuleName)Service" -Exactly -Times 1
+                    Assert-MockCalled -CommandName $ResourceCommand.Get -Exactly -Times 1
                 }
             }
 
-            It 'Should call the expected mocks' {
-                Assert-MockCalled -CommandName Assert-Module `
-                    -ParameterFilter { $ModuleName -eq $Global:PSModuleName } `
-                    -Exactly -Times 1
-                Assert-MockCalled -CommandName "Assert-$($Global:PSModuleName)Service" -Exactly -Times 1
-                Assert-MockCalled -CommandName $ResourceCommand.Get -Exactly -Times 1
+            Context 'When the contact person is empty' {
+                BeforeAll {
+                    $mockGetResourceCommandEmptyResult = @{
+                        ContactPerson = $null
+                    }
+
+                    Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandEmptyResult }
+
+                    $result = Get-TargetResource @getTargetResourceParameters
+                }
+
+                foreach ($property in $mockResource.Keys)
+                {
+                    It "Should return the correct $property property" {
+                        if ($property -eq 'FederationServiceName')
+                        {
+                            $result.$property | Should -Be $mockResource.FederationServiceName
+                        }
+                        else {
+                            $result.$property | Should -BeNullOrEmpty
+                        }
+                    }
+                }
+
+                It 'Should call the expected mocks' {
+                    Assert-MockCalled -CommandName Assert-Module `
+                        -ParameterFilter { $ModuleName -eq $Global:PSModuleName } `
+                        -Exactly -Times 1
+                    Assert-MockCalled -CommandName "Assert-$($Global:PSModuleName)Service" -Exactly -Times 1
+                    Assert-MockCalled -CommandName $ResourceCommand.Get -Exactly -Times 1
+                }
             }
 
             Context "When $($ResourceCommand.Get) throws an exception" {
