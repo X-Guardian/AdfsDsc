@@ -27,6 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed Ensure Parameter as Remove-AdfsFarmNode cmdlet is deprecated
   ([issue #36](https://github.com/X-Guardian/AdfsDsc/issues/36)).
 
+- Changes to AdfsContactPerson
+  - Added empty contact support ([issue #27](https://github.com/X-Guardian/AdfsDsc/issues/27)).
+
 ## 1.0.0
 
 ### Added
