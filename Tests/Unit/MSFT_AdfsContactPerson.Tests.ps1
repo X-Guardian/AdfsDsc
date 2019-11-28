@@ -118,7 +118,8 @@ try
                         {
                             $result.$property | Should -Be $mockResource.FederationServiceName
                         }
-                        else {
+                        else
+                        {
                             $result.$property | Should -BeNullOrEmpty
                         }
                     }
@@ -181,6 +182,32 @@ try
                         Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 1
                         Assert-MockCalled -CommandName New-AdfsContactPerson -Exactly -Times 1
                     }
+                }
+            }
+
+            Context 'When all the properties are empty' {
+                BeforeAll {
+                    $setEmptyTargetResourceParameters = @{
+                        FederationServiceName = $mockResource.FederationServiceName
+                        Company               = ''
+                        EmailAddress          = ''
+                        GivenName             = ''
+                        Surname               = ''
+                        TelephoneNumber       = ''
+                    }
+                }
+
+                It 'Should not throw' {
+                    { Set-TargetResource @setEmptyTargetResourceParameters } | Should -Not -Throw
+                }
+
+                It 'Should call the correct mocks' {
+                    Assert-MockCalled -CommandName Get-TargetResource `
+                        -ParameterFilter { `
+                            $FederationServiceName -eq $setEmptyTargetResourceParameters.FederationServiceName } `
+                        -Exactly -Times 1
+                    Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 1
+                    Assert-MockCalled -CommandName New-AdfsContactPerson -Exactly -Times 0
                 }
             }
 
