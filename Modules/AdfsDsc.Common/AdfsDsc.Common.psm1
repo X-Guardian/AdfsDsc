@@ -581,14 +581,14 @@ function Test-DscPropertyState
         $Values
     )
 
-    if ($null -eq $Values.CurrentValue -and $null -eq $Values.DesiredValue)
+    if ([System.String]::IsNullOrEmpty($Values.CurrentValue) -and [System.String]::IsNullOrEmpty($Values.DesiredValue))
     {
-        # Both values are $null so return $true
+        # Both values are null or empty so return $true
         $returnValue = $true
     }
-    elseif ($null -eq $Values.CurrentValue -or $null -eq $Values.DesiredValue)
+    elseif ([System.String]::IsNullOrEmpty($Values.CurrentValue) -or [System.String]::IsNullOrEmpty($Values.DesiredValue))
     {
-        # Either CurrentValue or DesiredValue are $null so return $false
+        # Either CurrentValue or DesiredValue are null or empty so return $false
         $returnValue = $false
     }
     elseif ($Values.DesiredValue.GetType().IsArray -or $Values.CurrentValue.GetType().IsArray)

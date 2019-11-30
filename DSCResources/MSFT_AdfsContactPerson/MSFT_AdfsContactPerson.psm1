@@ -93,13 +93,27 @@ function Get-TargetResource
         New-InvalidOperationException -Message $errorMessage -Error $_
     }
 
-    $returnValue = @{
-        FederationServiceName = $FederationServiceName
-        Company               = $targetResource.Company
-        EmailAddress          = $targetResource.EmailAddress
-        GivenName             = $targetResource.GivenName
-        Surname               = $targetResource.Surname
-        TelephoneNumber       = $targetResource.TelephoneNumber
+    if ($targetResource -is [Microsoft.IdentityServer.Management.Resources.ContactPerson])
+    {
+        $returnValue = @{
+            FederationServiceName = $FederationServiceName
+            Company               = $targetResource.Company
+            EmailAddress          = $targetResource.EmailAddresses
+            GivenName             = $targetResource.GivenName
+            Surname               = $targetResource.Surname
+            TelephoneNumber       = $targetResource.PhoneNumbers
+        }
+    }
+    else
+    {
+        $returnValue = @{
+            FederationServiceName = $FederationServiceName
+            Company               = ''
+            EmailAddress          = @()
+            GivenName             = ''
+            Surname               = ''
+            TelephoneNumber       = @()
+        }
     }
 
     $returnValue
@@ -177,14 +191,24 @@ function Set-TargetResource
             $FederationServiceName, $property.ParameterName, ($property.Expected -join ', '))
     }
 
-    try
+    # Set contact person to $null if all parameters are empty
+    if ([System.String]::IsNullOrEmpty($Company) -and [System.String]::IsNullOrEmpty($EmailAddress) -and
+        [System.String]::IsNullOrEmpty($GivenName) -and [System.String]::IsNullOrEmpty($Surname) -and
+        [System.String]::IsNullOrEmpty($TelephoneNumber))
     {
-        $contactPerson = New-AdfsContactPerson @parameters
+        $contactPerson = $null
     }
-    catch
+    else
     {
-        $errorMessage = $script:localizedData.NewAdfsContactPersonErrorMessage -f $FederationServiceName
-        New-InvalidOperationException -Message $errorMessage -Error $_
+        try
+        {
+            $contactPerson = New-AdfsContactPerson @parameters
+        }
+        catch
+        {
+            $errorMessage = $script:localizedData.NewAdfsContactPersonErrorMessage -f $FederationServiceName
+            New-InvalidOperationException -Message $errorMessage -Error $_
+        }
     }
 
     try

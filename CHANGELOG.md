@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Changes to AdfsContactPerson
+  - Added empty contact support ([issue #27](https://github.com/X-Guardian/AdfsDsc/issues/27)).
+
 ## 1.0.0
 
 - Changes to AdfsWebApiApplication
