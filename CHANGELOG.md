@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added integration tests.
 - Changes to AdfsOrganization
   - Added empty organization support ([issue #30](https://github.com/X-Guardian/AdfsDsc/issues/30)).
+  - Added integration tests.
 
 ## 1.0.0
 
