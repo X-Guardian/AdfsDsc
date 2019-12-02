@@ -62,14 +62,17 @@ function Get-TargetResource
         $FederationServiceName,
 
         [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
         [System.String]
         $DisplayName,
 
         [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
         [System.String]
         $Name,
 
         [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
         [System.String]
         $OrganizationUrl
     )
@@ -98,11 +101,27 @@ function Get-TargetResource
         New-InvalidOperationException -Message $errorMessage -Error $_
     }
 
-    $returnValue = @{
-        FederationServiceName = $FederationServiceName
-        Name                  = $targetResource.Name
-        DisplayName           = $targetResource.DisplayName
-        OrganizationUrl       = $targetResource.OrganizationUrl
+    if ($targetResource -is [Microsoft.IdentityServer.Management.Resources.Organization])
+    {
+        Write-Debug -Message 'Organization object returned in OrganizationInfo from Get-AdfsProperties'
+
+        $returnValue = @{
+            FederationServiceName = $FederationServiceName
+            Name                  = $targetResource.Name
+            DisplayName           = $targetResource.DisplayName
+            OrganizationUrl       = $targetResource.OrganizationUrl
+        }
+    }
+    else
+    {
+        Write-Debug -Message 'Organization object not returned in OrganizationInfo from Get-AdfsProperties'
+
+        $returnValue = @{
+            FederationServiceName = $FederationServiceName
+            Name                  = ''
+            DisplayName           = ''
+            OrganizationUrl       = ''
+        }
     }
 
     $returnValue
@@ -132,14 +151,17 @@ function Set-TargetResource
         $FederationServiceName,
 
         [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
         [System.String]
         $DisplayName,
 
         [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
         [System.String]
         $Name,
 
         [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
         [System.String]
         $OrganizationUrl
     )
@@ -175,14 +197,23 @@ function Set-TargetResource
             $FederationServiceName, $property.ParameterName, ($property.Expected -join ', '))
     }
 
-    try
+    # Set organization to $null if all parameters are empty
+    if ([System.String]::IsNullOrEmpty($DisplayName) -and [System.String]::IsNullOrEmpty($Name) -and
+        [System.String]::IsNullOrEmpty($OrganizationUrl))
     {
-        $organizationInfo = New-AdfsOrganization @parameters
+        $organizationInfo = $null
     }
-    catch
+    else
     {
-        $errorMessage = $script:localizedData.NewAdfsOrganizationErrorMessage -f $FederationServiceName
-        New-InvalidOperationException -Message $errorMessage -Error $_
+        try
+        {
+            $organizationInfo = New-AdfsOrganization @parameters
+        }
+        catch
+        {
+            $errorMessage = $script:localizedData.NewAdfsOrganizationErrorMessage -f $FederationServiceName
+            New-InvalidOperationException -Message $errorMessage -Error $_
+        }
     }
 
     try
@@ -219,14 +250,17 @@ function Test-TargetResource
         $FederationServiceName,
 
         [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
         [System.String]
         $DisplayName,
 
         [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
         [System.String]
         $Name,
 
         [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
         [System.String]
         $OrganizationUrl
     )

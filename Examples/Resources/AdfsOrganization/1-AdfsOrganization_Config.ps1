@@ -34,7 +34,7 @@ Configuration AdfsOrganization_Config
             FederationServiceName = 'sts.contoso.com'
             DisplayName           = 'Contoso Inc.'
             Name                  = 'Contoso'
-            OrganizationUrl       = 'https://www.contoso.com'
+            OrganizationUrl       = 'https://www.contoso.com/'
         }
     }
 }
