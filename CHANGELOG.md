@@ -6,6 +6,8 @@
   - Added empty contact support ([issue #27](https://github.com/X-Guardian/AdfsDsc/issues/27)).
 - Changes to AdfsGlobalAuthenticationPolicy
   - Added integration tests.
+- Changes to AdfsOrganization
+  - Added empty organization support ([issue #30](https://github.com/X-Guardian/AdfsDsc/issues/30)).
 
 ## 1.0.0
 
