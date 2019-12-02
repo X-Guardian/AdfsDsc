@@ -103,8 +103,6 @@ function Get-TargetResource
 
     if ($targetResource -is [Microsoft.IdentityServer.Management.Resources.Organization])
     {
-        Write-Debug -Message 'Organization object returned in OrganizationInfo from Get-AdfsProperties'
-
         $returnValue = @{
             FederationServiceName = $FederationServiceName
             Name                  = $targetResource.Name
@@ -114,8 +112,6 @@ function Get-TargetResource
     }
     else
     {
-        Write-Debug -Message 'Organization object not returned in OrganizationInfo from Get-AdfsProperties'
-
         $returnValue = @{
             FederationServiceName = $FederationServiceName
             Name                  = ''
