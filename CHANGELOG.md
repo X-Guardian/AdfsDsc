@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added integration tests.
 - Changes to AdfsProperties
   - Added integration tests.
+  - Remove obsolete properties PromptLoginFederation and PromptLoginFallbackAuthenticationType ([issue #34](https://github.com/X-Guardian/AdfsDsc/issues/34)).
 
 ## 1.0.0
 
