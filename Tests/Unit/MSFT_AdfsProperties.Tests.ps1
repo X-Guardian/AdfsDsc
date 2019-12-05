@@ -90,8 +90,6 @@ try
             EnableIdPInitiatedSignonPage               = $false
             IgnoreTokenBinding                         = $false
             IdTokenIssuer                              = 'https://sts.contoso.com/adfs'
-            PromptLoginFederation                      = 'FallbackToProtocolSpecificParameters'
-            PromptLoginFallbackAuthenticationType      = 'urn:oasis:names:tc:SAML:1.0:am:password'
         }
 
         $mockChangedResource = @{
@@ -154,8 +152,6 @@ try
             EnableIdPInitiatedSignonPage               = $true
             IgnoreTokenBinding                         = $true
             IdTokenIssuer                              = 'https://sts.fabrikam.com/adfs'
-            PromptLoginFederation                      = 'Disabled'
-            PromptLoginFallbackAuthenticationType      = 'urn:oasis:names:tc:SAML:1.0:am:password2'
         }
 
         $mockGetTargetResourceResult = @{
@@ -219,8 +215,6 @@ try
             EnableIdPInitiatedSignonPage               = $mockResource.EnableIdPInitiatedSignonPage
             IgnoreTokenBinding                         = $mockResource.IgnoreTokenBinding
             IdTokenIssuer                              = $mockResource.IdTokenIssuer
-            PromptLoginFederation                      = $mockResource.PromptLoginFederation
-            PromptLoginFallbackAuthenticationType      = $mockResource.PromptLoginFallbackAuthenticationType
         }
 
         Describe 'MSFT_AdfsProperties\Get-TargetResource' -Tag 'Get' {
@@ -290,8 +284,6 @@ try
                     EnableIdpInitiatedSignonPage               = $mockResource.EnableIdpInitiatedSignonPage
                     IgnoreTokenBinding                         = $mockResource.IgnoreTokenBinding
                     EnableOauthDeviceFlow                      = $mockResource.EnableOauthDeviceFlow
-                    PromptLoginFederation                      = $mockResource.PromptLoginFederation
-                    PromptLoginFallbackAuthenticationType      = $mockResource.PromptLoginFallbackAuthenticationType
                 }
 
                 Mock -CommandName Assert-Module
@@ -388,8 +380,6 @@ try
                     EnableIdPInitiatedSignonPage               = $mockResource.EnableIdPInitiatedSignonPage
                     IgnoreTokenBinding                         = $mockResource.IgnoreTokenBinding
                     IdTokenIssuer                              = $mockResource.IdTokenIssuer
-                    PromptLoginFederation                      = $mockResource.PromptLoginFederation
-                    PromptLoginFallbackAuthenticationType      = $mockResource.PromptLoginFallbackAuthenticationType
                 }
 
                 Mock -CommandName $ResourceCommand.Set

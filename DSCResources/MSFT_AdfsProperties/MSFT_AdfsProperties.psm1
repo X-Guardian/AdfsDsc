@@ -76,10 +76,6 @@
         (1440) as a multiplier. Change this value only if you want to use a more finely detailed measure of time, such
         as less than a single day, for calculating the time periods for other certificate threshold parameters.
 
-    .PARAMETER ContactPerson
-        ** Not Currently Implemented **
-        Specifies the contact information for support issues.
-
     .PARAMETER EnableOAuthDeviceFlow
         Write - Boolean
         Enabled the OAuth Device Flow.
@@ -130,10 +126,6 @@
         Indicates whether to enable support for NTLM-based authentication in situations where the active federation
         server proxy does not support Negotiate method of authentication. This setting only affects the Windows
         transport endpoint.
-
-    .PARAMETER Organization
-        ** Not Currently Implemented **
-        Specifies the organization that is published in the federation metadata for the Federation Service.
 
     .PARAMETER PreventTokenReplays
         Write - Boolean
@@ -322,20 +314,6 @@
     .PARAMETER IdTokenIssuer
         Write - String
         Specifies the URI of the token issuer.
-
-    .PARAMETER PromptLoginFederation
-        Write - String
-        Allowed values: None, FallbackToProtocolSpecificParameters, ForwardPromptAndHintsOverWsFederation, Disabled
-        Specifies the process to use if the prompt=login query parameter is specified.
-
-    .PARAMETER PromptLoginFallbackAuthenticationType
-        Write - String
-        Specifies a fallback authentication type for a prompt login request.
-
-    .NOTES
-        Todo:
-            - ContactPerson parameter [Microsoft.IdentityServer.PowerShell.Resources.ContactPerson]
-            - Organization parameter [Microsoft.IdentityServer.PowerShell.Resources.Organization]
 #>
 
 Set-StrictMode -Version 2.0
@@ -462,8 +440,6 @@ function Get-TargetResource
         EnableIdPInitiatedSignonPage               = $targetResource.EnableIdPInitiatedSignonPage
         IgnoreTokenBinding                         = $targetResource.IgnoreTokenBinding
         IdTokenIssuer                              = $targetResource.IdTokenIssuer
-        PromptLoginFederation                      = $targetResource.PromptLoginFederation
-        PromptLoginFallbackAuthenticationType      = $targetResource.PromptLoginFallbackAuthenticationType
     }
 
     $returnValue
@@ -730,19 +706,7 @@ function Set-TargetResource
 
         [Parameter()]
         [System.String]
-        $IdTokenIssuer,
-
-        [Parameter()]
-        [ValidateSet('None',
-            'FallbackToProtocolSpecificParameters',
-            'ForwardPromptAndHintsOverWsFederation',
-            'Disabled')]
-        [System.String]
-        $PromptLoginFederation,
-
-        [Parameter()]
-        [System.String]
-        $PromptLoginFallbackAuthenticationType
+        $IdTokenIssuer
     )
 
     # Set Verbose and Debug parameters
@@ -1049,19 +1013,7 @@ function Test-TargetResource
 
         [Parameter()]
         [System.String]
-        $IdTokenIssuer,
-
-        [Parameter()]
-        [ValidateSet('None',
-            'FallbackToProtocolSpecificParameters',
-            'ForwardPromptAndHintsOverWsFederation',
-            'Disabled')]
-        [System.String]
-        $PromptLoginFederation,
-
-        [Parameter()]
-        [System.String]
-        $PromptLoginFallbackAuthenticationType
+        $IdTokenIssuer
     )
 
     # Set Verbose and Debug parameters
