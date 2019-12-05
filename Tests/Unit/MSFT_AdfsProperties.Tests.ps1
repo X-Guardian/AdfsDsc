@@ -50,7 +50,7 @@ try
             IntranetUseLocalClaimsProvider             = $false
             TlsClientPort                              = 49443
             Identifier                                 = 'http://sts.contoso.com/adfs/services/trust'
-            LogLevel                                   = 'Errors', 'FailureAudits', 'Information', 'Verbose', 'SuccessAudits', 'Warnings', 'None'
+            LogLevel                                   = 'Errors', 'FailureAudits', 'Information', 'Verbose', 'SuccessAudits', 'Warnings'
             MonitoringInterval                         = 1440
             NetTcpPort                                 = 1501
             NtlmOnlySupportedClientAtProxy             = $false
@@ -86,7 +86,7 @@ try
             DelegateServiceAdministration              = 'contoso\adfsadmins'
             AllowSystemServiceAdministration           = $false
             AllowLocalAdminsServiceAdministration      = $true
-            DeviceUsageWindowInDays                    = 7
+            DeviceUsageWindowInDays                    = 14
             EnableIdPInitiatedSignonPage               = $false
             IgnoreTokenBinding                         = $false
             IdTokenIssuer                              = 'https://sts.contoso.com/adfs'
@@ -114,7 +114,7 @@ try
             IntranetUseLocalClaimsProvider             = $true
             TlsClientPort                              = 49444
             Identifier                                 = 'http://sts.fabrikam.com/adfs/services/trust'
-            LogLevel                                   = 'Errors', 'FailureAudits', 'Information', 'SuccessAudits', 'Warnings', 'None'
+            LogLevel                                   = 'Errors', 'FailureAudits', 'Information', 'SuccessAudits', 'Warnings'
             MonitoringInterval                         = 2880
             NetTcpPort                                 = 1502
             NtlmOnlySupportedClientAtProxy             = $true
@@ -150,7 +150,7 @@ try
             DelegateServiceAdministration              = 'fabrikam\adfsadmins'
             AllowSystemServiceAdministration           = $true
             AllowLocalAdminsServiceAdministration      = $false
-            DeviceUsageWindowInDays                    = 14
+            DeviceUsageWindowInDays                    = 21
             EnableIdPInitiatedSignonPage               = $true
             IgnoreTokenBinding                         = $true
             IdTokenIssuer                              = 'https://sts.fabrikam.com/adfs'
