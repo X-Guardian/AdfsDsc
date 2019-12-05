@@ -62,6 +62,4 @@ class MSFT_AdfsProperties : OMI_BaseResource
     [Write, Description("Specifies whether to enable the EnableIdPInitiatedSignonPage property.")] Boolean EnableIdPInitiatedSignonPage;
     [Write, Description("Specifies whether to ignore token binding.")] Boolean IgnoreTokenBinding;
     [Write, Description("Specifies the URI of the token issuer.")] String IdTokenIssuer;
-    [Write, Description("Specifies the process to use if the prompt=login query parameter is specified."), ValueMap{"None","FallbackToProtocolSpecificParameters","ForwardPromptAndHintsOverWsFederation","Disabled"}, Values{"None","FallbackToProtocolSpecificParameters","ForwardPromptAndHintsOverWsFederation","Disabled"}] String PromptLoginFederation;
-    [Write, Description("Specifies a fallback authentication type for a prompt login request.")] String PromptLoginFallbackAuthenticationType;
 };
