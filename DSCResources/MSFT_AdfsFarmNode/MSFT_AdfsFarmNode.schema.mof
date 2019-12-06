@@ -10,5 +10,5 @@ class MSFT_AdfsFarmNode : OMI_BaseResource
     [Write, Description("Specifies the primary computer port. The computer uses the HTTP port that you specify to connect with the primary computer in order to synchronize configuration settings. Specify a value of 80 for this parameter, or specify an alternate value if the HTTP port on the primary computer is not 80. If this parameter is not specified, a default port value of 80 is assumed.")] Sint32 PrimaryComputerPort;
     [Write, EmbeddedInstance("MSFT_Credential"), Description("Specifies the Active Directory account under which the AD FS service runs. All nodes in the farm must use the same service account.")] String ServiceAccountCredential;
     [Write, Description("Specifies the SQL Server database that will store the AD FS configuration settings. If not specified, AD FS uses Windows Internal Database to store configuration settings.")] String SQLConnectionString;
-    [Write, Description("Specifies whether the ADFS Farm Node should be present or absent. Default value is 'Present'."), ValueMap{"Present","Absent"}, Values{"Present","Absent"}] String Ensure;
+    [Read, Description("The state of the ADFS Farm.")] String Ensure;
 };

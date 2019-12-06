@@ -57,11 +57,6 @@
         Write - String
         Specifies the SQL Server database that will store the AD FS configuration settings. If not specified, AD FS
         uses Windows Internal Database to store configuration settings.
-
-    .PARAMETER Ensure
-        Write - String
-        Allowed values: Present, Absent
-        Specifies whether the ADFS Farm Node should be present or absent. Default value is 'Present'.
 #>
 
 Set-StrictMode -Version 2.0
@@ -278,7 +273,6 @@ function Set-TargetResource
         Name                | Module
         --------------------|----------------
         Add-AdfsFarmNode    | AdfsDsc
-        Remove-AdfsFarmNode | AdfsDsc
 
     #>
 
@@ -321,19 +315,13 @@ function Set-TargetResource
 
         [Parameter()]
         [System.String]
-        $SQLConnectionString,
-
-        [Parameter()]
-        [ValidateSet('Present', 'Absent')]
-        [System.String]
-        $Ensure = 'Present'
+        $SQLConnectionString
     )
 
     Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f $FederationServiceName)
 
     # Remove any parameters not used in Splats
     [HashTable]$parameters = $PSBoundParameters
-    $parameters.Remove('Ensure')
     $parameters.Remove('FederationServiceName')
     $parameters.Remove('Verbose')
 
@@ -360,94 +348,44 @@ function Set-TargetResource
     }
     $targetResource = Get-TargetResource @GetTargetResourceParms
 
-    if ($Ensure -eq 'Present')
+    if ($targetResource.Ensure -eq 'Absent')
     {
-        # Resource should be Present
-        Write-Debug -Message ($script:localizedData.TargetResourceShouldBePresentDebugMessage -f $FederationServiceName)
+        # Resource is Absent
+        Write-Debug -Message ($script:localizedData.TargetResourceAbsentDebugMessage -f $FederationServiceName)
 
-        if ($targetResource.Ensure -eq 'Absent')
+        Write-Verbose -Message ($script:localizedData.InstallingResourceMessage -f $FederationServiceName)
+
+        try
         {
-            # Resource is Absent
-            Write-Debug -Message ($script:localizedData.TargetResourceAbsentDebugMessage -f $FederationServiceName)
+            $Result = Add-AdfsFarmNode @parameters -ErrorAction SilentlyContinue
+        }
+        catch [System.IO.FileNotFoundException]
+        {
+            Write-Verbose -Message ($script:localizedData.MissingAdfsAssembliesMessage)
 
-            Write-Verbose -Message ($script:localizedData.InstallingResourceMessage -f $FederationServiceName)
+            # Set DSC Reboot required flag
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "",
+                Justification = 'Set LCM DSCMachineStatus to indicate reboot required')]
+            $global:DSCMachineStatus = 1
+            return
+        }
+        catch
+        {
+            $errorMessage = $script:localizedData.InstallationErrorMessage -f $FederationServiceName
+            New-InvalidOperationException -Message $errorMessage -ErrorRecord $_
+        }
 
-            try
-            {
-                $Result = Add-AdfsFarmNode @parameters -ErrorAction SilentlyContinue
-            }
-            catch [System.IO.FileNotFoundException]
-            {
-                Write-Verbose -Message ($script:localizedData.MissingAdfsAssembliesMessage)
+        if ($Result.Status -eq 'Success')
+        {
+            Write-Verbose -Message ($script:localizedData.ResourceInstallSuccessMessage -f $FederationServiceName)
 
-                # Set DSC Reboot required flag
-                [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "",
-                    Justification = 'Set LCM DSCMachineStatus to indicate reboot required')]
-                $global:DSCMachineStatus = 1
-                return
-            }
-            catch
-            {
-                $errorMessage = $script:localizedData.InstallationErrorMessage -f $FederationServiceName
-                New-InvalidOperationException -Message $errorMessage -ErrorRecord $_
-            }
-
-            if ($Result.Status -eq 'Success')
-            {
-                Write-Verbose -Message ($script:localizedData.ResourceInstallSuccessMessage -f $FederationServiceName)
-
-                [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "",
-                    Justification = 'Set LCM DSCMachineStatus to indicate reboot required')]
-                $global:DSCMachineStatus = 1
-                return
-            }
-            else
-            {
-                New-InvalidOperationException -Message $Result.Message
-            }
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "",
+                Justification = 'Set LCM DSCMachineStatus to indicate reboot required')]
+            $global:DSCMachineStatus = 1
         }
         else
         {
-            # Resource is Present
-            Write-Debug -Message ($script:localizedData.TargetResourcePresentDebugMessage -f $FederationServiceName)
-
-            Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $FederationServiceName)
-        }
-    }
-    else
-    {
-        # Resource should be Absent
-        Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f $FederationServiceName)
-
-        if ($targetResource.Ensure -eq 'Present')
-        {
-            # Resource is Present
-            Write-Debug -Message ($script:localizedData.TargetResourcePresentDebugMessage -f $FederationServiceName)
-
-            $parameters.Remove('CertificateThumbprint')
-            $parameters.Remove('OverwriteConfiguration')
-            $parameters.Remove('SqlConnectionString')
-            $parameters.Remove('PrimaryComputerName')
-            $parameters.Remove('PrimaryComputerPort')
-
-            Write-Verbose -Message ($script:localizedData.RemovingResourceMessage -f $FederationServiceName)
-
-            try
-            {
-                Remove-AdfsFarmNode @parameters
-            }
-            catch
-            {
-                $errorMessage = $script:localizedData.RemovalErrorMessage -f $FederationServiceName
-                New-InvalidOperationException -Message $errorMessage -ErrorRecord $_
-            }
-        }
-        else
-        {
-            # Resource is Absent
-            Write-Debug -Message ($script:localizedData.TargetResourceAbsentDebugMessage -f $FederationServiceName)
-
-            Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $FederationServiceName)
+            New-InvalidOperationException -Message $Result.Message
         }
     }
 }
@@ -497,12 +435,7 @@ function Test-TargetResource
 
         [Parameter()]
         [System.String]
-        $SQLConnectionString,
-
-        [Parameter()]
-        [ValidateSet('Present', 'Absent')]
-        [System.String]
-        $Ensure = 'Present'
+        $SQLConnectionString
     )
 
     Write-Verbose -Message ($script:localizedData.TestingResourceMessage -f $FederationServiceName)
@@ -516,58 +449,22 @@ function Test-TargetResource
 
     if ($targetResource.Ensure -eq 'Present')
     {
-        # Resource exists
-        if ($Ensure -eq 'Present')
-        {
-            # Resource should be Present
-            Write-Debug -Message ($script:localizedData.TargetResourceShouldBePresentDebugMessage -f
-                $FederationServiceName)
+        # Resource is Present
+        Write-Debug -Message ($script:localizedData.TargetResourcePresentDebugMessage -f $FederationServiceName)
 
-            Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $FederationServiceName)
+        Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $FederationServiceName)
 
-            $inDesiredState = $true
-        }
-        else
-        {
-            # Resource should be Absent
-            Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f
-                $FederationServiceName)
-
-            Write-Verbose -Message ($script:localizedData.ResourceIsPresentButShouldBeAbsentMessage -f
-                $FederationServiceName)
-
-            $inDesiredState = $false
-        }
+        $inDesiredState = $true
     }
     else
     {
         # Resource is Absent
-        if ($Ensure -eq 'Present')
-        {
-            # Resource should be Present
-            Write-Debug -Message ($script:localizedData.TargetResourceShouldBePresentDebugMessage -f
-                $FederationServiceName)
+        Write-Debug -Message ($script:localizedData.TargetResourceAbsentDebugMessage -f $FederationServiceName)
 
-            Write-Verbose -Message ($script:localizedData.ResourceIsAbsentButShouldBePresentMessage -f
-                $FederationServiceName)
+        Write-Verbose -Message ($script:localizedData.ResourceIsAbsentButShouldBePresentMessage -f
+            $FederationServiceName)
 
-            $inDesiredState = $false
-        }
-        else
-        {
-            # Resource should be Absent
-            Write-Debug -Message ($script:localizedData.TargetResourceShouldBeAbsentDebugMessage -f
-                $FederationServiceName)
-
-            Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $FederationServiceName)
-
-            $inDesiredState = $true
-        }
-    }
-
-    if ($inDesiredState)
-    {
-        Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $FederationServiceName)
+        $inDesiredState = $false
     }
 
     $inDesiredState
