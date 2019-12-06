@@ -47,11 +47,6 @@
     Write - String
     Specifies the SQL Server database that will store the AD FS configuration settings. If not specified, AD FS uses Windows Internal Database to store configuration settings.
 
-.PARAMETER Ensure
-    Write - String
-    Allowed values: Present, Absent
-    Specifies whether the ADFS Farm Node should be present or absent. Default value is 'Present'.
-
 .EXAMPLE 1
 
 This configuration will add the computer as a node in an existing Active Directory Federation Services (AD FS)

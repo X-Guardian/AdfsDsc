@@ -12,6 +12,8 @@
 - Changes to AdfsProperties
   - Added integration tests.
   - Remove obsolete properties PromptLoginFederation and PromptLoginFallbackAuthenticationType ([issue #34](https://github.com/X-Guardian/AdfsDsc/issues/34)).
+- Changes to AdfsFarmNode
+  - Removed Ensure Parameter as Remove-AdfsFarmNode cmdlet is deprecated ([issue #36](https://github.com/X-Guardian/AdfsDsc/issues/36)).
 
 ## 1.0.0
 
