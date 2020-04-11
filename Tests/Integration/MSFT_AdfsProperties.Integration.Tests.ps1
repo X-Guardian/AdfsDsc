@@ -1,35 +1,36 @@
 <#
     .SYNOPSIS
         AdfsProperties DSC Resource Integration Tests
+
+    .DESCRIPTION
+        Verbose/Debug output can be set by running:
+
+        Invoke-pester -Script @{Path='.\MSFT_AdfsProperties.Integration.Tests.ps1';Parameters=@{Verbose=$true;Debug=$true}}
 #>
 
-Set-StrictMode -Version 2.0
+[CmdletBinding()]
+param()
 
-if ($env:APPVEYOR -eq $true)
-{
-    Write-Warning -Message 'Integration test is not supported in AppVeyor.'
-    return
-}
+Set-StrictMode -Version 2.0
 
 $script:dscModuleName = 'AdfsDsc'
 $script:dscResourceFriendlyName = 'AdfsProperties'
 $script:dscResourceName = "MSFT_$($script:dscResourceFriendlyName)"
 
-#region HEADER
-# Integration Test Template Version: 1.3.3
-[String] $script:moduleRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-if ( (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests'))) -or `
-    (-not (Test-Path -Path (Join-Path -Path $script:moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1'))) )
+try
 {
-    & git @('clone', 'https://github.com/PowerShell/DscResource.Tests.git', (Join-Path -Path $script:moduleRoot -ChildPath 'DscResource.Tests'))
+    Import-Module -Name DscResource.Test -Force -ErrorAction 'Stop'
+}
+catch [System.IO.FileNotFoundException]
+{
+    throw 'DscResource.Test module dependency not found. Please run ".\build.ps1 -Tasks build" first.'
 }
 
-Import-Module -Name (Join-Path -Path $script:moduleRoot -ChildPath (Join-Path -Path 'DSCResource.Tests' -ChildPath 'TestHelper.psm1')) -Force
-$TestEnvironment = Initialize-TestEnvironment `
+$script:testEnvironment = Initialize-TestEnvironment `
     -DSCModuleName $script:dscModuleName `
     -DSCResourceName $script:dscResourceName `
-    -TestType Integration
-#endregion
+    -ResourceType 'Mof' `
+    -TestType 'Integration'
 
 try
 {
@@ -69,7 +70,7 @@ try
 
             It 'Should be able to call Get-DscConfiguration without throwing' {
                 {
-                    $script:currentConfiguration = Get-DscConfiguration -Verbose -ErrorAction Stop
+                    $script:currentConfiguration = Get-DscConfiguration  -ErrorAction Stop
                 } | Should -Not -Throw
             }
 
@@ -89,7 +90,7 @@ try
                 }
 
                 It 'Should return $true when Test-DscConfiguration is run' {
-                    Test-DscConfiguration -Verbose | Should -Be 'True'
+                    Test-DscConfiguration  | Should -Be 'True'
                 }
             }
         }
@@ -111,7 +112,7 @@ try
 
             It 'Should be able to call Get-DscConfiguration without throwing' {
                 {
-                    $script:currentConfiguration = Get-DscConfiguration -Verbose -ErrorAction Stop
+                    $script:currentConfiguration = Get-DscConfiguration  -ErrorAction Stop
                 } | Should -Not -Throw
             }
 
@@ -130,7 +131,7 @@ try
                 }
 
                 It 'Should return $true when Test-DscConfiguration is run' {
-                    Test-DscConfiguration -Verbose | Should -Be 'True'
+                    Test-DscConfiguration  | Should -Be 'True'
                 }
             }
         }
@@ -139,7 +140,5 @@ try
 }
 finally
 {
-    #region FOOTER
-    Restore-TestEnvironment -TestEnvironment $TestEnvironment
-    #endregion
+    Restore-TestEnvironment -TestEnvironment $script:testEnvironment
 }

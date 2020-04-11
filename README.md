@@ -1,41 +1,32 @@
 # AdfsDsc
 
-The **AdfsDsc** module contains DSC resources for deployment and
-configuration of Active Directory Federation Services.
+[![Build Status](https://dev.azure.com/dsccommunity/AdfsDsc/_apis/build/status/dsccommunity.AdfsDsc?branchName=master)](https://dev.azure.com/dsccommunity/AdfsDsc/_build/latest?definitionId={definitionId}&branchName=master)
+![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/dsccommunity/AdfsDsc/{definitionId}/master)
+[![Azure DevOps tests](https://img.shields.io/azure-devops/tests/dsccommunity/AdfsDsc/{definitionId}/master)](https://dsccommunity.visualstudio.com/AdfsDsc/_test/analytics?definitionId={definitionId}&contextType=build)
+[![PowerShell Gallery (with prereleases)](https://img.shields.io/powershellgallery/vpre/AdfsDsc?label=AdfsDsc%20Preview)](https://www.powershellgallery.com/packages/AdfsDsc/)
+[![PowerShell Gallery](https://img.shields.io/powershellgallery/v/AdfsDsc?label=AdfsDsc)](https://www.powershellgallery.com/packages/AdfsDsc/)
 
-These DSC resources allow you to configure a new ADFS server farm, add new server nodes to an existing ADFS server farm and manage the configuration of ADFS, relying party trusts, application groups and associated resources.
+The **AdfsDsc** module contains DSC resources for deployment and configuration of Active Directory Federation Services.
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+These DSC resources allow you to configure a new ADFS server farm, add new server nodes to an existing ADFS server farm
+and manage the configuration of ADFS, relying party trusts,  pplication groups and associated resources.
+
+## Code of Conduct
+
+This project has adopted this [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Releases
+
+For each merge to the branch `master` a preview release will be deployed to [PowerShell Gallery](https://www.powershellgallery.com/).
+Periodically a release version tag will be pushed which will deploy a full release to [PowerShell Gallery](https://www.powershellgallery.com/).
 
 ## Documentation and Examples
 
-For a full list of resources in AdfsDsc and examples on their use, check
-out the [AdfsDsc wiki](https://github.com/X-Guardian/AdfsDsc/wiki).
-
-## Branches
-
-### master
-
-[![Build status](https://ci.appveyor.com/api/projects/status/github/X-Guardian/AdfsDsc?branch=master&svg=true)](https://ci.appveyor.com/project/X-Guardian/AdfsDsc/branch/master)
-[![codecov](https://codecov.io/gh/X-Guardian/AdfsDsc/branch/master/graph/badge.svg)](https://codecov.io/gh/X-Guardian/AdfsDsc/branch/master)
-
-This is the branch containing the latest release -
-no contributions should be made directly to this branch.
-
-### dev
-
-[![Build status](https://ci.appveyor.com/api/projects/status/github/X-Guardian/AdfsDsc?branch=dev&svg=true)](https://ci.appveyor.com/project/X-Guardian/AdfsDsc/branch/dev)
-[![codecov](https://codecov.io/gh/X-Guardian/AdfsDsc/branch/dev/graph/badge.svg)](https://codecov.io/gh/X-Guardian/AdfsDsc/branch/dev)
-
-This is the development branch
-to which contributions should be proposed by contributors as pull requests.
-This development branch will periodically be merged to the master branch,
-and be released to [PowerShell Gallery](https://www.powershellgallery.com/).
+For a full list of resources in AdfsDsc and examples on their use, check out the [AdfsDsc wiki](https://github.com/X-Guardian/AdfsDsc/wiki).
 
 ## Contributing
 
-Please check out common DSC Resource [contributing guidelines](https://github.com/PowerShell/DscResources/blob/master/CONTRIBUTING.md).
+Please check out common DSC Community [contributing guidelines](https://dsccommunity.org/guidelines/contributing).
 
 ## Change log
 
