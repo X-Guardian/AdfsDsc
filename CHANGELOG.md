@@ -27,19 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed Ensure Parameter as Remove-AdfsFarmNode cmdlet is deprecated
   ([issue #36](https://github.com/X-Guardian/AdfsDsc/issues/36)).
 
-- Changes to AdfsContactPerson
-  - Added empty contact support ([issue #27](https://github.com/X-Guardian/AdfsDsc/issues/27)).
-- Changes to AdfsGlobalAuthenticationPolicy
-  - Added integration tests.
-- Changes to AdfsOrganization
-  - Added empty organization support ([issue #30](https://github.com/X-Guardian/AdfsDsc/issues/30)).
-  - Added integration tests.
-- Changes to AdfsProperties
-  - Added integration tests.
-  - Remove obsolete properties PromptLoginFederation and PromptLoginFallbackAuthenticationType ([issue #34](https://github.com/X-Guardian/AdfsDsc/issues/34)).
-- Changes to AdfsFarmNode
-  - Removed Ensure Parameter as Remove-AdfsFarmNode cmdlet is deprecated ([issue #36](https://github.com/X-Guardian/AdfsDsc/issues/36)).
-
 ## 1.0.0
 
 ### Added

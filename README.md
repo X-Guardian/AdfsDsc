@@ -8,7 +8,6 @@
 [![PowerShell Gallery](https://img.shields.io/powershellgallery/v/AdfsDsc?label=AdfsDsc)](https://www.powershellgallery.com/packages/AdfsDsc/)
 
 The **AdfsDsc** module contains DSC resources for deployment and configuration of Active Directory Federation Services.
-These DSC resources allow you to configure a new ADFS server farm, add new server nodes to an existing ADFS server farm and manage the configuration of ADFS, relying party trusts, application groups and associated resources.
 
 These DSC resources allow you to configure a new ADFS server farm, add new server nodes to an existing ADFS server farm
 and manage the configuration of ADFS, relying party trusts,  pplication groups and associated resources.
