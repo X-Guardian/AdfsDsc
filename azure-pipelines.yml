@@ -3,8 +3,8 @@ trigger:
     include:
     - master
   paths:
-    exclude:
-    - CHANGELOG.md
+    include:
+    - source/*
   tags:
     include:
     - "v*"
@@ -44,8 +44,8 @@ stages:
           - task: PublishBuildArtifacts@1
             displayName: 'Publish Build Artifact'
             inputs:
-              pathToPublish: 'output/'
-              artifactName: 'output'
+              pathToPublish: '$(buildFolderName)/'
+              artifactName: $(buildArtifactName)
               publishLocation: 'Container'
 
   - stage: Test
@@ -119,7 +119,7 @@ stages:
             inputs:
               codeCoverageTool: 'JaCoCo'
               summaryFileLocation: '$(buildFolderName)/$(testResultFolderName)/CodeCov*.xml'
-              pathToSources: '$(Build.SourcesDirectory)/output/$(dscBuildVariable.RepositoryName)'
+              pathToSources: '$(Build.SourcesDirectory)/$(buildFolderName)/$(dscBuildVariable.RepositoryName)'
           - task: PublishBuildArtifacts@1
             displayName: 'Publish Codecov.io Test Artifact'
             inputs:
