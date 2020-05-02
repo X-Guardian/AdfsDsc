@@ -1,13 +1,27 @@
-$Global:PSModuleName = 'ADFS'
+$global:psModuleName = 'ADFS'
 
-$script:resourceModulePath = Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
-$script:modulesFolderPath = Join-Path -Path $script:resourceModulePath -ChildPath 'Modules\AdfsDsc.Common'
+#region HEADER
+$script:projectPath = "$PSScriptRoot\..\.." | Convert-Path
+$script:projectName = (Get-ChildItem -Path "$script:projectPath\*\*.psd1" | Where-Object -FilterScript {
+        ($_.Directory.Name -match 'source|src' -or $_.Directory.Name -eq $_.BaseName) -and
+        $(try { Test-ModuleManifest -Path $_.FullName -ErrorAction Stop } catch { $false })
+    }).BaseName
 
-Import-Module -Name (Join-Path -Path $script:modulesFolderPath -ChildPath 'AdfsDsc.Common.psm1') -Force
+$script:parentModule = Get-Module -Name $script:projectName -ListAvailable | Select-Object -First 1
+$script:subModulesFolder = Join-Path -Path $script:parentModule.ModuleBase -ChildPath 'Modules'
+Remove-Module -Name $script:parentModule -Force -ErrorAction 'SilentlyContinue'
 
-InModuleScope 'AdfsDsc.Common' {
+$script:subModuleName = (Split-Path -Path $PSCommandPath -Leaf) -replace '\.Tests.ps1'
+$script:subModuleFile = Join-Path -Path $script:subModulesFolder -ChildPath "$($script:subModuleName)"
+
+Import-Module $script:subModuleFile -Force -ErrorAction 'Stop'
+#endregion HEADER
+
+InModuleScope $script:subModuleName {
+    Set-StrictMode -Version 2.0
+
     # Import Stub Module
-    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath "Stubs\$($Global:PSModuleName)Stub.psm1") -Force
+    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath "Stubs\$($global:psModuleName)Stub.psm1") -Force
 
     Describe 'AdfsDsc.Common\Get-LocalizedData' {
         BeforeAll {
@@ -254,95 +268,6 @@ InModuleScope 'AdfsDsc.Common' {
                 Should -Throw ('System.NotImplementedException: {0} ---> System.Exception: {1}' -f
                     $mockErrorMessage, $mockExceptionErrorMessage)
             }
-        }
-    }
-
-    Describe 'AdfsDsc.Common\ConvertTo-Timespan' {
-        It "Returns 'System.TimeSpan' object type" {
-            $testIntTimeSpan = 60
-
-            $result = ConvertTo-TimeSpan -TimeSpan $testIntTimeSpan -TimeSpanType Minutes
-
-            $result -is [System.TimeSpan] | Should -Be $true
-        }
-
-        It 'Creates TimeSpan from seconds' {
-            $testIntTimeSpan = 60
-
-            $result = ConvertTo-TimeSpan -TimeSpan $testIntTimeSpan -TimeSpanType Seconds
-
-            $result.TotalSeconds | Should -Be $testIntTimeSpan
-        }
-
-        It 'Creates TimeSpan from minutes' {
-            $testIntTimeSpan = 60
-
-            $result = ConvertTo-TimeSpan -TimeSpan $testIntTimeSpan -TimeSpanType Minutes
-
-            $result.TotalMinutes | Should -Be $testIntTimeSpan
-        }
-
-        It 'Creates TimeSpan from hours' {
-            $testIntTimeSpan = 60
-
-            $result = ConvertTo-TimeSpan -TimeSpan $testIntTimeSpan -TimeSpanType Hours
-
-            $result.TotalHours | Should -Be $testIntTimeSpan
-        }
-
-        It 'Creates TimeSpan from days' {
-            $testIntTimeSpan = 60
-
-            $result = ConvertTo-TimeSpan -TimeSpan $testIntTimeSpan -TimeSpanType Days
-
-            $result.TotalDays | Should -Be $testIntTimeSpan
-        }
-    }
-
-    Describe 'AdfsDsc.Common\ConvertFrom-Timespan' {
-        It "Returns 'System.UInt32' object type" {
-            $testIntTimeSpan = 60
-            $testTimeSpan = New-TimeSpan -Seconds $testIntTimeSpan
-
-            $result = ConvertFrom-TimeSpan -TimeSpan $testTimeSpan -TimeSpanType Seconds
-
-            $result -is [System.UInt32] | Should -Be $true
-        }
-
-        It 'Converts TimeSpan to total seconds' {
-            $testIntTimeSpan = 60
-            $testTimeSpan = New-TimeSpan -Seconds $testIntTimeSpan
-
-            $result = ConvertFrom-TimeSpan -TimeSpan $testTimeSpan -TimeSpanType Seconds
-
-            $result | Should -Be $testTimeSpan.TotalSeconds
-        }
-
-        It 'Converts TimeSpan to total minutes' {
-            $testIntTimeSpan = 60
-            $testTimeSpan = New-TimeSpan -Minutes $testIntTimeSpan
-
-            $result = ConvertFrom-TimeSpan -TimeSpan $testTimeSpan -TimeSpanType Minutes
-
-            $result | Should -Be $testTimeSpan.TotalMinutes
-        }
-
-        It 'Converts TimeSpan to total hours' {
-            $testIntTimeSpan = 60
-            $testTimeSpan = New-TimeSpan -Hours $testIntTimeSpan
-
-            $result = ConvertFrom-TimeSpan -TimeSpan $testTimeSpan -TimeSpanType Hours
-
-            $result | Should -Be $testTimeSpan.TotalHours
-        }
-
-        It 'Converts TimeSpan to total days' {
-            $testIntTimeSpan = 60
-            $testTimeSpan = New-TimeSpan -Days $testIntTimeSpan
-
-            $result = ConvertFrom-TimeSpan -TimeSpan $testTimeSpan -TimeSpanType Days
-
-            $result | Should -Be $testTimeSpan.TotalDays
         }
     }
 

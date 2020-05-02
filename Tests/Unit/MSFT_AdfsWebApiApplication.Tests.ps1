@@ -1,27 +1,41 @@
-$Global:DSCModuleName = 'AdfsDsc'
-$Global:PSModuleName = 'ADFS'
-$Global:DSCResourceName = 'MSFT_AdfsWebApiApplication'
+$script:dscModuleName = 'AdfsDsc'
+$global:psModuleName = 'ADFS'
+$script:dscResourceName = 'MSFT_AdfsWebApiApplication'
 
-$moduleRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $Script:MyInvocation.MyCommand.Path))
-if ( (-not (Test-Path -Path (Join-Path -Path $moduleRoot -ChildPath 'DSCResource.Tests'))) -or `
-    (-not (Test-Path -Path (Join-Path -Path $moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1'))) )
+function Invoke-TestSetup
 {
-    & git @('clone', 'https://github.com/PowerShell/DscResource.Tests.git',
-        (Join-Path -Path $moduleRoot -ChildPath '\DSCResource.Tests\'))
+    try
+    {
+        Import-Module -Name DscResource.Test -Force -ErrorAction 'Stop'
+    }
+    catch [System.IO.FileNotFoundException]
+    {
+        throw 'DscResource.Test module dependency not found. Please run ".\build.ps1 -Tasks build" first.'
+    }
+
+    $script:testEnvironment = Initialize-TestEnvironment `
+        -DSCModuleName $script:dscModuleName `
+        -DSCResourceName $script:dscResourceName `
+        -ResourceType 'Mof' `
+        -TestType 'Unit'
 }
 
-Import-Module (Join-Path -Path $moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1') -Force
+function Invoke-TestCleanup
+{
+    Restore-TestEnvironment -TestEnvironment $script:testEnvironment
+}
 
-$TestEnvironment = Initialize-TestEnvironment `
-    -DSCModuleName $Global:DSCModuleName `
-    -DSCResourceName $Global:DSCResourceName `
-    -TestType Unit
+# Begin Testing
+
+Invoke-TestSetup
 
 try
 {
-    InModuleScope $Global:DSCResourceName {
+    InModuleScope $script:dscResourceName {
+        Set-StrictMode -Version 2.0
+
         # Import Stub Module
-        Import-Module (Join-Path -Path $PSScriptRoot -ChildPath "Stubs\$($Global:PSModuleName)Stub.psm1") -Force
+        Import-Module (Join-Path -Path $PSScriptRoot -ChildPath "Stubs\$($global:psModuleName)Stub.psm1") -Force
 
         # Define Resource Commands
         $ResourceCommand = @{
@@ -289,10 +303,10 @@ try
 
                 It 'Should call the expected mocks' {
                     Assert-MockCalled -CommandName Assert-Module `
-                        -ParameterFilter { $ModuleName -eq $Global:PSModuleName } `
+                        -ParameterFilter { $ModuleName -eq $global:psModuleName } `
                         -Exactly -Times 1
                     Assert-MockCalled -CommandName Assert-Command `
-                        -ParameterFilter { $Module -eq $Global:PSModuleName -and $Command -eq $ResourceCommand.Get } `
+                        -ParameterFilter { $Module -eq $global:psModuleName -and $Command -eq $ResourceCommand.Get } `
                         -Exactly -Times 1
                     Assert-MockCalled -CommandName Assert-AdfsService -Exactly -Times 1
                     Assert-MockCalled -CommandName $ResourceCommand.Get `
@@ -317,10 +331,10 @@ try
 
                 It 'Should call the expected mocks' {
                     Assert-MockCalled -CommandName Assert-Module `
-                        -ParameterFilter { $ModuleName -eq $Global:PSModuleName } `
+                        -ParameterFilter { $ModuleName -eq $global:psModuleName } `
                         -Exactly -Times 1
                     Assert-MockCalled -CommandName Assert-Command `
-                        -ParameterFilter { $Module -eq $Global:PSModuleName -and $Command -eq $ResourceCommand.Get } `
+                        -ParameterFilter { $Module -eq $global:psModuleName -and $Command -eq $ResourceCommand.Get } `
                         -Exactly -Times 1
                     Assert-MockCalled -CommandName "Assert-AdfsService" -Exactly -Times 1
                     Assert-MockCalled -CommandName $ResourceCommand.Get `
@@ -675,5 +689,5 @@ try
 }
 finally
 {
-    Restore-TestEnvironment -TestEnvironment $TestEnvironment
+    Invoke-TestCleanup
 }

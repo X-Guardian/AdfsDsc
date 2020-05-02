@@ -1,28 +1,42 @@
-$Global:DSCModuleName = 'AdfsDsc'
-$Global:PSModuleName = 'ADFS'
-$Global:DscResourceFriendlyName = 'AdfsFarmNode'
-$Global:DSCResourceName = "MSFT_$Global:DscResourceFriendlyName"
+$script:dscModuleName = 'AdfsDsc'
+$global:psModuleName = 'ADFS'
+$global:DscResourceFriendlyName = 'AdfsFarmNode'
+$script:dscResourceName = "MSFT_$global:DscResourceFriendlyName"
 
-$moduleRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $Script:MyInvocation.MyCommand.Path))
-if ( (-not (Test-Path -Path (Join-Path -Path $moduleRoot -ChildPath 'DSCResource.Tests'))) -or `
-    (-not (Test-Path -Path (Join-Path -Path $moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1'))) )
+function Invoke-TestSetup
 {
-    & git @('clone', 'https://github.com/PowerShell/DscResource.Tests.git',
-        (Join-Path -Path $moduleRoot -ChildPath '\DSCResource.Tests\'))
+    try
+    {
+        Import-Module -Name DscResource.Test -Force -ErrorAction 'Stop'
+    }
+    catch [System.IO.FileNotFoundException]
+    {
+        throw 'DscResource.Test module dependency not found. Please run ".\build.ps1 -Tasks build" first.'
+    }
+
+    $script:testEnvironment = Initialize-TestEnvironment `
+        -DSCModuleName $script:dscModuleName `
+        -DSCResourceName $script:dscResourceName `
+        -ResourceType 'Mof' `
+        -TestType 'Unit'
 }
 
-Import-Module (Join-Path -Path $moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1') -Force
+function Invoke-TestCleanup
+{
+    Restore-TestEnvironment -TestEnvironment $script:testEnvironment
+}
 
-$TestEnvironment = Initialize-TestEnvironment `
-    -DSCModuleName $Global:DSCModuleName `
-    -DSCResourceName $Global:DSCResourceName `
-    -TestType Unit
+# Begin Testing
+
+Invoke-TestSetup
 
 try
 {
-    InModuleScope $Global:DSCResourceName {
+    InModuleScope $script:dscResourceName {
+        Set-StrictMode -Version 2.0
+
         # Import Stub Module
-        Import-Module (Join-Path -Path $PSScriptRoot -ChildPath "Stubs\$($Global:PSModuleName)Stub.psm1") -Force
+        Import-Module (Join-Path -Path $PSScriptRoot -ChildPath "Stubs\$($global:psModuleName)Stub.psm1") -Force
 
         # Define Resource Commands
         $ResourceCommand = @{
@@ -153,7 +167,7 @@ try
             Mock -CommandName Assert-GroupServiceAccount -MockWith { $true }
             Mock -CommandName Get-ObjectType -MockWith { $script:syncPropertiesTypeName }
 
-            Context "When the $($Global:DscResourceFriendlyName) Resource is configured" {
+            Context "When the $($global:DscResourceFriendlyName) Resource is configured" {
                 BeforeAll {
                     Mock -CommandName $ResourceCommand.Get -MockWith { 'Configured' }
                 }
@@ -175,7 +189,7 @@ try
 
                     It 'Should call the expected mocks' {
                         Assert-MockCalled -CommandName Assert-Module `
-                            -ParameterFilter { $ModuleName -eq $Global:PSModuleName } `
+                            -ParameterFilter { $ModuleName -eq $global:psModuleName } `
                             -Exactly -Times 1
                         Assert-MockCalled -CommandName Assert-DomainMember -Exactly -Times 1
                         Assert-MockCalled -CommandName Assert-AdfsService -Exactly -Times 1
@@ -319,7 +333,7 @@ try
 
                     It 'Should call the expected mocks' {
                         Assert-MockCalled -CommandName Assert-Module `
-                            -ParameterFilter { $ModuleName -eq $Global:PSModuleName } `
+                            -ParameterFilter { $ModuleName -eq $global:psModuleName } `
                             -Exactly -Times 1
                         Assert-MockCalled -CommandName Assert-DomainMember -Exactly -Times 1
                         Assert-MockCalled -CommandName Assert-AdfsService -Exactly -Times 1
@@ -342,7 +356,7 @@ try
                 }
             }
 
-            Context "When the $($Global:DscResourceFriendlyName) Resource is not configured" {
+            Context "When the $($global:DscResourceFriendlyName) Resource is not configured" {
                 BeforeAll {
                     Mock -CommandName $ResourceCommand.Get -MockWith { 'NotConfigured' }
 
@@ -358,7 +372,7 @@ try
 
                 It 'Should call the expected mocks' {
                     Assert-MockCalled -CommandName Assert-Module `
-                        -ParameterFilter { $ModuleName -eq $Global:PSModuleName } `
+                        -ParameterFilter { $ModuleName -eq $global:psModuleName } `
                         -Exactly -Times 1
                     Assert-MockCalled -CommandName Assert-DomainMember -Exactly -Times 1
                     Assert-MockCalled -CommandName Assert-AdfsService -Exactly -Times 0
@@ -425,7 +439,7 @@ try
                 }
             }
 
-            Context "When the $($Global:DscResourceFriendlyName) Resource is not installed" {
+            Context "When the $($global:DscResourceFriendlyName) Resource is not installed" {
                 BeforeAll {
                     $mockGetTargetResourceAbsentResult = @{
                         Ensure = 'Absent'
@@ -486,7 +500,7 @@ try
                 }
             }
 
-            Context "When the $($Global:DscResourceFriendlyName) Resource is installed" {
+            Context "When the $($global:DscResourceFriendlyName) Resource is installed" {
                 BeforeAll {
                     Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetGsaWidResourcePresentResult }
                 }
@@ -509,7 +523,7 @@ try
                 }
             }
 
-            Context "When the $($Global:DscResourceFriendlyName) Resource is installed" {
+            Context "When the $($global:DscResourceFriendlyName) Resource is installed" {
                 BeforeAll {
                     Mock Get-TargetResource -MockWith { $mockGetTargetGsaWidResourcePresentResult }
                 }
@@ -527,7 +541,7 @@ try
                 }
             }
 
-            Context "When the $($Global:DscResourceFriendlyName) Resource is not installed" {
+            Context "When the $($global:DscResourceFriendlyName) Resource is not installed" {
                 BeforeAll {
                     Mock Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
                 }
@@ -548,5 +562,5 @@ try
 }
 finally
 {
-    Restore-TestEnvironment -TestEnvironment $TestEnvironment
+    Invoke-TestCleanup
 }
