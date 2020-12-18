@@ -344,11 +344,9 @@ function Set-TargetResource
             # Convert AdminConfiguration Parameter from CimInstance#MSFT_KeyValuePair to HashTable
             $adminConfigurationHashTable=@{}
 
-            foreach ($KeyPair in $AdminConfiguration)
+            Foreach ($KeyPair in $AdminConfiguration)
             {
-                $adminConfigurationHashTable += @{
-                      $KeyPair.Key = $Keypair.Value
-                  }
+                $adminConfigurationHashTable += @{ $KeyPair.Key = $Keypair.Value }
             }
 
             $parameters.AdminConfiguration = $adminConfigurationHashTable
@@ -476,5 +474,7 @@ function Test-TargetResource
 
     $inDesiredState
 }
+
+Export-ModuleMember -Function *-TargetResource
 
 Export-ModuleMember -Function *-TargetResource
