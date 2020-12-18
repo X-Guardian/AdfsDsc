@@ -149,8 +149,10 @@ InModuleScope $script:subModuleName {
             }
 
             It 'Should throw the correct error' {
+                # Wildcard processing needed to handle differing Powershell 5/6/7 exception output
                 { New-InvalidArgumentException -Message $mockErrorMessage -ArgumentName $mockArgumentName } |
-                Should -Throw ('Parameter name: {0}' -f $mockArgumentName)
+                Should -Throw -PassThru | Select-Object -ExpandProperty Exception |
+                    Should -BeLike ('System.ArgumentException: {0}*Parameter*{1}*' -f $mockErrorMessage, $mockArgumentName)
             }
         }
     }
@@ -171,15 +173,17 @@ InModuleScope $script:subModuleName {
                 $mockErrorMessage = 'Mocked error'
                 $mockExceptionErrorMessage = 'Mocked exception error message'
 
-                $mockException = New-Object -TypeName 'System.Exception' -ArgumentList $mockExceptionErrorMessage
-                $mockErrorRecord = New-Object -TypeName 'System.Management.Automation.ErrorRecord' `
-                    -ArgumentList @($mockException, $null, 'InvalidResult', $null)
+                $mockException = New-Object -TypeName System.Exception -ArgumentList $mockExceptionErrorMessage
+                $mockErrorRecord = New-Object -TypeName System.Management.Automation.ErrorRecord `
+                    -ArgumentList $mockException, $null, 'InvalidResult', $null
             }
 
             It 'Should throw the correct error' {
+                # Wildcard processing needed to handle differing Powershell 5/6/7 exception output
                 { New-InvalidOperationException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } |
-                Should -Throw ('System.InvalidOperationException: {0} ---> System.Exception: {1}' -f
-                    $mockErrorMessage, $mockExceptionErrorMessage)
+                    Should -Throw -Passthru | Select-Object -ExpandProperty Exception |
+                     Should -BeLike ('System.Exception: System.InvalidOperationException: {0}*System.Exception: {1}*' -f
+                            $mockErrorMessage, $mockExceptionErrorMessage)
             }
         }
     }
@@ -200,15 +204,18 @@ InModuleScope $script:subModuleName {
                 $mockErrorMessage = 'Mocked error'
                 $mockExceptionErrorMessage = 'Mocked exception error message'
 
-                $mockException = New-Object -TypeName 'System.Exception' -ArgumentList $mockExceptionErrorMessage
-                $mockErrorRecord = New-Object -TypeName 'System.Management.Automation.ErrorRecord' `
-                    -ArgumentList @($mockException, $null, 'InvalidResult', $null)
+                $mockException = New-Object -TypeName System.Exception -ArgumentList $mockExceptionErrorMessage
+                $mockErrorRecord = New-Object -TypeName System.Management.Automation.ErrorRecord `
+                    -ArgumentList $mockException, $null, 'InvalidResult', $null
+
             }
 
             It 'Should throw the correct error' {
+                # Wildcard processing needed to handle differing Powershell 5/6/7 exception output
                 { New-ObjectNotFoundException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } |
-                Should -Throw ('System.Exception: {0} ---> System.Exception: {1}' -f
-                    $mockErrorMessage, $mockExceptionErrorMessage)
+                    Should -Throw -Passthru | Select-Object -ExpandProperty Exception |
+                        Should -BeLike ('System.Exception: System.Exception: {0}*System.Exception: {1}*' -f
+                            $mockErrorMessage, $mockExceptionErrorMessage)
             }
         }
     }
@@ -229,15 +236,17 @@ InModuleScope $script:subModuleName {
                 $mockErrorMessage = 'Mocked error'
                 $mockExceptionErrorMessage = 'Mocked exception error message'
 
-                $mockException = New-Object -TypeName 'System.Exception' -ArgumentList $mockExceptionErrorMessage
-                $mockErrorRecord = New-Object -TypeName 'System.Management.Automation.ErrorRecord' `
-                    -ArgumentList @($mockException, $null, 'InvalidResult', $null)
+                $mockException = New-Object -TypeName System.Exception -ArgumentList $mockExceptionErrorMessage
+                $mockErrorRecord = New-Object -TypeName System.Management.Automation.ErrorRecord `
+                    -ArgumentList $mockException, $null, 'InvalidResult', $null
             }
 
             It 'Should throw the correct error' {
+                # Wildcard processing needed to handle differing Powershell 5/6/7 exception output
                 { New-InvalidResultException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } |
-                Should -Throw ('System.Exception: {0} ---> System.Exception: {1}' -f
-                    $mockErrorMessage, $mockExceptionErrorMessage)
+                    Should -Throw -Passthru | Select-Object -ExpandProperty Exception |
+                      Should -BeLike ('System.Exception: System.Exception: {0}*System.Exception: {1}*' -f
+                            $mockErrorMessage, $mockExceptionErrorMessage)
             }
         }
     }
@@ -258,15 +267,17 @@ InModuleScope $script:subModuleName {
                 $mockErrorMessage = 'Mocked error'
                 $mockExceptionErrorMessage = 'Mocked exception error message'
 
-                $mockException = New-Object -TypeName 'System.Exception' -ArgumentList $mockExceptionErrorMessage
-                $mockErrorRecord = New-Object -TypeName 'System.Management.Automation.ErrorRecord' `
-                    -ArgumentList @($mockException, $null, 'NotImplemented', $null)
+                $mockException = New-Object -TypeName System.Exception -ArgumentList $mockExceptionErrorMessage
+                $mockErrorRecord = New-Object -TypeName System.Management.Automation.ErrorRecord `
+                    -ArgumentList $mockException, $null, 'InvalidResult', $null
             }
 
             It 'Should throw the correct error' {
+                # Wildcard processing needed to handle differing Powershell 5/6/7 exception output
                 { New-NotImplementedException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } |
-                Should -Throw ('System.NotImplementedException: {0} ---> System.Exception: {1}' -f
-                    $mockErrorMessage, $mockExceptionErrorMessage)
+                    Should -Throw -Passthru | Select-Object -ExpandProperty Exception |
+                        Should -BeLike ('System.Exception: System.NotImplementedException: {0}*System.Exception: {1}*' -f
+                            $mockErrorMessage, $mockExceptionErrorMessage)
             }
         }
     }
@@ -319,14 +330,14 @@ InModuleScope $script:subModuleName {
 
                 $compareTargetResourceStateResult = Compare-ResourcePropertyState @compareTargetResourceStateParameters
                 $compareTargetResourceStateResult | Should -HaveCount 2
-                $compareTargetResourceStateResult[0].ParameterName | Should -Be 'ComputerName'
-                $compareTargetResourceStateResult[0].Expected | Should -Be 'DC01'
-                $compareTargetResourceStateResult[0].Actual | Should -Be 'DC01'
-                $compareTargetResourceStateResult[0].InDesiredState | Should -BeTrue
-                $compareTargetResourceStateResult[1].ParameterName | Should -Be 'Location'
-                $compareTargetResourceStateResult[1].Expected | Should -Be 'Sweden'
-                $compareTargetResourceStateResult[1].Actual | Should -Be 'Sweden'
-                $compareTargetResourceStateResult[1].InDesiredState | Should -BeTrue
+                $computerNameResult = $compareTargetResourceStateResult | Where-Object -Property ParameterName -eq 'ComputerName'
+                $computerNameResult.Expected | Should -Be 'DC01'
+                $computerNameResult.Actual | Should -Be 'DC01'
+                $computerNameResult.InDesiredState | Should -BeTrue
+                $locationNameResult = $compareTargetResourceStateResult | Where-Object -Property ParameterName -eq 'Location'
+                $locationNameResult.Expected | Should -Be 'Sweden'
+                $locationNameResult.Actual | Should -Be 'Sweden'
+                $locationNameResult.InDesiredState | Should -BeTrue
             }
         }
 
@@ -377,14 +388,14 @@ InModuleScope $script:subModuleName {
 
                 $compareTargetResourceStateResult = Compare-ResourcePropertyState @compareTargetResourceStateParameters
                 $compareTargetResourceStateResult | Should -HaveCount 2
-                $compareTargetResourceStateResult[0].ParameterName | Should -Be 'ComputerName'
-                $compareTargetResourceStateResult[0].Expected | Should -Be 'DC01'
-                $compareTargetResourceStateResult[0].Actual | Should -Be 'DC01'
-                $compareTargetResourceStateResult[0].InDesiredState | Should -BeTrue
-                $compareTargetResourceStateResult[1].ParameterName | Should -Be 'Location'
-                $compareTargetResourceStateResult[1].Expected | Should -Be 'Europe'
-                $compareTargetResourceStateResult[1].Actual | Should -Be 'Sweden'
-                $compareTargetResourceStateResult[1].InDesiredState | Should -BeFalse
+                $computerNameResult = $compareTargetResourceStateResult | Where-Object -Property ParameterName -eq 'ComputerName'
+                $computerNameResult.Expected | Should -Be 'DC01'
+                $computerNameResult.Actual | Should -Be 'DC01'
+                $computerNameResult.InDesiredState | Should -BeTrue
+                $locationNameResult = $compareTargetResourceStateResult | Where-Object -Property ParameterName -eq 'Location'
+                $locationNameResult.Expected | Should -Be 'Europe'
+                $locationNameResult.Actual | Should -Be 'Sweden'
+                $locationNameResult.InDesiredState | Should -BeFalse
             }
         }
 
@@ -472,14 +483,14 @@ InModuleScope $script:subModuleName {
 
                 $compareTargetResourceStateResult = Compare-ResourcePropertyState @compareTargetResourceStateParameters
                 $compareTargetResourceStateResult | Should -HaveCount 2
-                $compareTargetResourceStateResult[0].ParameterName | Should -Be 'ComputerName'
-                $compareTargetResourceStateResult[0].Expected | Should -Be 'DC01'
-                $compareTargetResourceStateResult[0].Actual | Should -Be 'DC01'
-                $compareTargetResourceStateResult[0].InDesiredState | Should -BeTrue
-                $compareTargetResourceStateResult[1].ParameterName | Should -Be 'Location'
-                $compareTargetResourceStateResult[1].Expected | Should -Be 'Europe'
-                $compareTargetResourceStateResult[1].Actual | Should -Be 'Sweden'
-                $compareTargetResourceStateResult[1].InDesiredState | Should -BeFalse
+                $computerNameResult = $compareTargetResourceStateResult | Where-Object -Property ParameterName -eq 'ComputerName'
+                $computerNameResult.Expected | Should -Be 'DC01'
+                $computerNameResult.Actual | Should -Be 'DC01'
+                $computerNameResult.InDesiredState | Should -BeTrue
+                $locationNameResult = $compareTargetResourceStateResult | Where-Object -Property ParameterName -eq 'Location'
+                $locationNameResult.Expected | Should -Be 'Europe'
+                $locationNameResult.Actual | Should -Be 'Sweden'
+                $locationNameResult.InDesiredState | Should -BeFalse
             }
         }
 
