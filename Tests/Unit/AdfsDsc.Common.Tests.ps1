@@ -149,8 +149,10 @@ InModuleScope $script:subModuleName {
             }
 
             It 'Should throw the correct error' {
+                # Wildcard processing needed to handle differing Powershell 5/6/7 exception output
                 { New-InvalidArgumentException -Message $mockErrorMessage -ArgumentName $mockArgumentName } |
-                Should -Throw ('Parameter name: {0}' -f $mockArgumentName)
+                Should -Throw -PassThru | Select-Object -ExpandProperty Exception |
+                    Should -BeLike ('System.ArgumentException: {0}*Parameter*{1}*' -f $mockErrorMessage, $mockArgumentName)
             }
         }
     }
@@ -171,15 +173,17 @@ InModuleScope $script:subModuleName {
                 $mockErrorMessage = 'Mocked error'
                 $mockExceptionErrorMessage = 'Mocked exception error message'
 
-                $mockException = New-Object -TypeName 'System.Exception' -ArgumentList $mockExceptionErrorMessage
-                $mockErrorRecord = New-Object -TypeName 'System.Management.Automation.ErrorRecord' `
-                    -ArgumentList @($mockException, $null, 'InvalidResult', $null)
+                $mockException = New-Object -TypeName System.Exception -ArgumentList $mockExceptionErrorMessage
+                $mockErrorRecord = New-Object -TypeName System.Management.Automation.ErrorRecord `
+                    -ArgumentList $mockException, $null, 'InvalidResult', $null
             }
 
             It 'Should throw the correct error' {
+                # Wildcard processing needed to handle differing Powershell 5/6/7 exception output
                 { New-InvalidOperationException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } |
-                Should -Throw ('System.InvalidOperationException: {0} ---> System.Exception: {1}' -f
-                    $mockErrorMessage, $mockExceptionErrorMessage)
+                    Should -Throw -Passthru | Select-Object -ExpandProperty Exception |
+                     Should -BeLike ('System.Exception: System.InvalidOperationException: {0}*System.Exception: {1}*' -f
+                            $mockErrorMessage, $mockExceptionErrorMessage)
             }
         }
     }
@@ -200,15 +204,18 @@ InModuleScope $script:subModuleName {
                 $mockErrorMessage = 'Mocked error'
                 $mockExceptionErrorMessage = 'Mocked exception error message'
 
-                $mockException = New-Object -TypeName 'System.Exception' -ArgumentList $mockExceptionErrorMessage
-                $mockErrorRecord = New-Object -TypeName 'System.Management.Automation.ErrorRecord' `
-                    -ArgumentList @($mockException, $null, 'InvalidResult', $null)
+                $mockException = New-Object -TypeName System.Exception -ArgumentList $mockExceptionErrorMessage
+                $mockErrorRecord = New-Object -TypeName System.Management.Automation.ErrorRecord `
+                    -ArgumentList $mockException, $null, 'InvalidResult', $null
+
             }
 
             It 'Should throw the correct error' {
+                # Wildcard processing needed to handle differing Powershell 5/6/7 exception output
                 { New-ObjectNotFoundException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } |
-                Should -Throw ('System.Exception: {0} ---> System.Exception: {1}' -f
-                    $mockErrorMessage, $mockExceptionErrorMessage)
+                    Should -Throw -Passthru | Select-Object -ExpandProperty Exception |
+                        Should -BeLike ('System.Exception: System.Exception: {0}*System.Exception: {1}*' -f
+                            $mockErrorMessage, $mockExceptionErrorMessage)
             }
         }
     }
@@ -229,15 +236,17 @@ InModuleScope $script:subModuleName {
                 $mockErrorMessage = 'Mocked error'
                 $mockExceptionErrorMessage = 'Mocked exception error message'
 
-                $mockException = New-Object -TypeName 'System.Exception' -ArgumentList $mockExceptionErrorMessage
-                $mockErrorRecord = New-Object -TypeName 'System.Management.Automation.ErrorRecord' `
-                    -ArgumentList @($mockException, $null, 'InvalidResult', $null)
+                $mockException = New-Object -TypeName System.Exception -ArgumentList $mockExceptionErrorMessage
+                $mockErrorRecord = New-Object -TypeName System.Management.Automation.ErrorRecord `
+                    -ArgumentList $mockException, $null, 'InvalidResult', $null
             }
 
             It 'Should throw the correct error' {
+                # Wildcard processing needed to handle differing Powershell 5/6/7 exception output
                 { New-InvalidResultException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } |
-                Should -Throw ('System.Exception: {0} ---> System.Exception: {1}' -f
-                    $mockErrorMessage, $mockExceptionErrorMessage)
+                    Should -Throw -Passthru | Select-Object -ExpandProperty Exception |
+                      Should -BeLike ('System.Exception: System.Exception: {0}*System.Exception: {1}*' -f
+                            $mockErrorMessage, $mockExceptionErrorMessage)
             }
         }
     }
@@ -258,15 +267,17 @@ InModuleScope $script:subModuleName {
                 $mockErrorMessage = 'Mocked error'
                 $mockExceptionErrorMessage = 'Mocked exception error message'
 
-                $mockException = New-Object -TypeName 'System.Exception' -ArgumentList $mockExceptionErrorMessage
-                $mockErrorRecord = New-Object -TypeName 'System.Management.Automation.ErrorRecord' `
-                    -ArgumentList @($mockException, $null, 'NotImplemented', $null)
+                $mockException = New-Object -TypeName System.Exception -ArgumentList $mockExceptionErrorMessage
+                $mockErrorRecord = New-Object -TypeName System.Management.Automation.ErrorRecord `
+                    -ArgumentList $mockException, $null, 'InvalidResult', $null
             }
 
             It 'Should throw the correct error' {
+                # Wildcard processing needed to handle differing Powershell 5/6/7 exception output
                 { New-NotImplementedException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } |
-                Should -Throw ('System.NotImplementedException: {0} ---> System.Exception: {1}' -f
-                    $mockErrorMessage, $mockExceptionErrorMessage)
+                    Should -Throw -Passthru | Select-Object -ExpandProperty Exception |
+                        Should -BeLike ('System.Exception: System.NotImplementedException: {0}*System.Exception: {1}*' -f
+                            $mockErrorMessage, $mockExceptionErrorMessage)
             }
         }
     }
@@ -448,13 +459,13 @@ InModuleScope $script:subModuleName {
 
         Context 'When using parameter Properties and IgnoreProperties to compare desired values' {
             BeforeAll {
-                $mockCurrentValues = @{
+                $mockCurrentValues = [Ordered]@{
                     ComputerName = 'DC01'
                     Location     = 'Sweden'
                     Ensure       = 'Present'
                 }
 
-                $mockDesiredValues = @{
+                $mockDesiredValues = [Ordered]@{
                     ComputerName = 'DC01'
                     Location     = 'Europe'
                     Ensure       = 'Absent'
