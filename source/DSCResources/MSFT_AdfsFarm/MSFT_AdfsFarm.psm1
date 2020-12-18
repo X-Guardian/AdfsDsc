@@ -346,7 +346,9 @@ function Set-TargetResource
 
             Foreach ($KeyPair in $AdminConfiguration)
             {
-                $adminConfigurationHashTable += @{ $KeyPair.Key = $Keypair.Value }
+                $adminConfigurationHashTable += @{
+                    $KeyPair.Key = $Keypair.Value
+                }
             }
 
             $parameters.AdminConfiguration = $adminConfigurationHashTable
