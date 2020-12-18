@@ -47,6 +47,10 @@
         Specifies the SQL Server database that will store the AD FS configuration settings. If not specified, the AD FS
         installer uses the Windows Internal Database to store configuration settings.
 
+    .PARAMETER AdminConfiguration
+        Write - String
+        Specifies the Admin Configuration
+
     .PARAMETER Ensure
         Read - String
         The state of the ADFS Farm.
