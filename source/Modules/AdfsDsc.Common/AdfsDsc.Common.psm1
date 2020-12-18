@@ -860,7 +860,7 @@ function Assert-GroupServiceAccount
                 $isGroupServiceAccount = $false
                 break
             }
-            Default
+            default
             {
                 $errorMessage = ($script:localizedData.UnexpectedServiceAccountCategoryError -f
                     $adObject.Properties.ObjectCategory, $Name)
