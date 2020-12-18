@@ -9,5 +9,6 @@ class MSFT_AdfsFarm : OMI_BaseResource
     [Write, Description("This parameter must be used to remove an existing Active Directory Federation Services (AD FS) configuration database and overwrite it with a new database.")] Boolean OverwriteConfiguration;
     [Write, EmbeddedInstance("MSFT_Credential"), Description("Specifies the Active Directory account under which the AD FS service runs in the form: <domain name>\\<user name>.")] String ServiceAccountCredential;
     [Write, Description("Specifies the SQL Server database that will store the AD FS configuration settings. If not specified, the AD FS installer uses the Windows Internal Database to store configuration settings.")] String SQLConnectionString;
+    [Write, EmbeddedInstance("MSFT_KeyValuePair"), Description("Specifies the Admin Configuration")] String AdminConfiguration[];
     [Read, Description("The state of the ADFS Farm.")] String Ensure;
 };
