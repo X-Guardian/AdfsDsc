@@ -48,7 +48,7 @@
         installer uses the Windows Internal Database to store configuration settings.
 
     .PARAMETER AdminConfiguration
-        Write - String
+        Write - HashTable
         Specifies the Admin Configuration
 
     .PARAMETER Ensure
@@ -348,7 +348,7 @@ function Set-TargetResource
             # Convert AdminConfiguration Parameter from CimInstance#MSFT_KeyValuePair to HashTable
             $adminConfigurationHashTable=@{}
 
-            Foreach ($KeyPair in $AdminConfiguration)
+            foreach ($KeyPair in $AdminConfiguration)
             {
                 $adminConfigurationHashTable += @{
                     $KeyPair.Key = $Keypair.Value
