@@ -20,7 +20,7 @@
 <#
     .DESCRIPTION
         This configuration will create the first node in an Active Directory Federation Services (AD FS) server farm
-        using a Microsoft SQL Server database on a remote computer named sql01.contoso.com using SQL Authentication.
+        using a Microsoft SQL Server database on a remote computer named sql01.contoso.com using Windows Authentication.
 
         The certificate with the specified thumbprint will be used as the SSL certificate and the service
         communications certificate. Automatically generated, self-signed certificates will be used for the token
@@ -29,24 +29,20 @@
         The group Managed Service Account specified in the GroupServiceAccountIdentifier parameter will be used for the
         service account.
 
-        The AdminConfiguration parameter is used to pass the CN of a pre-configured ADFS Active Directory configuration
-        object, removing the requirement of needing Domain Admin credentials for the ADFS Farm install.
+        The AdminConfiguration parameter will be used to pass the CN of a pre-configured ADFS Active Directory
+        configuration object, removing the requirement of needing Domain Admin credentials for the ADFS Farm install.
         See https://docs.microsoft.com/en-us/windows-server/identity/ad-fs/deployment/install-ad-fs-delegated-admin for
         further details.
 #>
 
-Configuration AdfsFarm_gMSA_SQL_Delegated_Admin_Config
+Configuration AdfsFarm_gMSA_SQL_Integrated_Delegated_Admin_Config
 {
     Param
     (
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCredential]
-        $LocalAdminCredential,
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [System.Management.Automation.PSCredential]
-        $SqlCredential
+        $LocalAdminCredential
     )
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration
@@ -59,20 +55,19 @@ Configuration AdfsFarm_gMSA_SQL_Delegated_Admin_Config
             Name = 'ADFS-Federation'
         }
 
-        $SqlUserName = $SqlCredential.UserName
-        $SqlPassword = $SqlCredential.GetNetworkCredential().Password
-
         AdfsFarm Contoso
         {
             FederationServiceName         = 'fs.corp.contoso.com'
             FederationServiceDisplayName  = 'Contoso ADFS Service'
             CertificateThumbprint         = '8169c52b4ec6e77eb2ae17f028fe5da4e35c0bed'
             GroupServiceAccountIdentifier = 'contoso\adfsgmsa$'
-            SQLConnectionString           = "Data Source=sql01.contoso.com;User ID=$SqlUserName;Password=$SqlPassword"
+            SQLConnectionString           = 'Data Source=sql01.contoso.com;Integrated Security=True'
             Credential                    = $LocalAdminCredential
-            AdminConfiguration            = @{
-                DKMContainerDn = 'CN=9530440c-bc84-4fe6-a3f9-8d60162a7bcf,CN=ADFS,CN=Microsoft,CN=Program Data,DC=contoso,DC=com'
-            }
+            AdminConfiguration            = @(
+                @{
+                    DKMContainerDn = 'CN=9530440c-bc84-4fe6-a3f9-8d60162a7bcf,CN=ADFS,CN=Microsoft,CN=Program Data,DC=contoso,DC=com'
+                }
+            )
         }
     }
 }
