@@ -1,13 +1,27 @@
-$Global:PSModuleName = 'ADFS'
+$global:psModuleName = 'ADFS'
 
-$script:resourceModulePath = Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
-$script:modulesFolderPath = Join-Path -Path $script:resourceModulePath -ChildPath 'Modules\AdfsDsc.Common'
+#region HEADER
+$script:projectPath = "$PSScriptRoot\..\.." | Convert-Path
+$script:projectName = (Get-ChildItem -Path "$script:projectPath\*\*.psd1" | Where-Object -FilterScript {
+        ($_.Directory.Name -match 'source|src' -or $_.Directory.Name -eq $_.BaseName) -and
+        $(try { Test-ModuleManifest -Path $_.FullName -ErrorAction Stop } catch { $false })
+    }).BaseName
 
-Import-Module -Name (Join-Path -Path $script:modulesFolderPath -ChildPath 'AdfsDsc.Common.psm1') -Force
+$script:parentModule = Get-Module -Name $script:projectName -ListAvailable | Select-Object -First 1
+$script:subModulesFolder = Join-Path -Path $script:parentModule.ModuleBase -ChildPath 'Modules'
+Remove-Module -Name $script:parentModule -Force -ErrorAction 'SilentlyContinue'
 
-InModuleScope 'AdfsDsc.Common' {
+$script:subModuleName = (Split-Path -Path $PSCommandPath -Leaf) -replace '\.Tests.ps1'
+$script:subModuleFile = Join-Path -Path $script:subModulesFolder -ChildPath "$($script:subModuleName)"
+
+Import-Module $script:subModuleFile -Force -ErrorAction 'Stop'
+#endregion HEADER
+
+InModuleScope $script:subModuleName {
+    Set-StrictMode -Version 2.0
+
     # Import Stub Module
-    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath "Stubs\$($Global:PSModuleName)Stub.psm1") -Force
+    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath "Stubs\$($global:psModuleName)Stub.psm1") -Force
 
     Describe 'AdfsDsc.Common\Get-LocalizedData' {
         BeforeAll {
@@ -135,8 +149,10 @@ InModuleScope 'AdfsDsc.Common' {
             }
 
             It 'Should throw the correct error' {
+                # Wildcard processing needed to handle differing Powershell 5/6/7 exception output
                 { New-InvalidArgumentException -Message $mockErrorMessage -ArgumentName $mockArgumentName } |
-                Should -Throw ('Parameter name: {0}' -f $mockArgumentName)
+                Should -Throw -PassThru | Select-Object -ExpandProperty Exception |
+                    Should -BeLike ('System.ArgumentException: {0}*Parameter*{1}*' -f $mockErrorMessage, $mockArgumentName)
             }
         }
     }
@@ -157,15 +173,17 @@ InModuleScope 'AdfsDsc.Common' {
                 $mockErrorMessage = 'Mocked error'
                 $mockExceptionErrorMessage = 'Mocked exception error message'
 
-                $mockException = New-Object -TypeName 'System.Exception' -ArgumentList $mockExceptionErrorMessage
-                $mockErrorRecord = New-Object -TypeName 'System.Management.Automation.ErrorRecord' `
-                    -ArgumentList @($mockException, $null, 'InvalidResult', $null)
+                $mockException = New-Object -TypeName System.Exception -ArgumentList $mockExceptionErrorMessage
+                $mockErrorRecord = New-Object -TypeName System.Management.Automation.ErrorRecord `
+                    -ArgumentList $mockException, $null, 'InvalidResult', $null
             }
 
             It 'Should throw the correct error' {
+                # Wildcard processing needed to handle differing Powershell 5/6/7 exception output
                 { New-InvalidOperationException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } |
-                Should -Throw ('System.InvalidOperationException: {0} ---> System.Exception: {1}' -f
-                    $mockErrorMessage, $mockExceptionErrorMessage)
+                    Should -Throw -Passthru | Select-Object -ExpandProperty Exception |
+                     Should -BeLike ('System.Exception: System.InvalidOperationException: {0}*System.Exception: {1}*' -f
+                            $mockErrorMessage, $mockExceptionErrorMessage)
             }
         }
     }
@@ -186,15 +204,18 @@ InModuleScope 'AdfsDsc.Common' {
                 $mockErrorMessage = 'Mocked error'
                 $mockExceptionErrorMessage = 'Mocked exception error message'
 
-                $mockException = New-Object -TypeName 'System.Exception' -ArgumentList $mockExceptionErrorMessage
-                $mockErrorRecord = New-Object -TypeName 'System.Management.Automation.ErrorRecord' `
-                    -ArgumentList @($mockException, $null, 'InvalidResult', $null)
+                $mockException = New-Object -TypeName System.Exception -ArgumentList $mockExceptionErrorMessage
+                $mockErrorRecord = New-Object -TypeName System.Management.Automation.ErrorRecord `
+                    -ArgumentList $mockException, $null, 'InvalidResult', $null
+
             }
 
             It 'Should throw the correct error' {
+                # Wildcard processing needed to handle differing Powershell 5/6/7 exception output
                 { New-ObjectNotFoundException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } |
-                Should -Throw ('System.Exception: {0} ---> System.Exception: {1}' -f
-                    $mockErrorMessage, $mockExceptionErrorMessage)
+                    Should -Throw -Passthru | Select-Object -ExpandProperty Exception |
+                        Should -BeLike ('System.Exception: System.Exception: {0}*System.Exception: {1}*' -f
+                            $mockErrorMessage, $mockExceptionErrorMessage)
             }
         }
     }
@@ -215,15 +236,17 @@ InModuleScope 'AdfsDsc.Common' {
                 $mockErrorMessage = 'Mocked error'
                 $mockExceptionErrorMessage = 'Mocked exception error message'
 
-                $mockException = New-Object -TypeName 'System.Exception' -ArgumentList $mockExceptionErrorMessage
-                $mockErrorRecord = New-Object -TypeName 'System.Management.Automation.ErrorRecord' `
-                    -ArgumentList @($mockException, $null, 'InvalidResult', $null)
+                $mockException = New-Object -TypeName System.Exception -ArgumentList $mockExceptionErrorMessage
+                $mockErrorRecord = New-Object -TypeName System.Management.Automation.ErrorRecord `
+                    -ArgumentList $mockException, $null, 'InvalidResult', $null
             }
 
             It 'Should throw the correct error' {
+                # Wildcard processing needed to handle differing Powershell 5/6/7 exception output
                 { New-InvalidResultException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } |
-                Should -Throw ('System.Exception: {0} ---> System.Exception: {1}' -f
-                    $mockErrorMessage, $mockExceptionErrorMessage)
+                    Should -Throw -Passthru | Select-Object -ExpandProperty Exception |
+                      Should -BeLike ('System.Exception: System.Exception: {0}*System.Exception: {1}*' -f
+                            $mockErrorMessage, $mockExceptionErrorMessage)
             }
         }
     }
@@ -244,105 +267,18 @@ InModuleScope 'AdfsDsc.Common' {
                 $mockErrorMessage = 'Mocked error'
                 $mockExceptionErrorMessage = 'Mocked exception error message'
 
-                $mockException = New-Object -TypeName 'System.Exception' -ArgumentList $mockExceptionErrorMessage
-                $mockErrorRecord = New-Object -TypeName 'System.Management.Automation.ErrorRecord' `
-                    -ArgumentList @($mockException, $null, 'NotImplemented', $null)
+                $mockException = New-Object -TypeName System.Exception -ArgumentList $mockExceptionErrorMessage
+                $mockErrorRecord = New-Object -TypeName System.Management.Automation.ErrorRecord `
+                    -ArgumentList $mockException, $null, 'InvalidResult', $null
             }
 
             It 'Should throw the correct error' {
+                # Wildcard processing needed to handle differing Powershell 5/6/7 exception output
                 { New-NotImplementedException -Message $mockErrorMessage -ErrorRecord $mockErrorRecord } |
-                Should -Throw ('System.NotImplementedException: {0} ---> System.Exception: {1}' -f
-                    $mockErrorMessage, $mockExceptionErrorMessage)
+                    Should -Throw -Passthru | Select-Object -ExpandProperty Exception |
+                        Should -BeLike ('System.Exception: System.NotImplementedException: {0}*System.Exception: {1}*' -f
+                            $mockErrorMessage, $mockExceptionErrorMessage)
             }
-        }
-    }
-
-    Describe 'AdfsDsc.Common\ConvertTo-Timespan' {
-        It "Returns 'System.TimeSpan' object type" {
-            $testIntTimeSpan = 60
-
-            $result = ConvertTo-TimeSpan -TimeSpan $testIntTimeSpan -TimeSpanType Minutes
-
-            $result -is [System.TimeSpan] | Should -Be $true
-        }
-
-        It 'Creates TimeSpan from seconds' {
-            $testIntTimeSpan = 60
-
-            $result = ConvertTo-TimeSpan -TimeSpan $testIntTimeSpan -TimeSpanType Seconds
-
-            $result.TotalSeconds | Should -Be $testIntTimeSpan
-        }
-
-        It 'Creates TimeSpan from minutes' {
-            $testIntTimeSpan = 60
-
-            $result = ConvertTo-TimeSpan -TimeSpan $testIntTimeSpan -TimeSpanType Minutes
-
-            $result.TotalMinutes | Should -Be $testIntTimeSpan
-        }
-
-        It 'Creates TimeSpan from hours' {
-            $testIntTimeSpan = 60
-
-            $result = ConvertTo-TimeSpan -TimeSpan $testIntTimeSpan -TimeSpanType Hours
-
-            $result.TotalHours | Should -Be $testIntTimeSpan
-        }
-
-        It 'Creates TimeSpan from days' {
-            $testIntTimeSpan = 60
-
-            $result = ConvertTo-TimeSpan -TimeSpan $testIntTimeSpan -TimeSpanType Days
-
-            $result.TotalDays | Should -Be $testIntTimeSpan
-        }
-    }
-
-    Describe 'AdfsDsc.Common\ConvertFrom-Timespan' {
-        It "Returns 'System.UInt32' object type" {
-            $testIntTimeSpan = 60
-            $testTimeSpan = New-TimeSpan -Seconds $testIntTimeSpan
-
-            $result = ConvertFrom-TimeSpan -TimeSpan $testTimeSpan -TimeSpanType Seconds
-
-            $result -is [System.UInt32] | Should -Be $true
-        }
-
-        It 'Converts TimeSpan to total seconds' {
-            $testIntTimeSpan = 60
-            $testTimeSpan = New-TimeSpan -Seconds $testIntTimeSpan
-
-            $result = ConvertFrom-TimeSpan -TimeSpan $testTimeSpan -TimeSpanType Seconds
-
-            $result | Should -Be $testTimeSpan.TotalSeconds
-        }
-
-        It 'Converts TimeSpan to total minutes' {
-            $testIntTimeSpan = 60
-            $testTimeSpan = New-TimeSpan -Minutes $testIntTimeSpan
-
-            $result = ConvertFrom-TimeSpan -TimeSpan $testTimeSpan -TimeSpanType Minutes
-
-            $result | Should -Be $testTimeSpan.TotalMinutes
-        }
-
-        It 'Converts TimeSpan to total hours' {
-            $testIntTimeSpan = 60
-            $testTimeSpan = New-TimeSpan -Hours $testIntTimeSpan
-
-            $result = ConvertFrom-TimeSpan -TimeSpan $testTimeSpan -TimeSpanType Hours
-
-            $result | Should -Be $testTimeSpan.TotalHours
-        }
-
-        It 'Converts TimeSpan to total days' {
-            $testIntTimeSpan = 60
-            $testTimeSpan = New-TimeSpan -Days $testIntTimeSpan
-
-            $result = ConvertFrom-TimeSpan -TimeSpan $testTimeSpan -TimeSpanType Days
-
-            $result | Should -Be $testTimeSpan.TotalDays
         }
     }
 
@@ -394,14 +330,14 @@ InModuleScope 'AdfsDsc.Common' {
 
                 $compareTargetResourceStateResult = Compare-ResourcePropertyState @compareTargetResourceStateParameters
                 $compareTargetResourceStateResult | Should -HaveCount 2
-                $compareTargetResourceStateResult[0].ParameterName | Should -Be 'ComputerName'
-                $compareTargetResourceStateResult[0].Expected | Should -Be 'DC01'
-                $compareTargetResourceStateResult[0].Actual | Should -Be 'DC01'
-                $compareTargetResourceStateResult[0].InDesiredState | Should -BeTrue
-                $compareTargetResourceStateResult[1].ParameterName | Should -Be 'Location'
-                $compareTargetResourceStateResult[1].Expected | Should -Be 'Sweden'
-                $compareTargetResourceStateResult[1].Actual | Should -Be 'Sweden'
-                $compareTargetResourceStateResult[1].InDesiredState | Should -BeTrue
+                $computerNameResult = $compareTargetResourceStateResult | Where-Object -Property ParameterName -eq 'ComputerName'
+                $computerNameResult.Expected | Should -Be 'DC01'
+                $computerNameResult.Actual | Should -Be 'DC01'
+                $computerNameResult.InDesiredState | Should -BeTrue
+                $locationNameResult = $compareTargetResourceStateResult | Where-Object -Property ParameterName -eq 'Location'
+                $locationNameResult.Expected | Should -Be 'Sweden'
+                $locationNameResult.Actual | Should -Be 'Sweden'
+                $locationNameResult.InDesiredState | Should -BeTrue
             }
         }
 
@@ -452,14 +388,14 @@ InModuleScope 'AdfsDsc.Common' {
 
                 $compareTargetResourceStateResult = Compare-ResourcePropertyState @compareTargetResourceStateParameters
                 $compareTargetResourceStateResult | Should -HaveCount 2
-                $compareTargetResourceStateResult[0].ParameterName | Should -Be 'ComputerName'
-                $compareTargetResourceStateResult[0].Expected | Should -Be 'DC01'
-                $compareTargetResourceStateResult[0].Actual | Should -Be 'DC01'
-                $compareTargetResourceStateResult[0].InDesiredState | Should -BeTrue
-                $compareTargetResourceStateResult[1].ParameterName | Should -Be 'Location'
-                $compareTargetResourceStateResult[1].Expected | Should -Be 'Europe'
-                $compareTargetResourceStateResult[1].Actual | Should -Be 'Sweden'
-                $compareTargetResourceStateResult[1].InDesiredState | Should -BeFalse
+                $computerNameResult = $compareTargetResourceStateResult | Where-Object -Property ParameterName -eq 'ComputerName'
+                $computerNameResult.Expected | Should -Be 'DC01'
+                $computerNameResult.Actual | Should -Be 'DC01'
+                $computerNameResult.InDesiredState | Should -BeTrue
+                $locationNameResult = $compareTargetResourceStateResult | Where-Object -Property ParameterName -eq 'Location'
+                $locationNameResult.Expected | Should -Be 'Europe'
+                $locationNameResult.Actual | Should -Be 'Sweden'
+                $locationNameResult.InDesiredState | Should -BeFalse
             }
         }
 
@@ -547,14 +483,14 @@ InModuleScope 'AdfsDsc.Common' {
 
                 $compareTargetResourceStateResult = Compare-ResourcePropertyState @compareTargetResourceStateParameters
                 $compareTargetResourceStateResult | Should -HaveCount 2
-                $compareTargetResourceStateResult[0].ParameterName | Should -Be 'ComputerName'
-                $compareTargetResourceStateResult[0].Expected | Should -Be 'DC01'
-                $compareTargetResourceStateResult[0].Actual | Should -Be 'DC01'
-                $compareTargetResourceStateResult[0].InDesiredState | Should -BeTrue
-                $compareTargetResourceStateResult[1].ParameterName | Should -Be 'Location'
-                $compareTargetResourceStateResult[1].Expected | Should -Be 'Europe'
-                $compareTargetResourceStateResult[1].Actual | Should -Be 'Sweden'
-                $compareTargetResourceStateResult[1].InDesiredState | Should -BeFalse
+                $computerNameResult = $compareTargetResourceStateResult | Where-Object -Property ParameterName -eq 'ComputerName'
+                $computerNameResult.Expected | Should -Be 'DC01'
+                $computerNameResult.Actual | Should -Be 'DC01'
+                $computerNameResult.InDesiredState | Should -BeTrue
+                $locationNameResult = $compareTargetResourceStateResult | Where-Object -Property ParameterName -eq 'Location'
+                $locationNameResult.Expected | Should -Be 'Europe'
+                $locationNameResult.Actual | Should -Be 'Sweden'
+                $locationNameResult.InDesiredState | Should -BeFalse
             }
         }
 

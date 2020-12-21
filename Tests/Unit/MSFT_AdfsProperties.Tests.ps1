@@ -1,27 +1,41 @@
-$Global:DSCModuleName = 'AdfsDsc'
-$Global:PSModuleName = 'ADFS'
-$Global:DSCResourceName = 'MSFT_AdfsProperties'
+$script:dscModuleName = 'AdfsDsc'
+$global:psModuleName = 'ADFS'
+$script:dscResourceName = 'MSFT_AdfsProperties'
 
-$moduleRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $Script:MyInvocation.MyCommand.Path))
-if ( (-not (Test-Path -Path (Join-Path -Path $moduleRoot -ChildPath 'DSCResource.Tests'))) -or `
-    (-not (Test-Path -Path (Join-Path -Path $moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1'))) )
+function Invoke-TestSetup
 {
-    & git @('clone', 'https://github.com/PowerShell/DscResource.Tests.git',
-        (Join-Path -Path $moduleRoot -ChildPath '\DSCResource.Tests\'))
+    try
+    {
+        Import-Module -Name DscResource.Test -Force -ErrorAction 'Stop'
+    }
+    catch [System.IO.FileNotFoundException]
+    {
+        throw 'DscResource.Test module dependency not found. Please run ".\build.ps1 -Tasks build" first.'
+    }
+
+    $script:testEnvironment = Initialize-TestEnvironment `
+        -DSCModuleName $script:dscModuleName `
+        -DSCResourceName $script:dscResourceName `
+        -ResourceType 'Mof' `
+        -TestType 'Unit'
 }
 
-Import-Module (Join-Path -Path $moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1') -Force
+function Invoke-TestCleanup
+{
+    Restore-TestEnvironment -TestEnvironment $script:testEnvironment
+}
 
-$TestEnvironment = Initialize-TestEnvironment `
-    -DSCModuleName $Global:DSCModuleName `
-    -DSCResourceName $Global:DSCResourceName `
-    -TestType Unit
+# Begin Testing
+
+Invoke-TestSetup
 
 try
 {
-    InModuleScope $Global:DSCResourceName {
+    InModuleScope $script:dscResourceName {
+        Set-StrictMode -Version 2.0
+
         # Import Stub Module
-        Import-Module (Join-Path -Path $PSScriptRoot -ChildPath "Stubs\$($Global:PSModuleName)Stub.psm1") -Force
+        Import-Module (Join-Path -Path $PSScriptRoot -ChildPath "Stubs\$($global:psModuleName)Stub.psm1") -Force
 
         # Define Resource Commands
         $ResourceCommand = @{
@@ -50,7 +64,7 @@ try
             IntranetUseLocalClaimsProvider             = $false
             TlsClientPort                              = 49443
             Identifier                                 = 'http://sts.contoso.com/adfs/services/trust'
-            LogLevel                                   = 'Errors', 'FailureAudits', 'Information', 'Verbose', 'SuccessAudits', 'Warnings', 'None'
+            LogLevel                                   = 'Errors', 'FailureAudits', 'Information', 'Verbose', 'SuccessAudits', 'Warnings'
             MonitoringInterval                         = 1440
             NetTcpPort                                 = 1501
             NtlmOnlySupportedClientAtProxy             = $false
@@ -86,12 +100,10 @@ try
             DelegateServiceAdministration              = 'contoso\adfsadmins'
             AllowSystemServiceAdministration           = $false
             AllowLocalAdminsServiceAdministration      = $true
-            DeviceUsageWindowInDays                    = 7
+            DeviceUsageWindowInDays                    = 14
             EnableIdPInitiatedSignonPage               = $false
             IgnoreTokenBinding                         = $false
             IdTokenIssuer                              = 'https://sts.contoso.com/adfs'
-            PromptLoginFederation                      = 'FallbackToProtocolSpecificParameters'
-            PromptLoginFallbackAuthenticationType      = 'urn:oasis:names:tc:SAML:1.0:am:password'
         }
 
         $mockChangedResource = @{
@@ -114,7 +126,7 @@ try
             IntranetUseLocalClaimsProvider             = $true
             TlsClientPort                              = 49444
             Identifier                                 = 'http://sts.fabrikam.com/adfs/services/trust'
-            LogLevel                                   = 'Errors', 'FailureAudits', 'Information', 'SuccessAudits', 'Warnings', 'None'
+            LogLevel                                   = 'Errors', 'FailureAudits', 'Information', 'SuccessAudits', 'Warnings'
             MonitoringInterval                         = 2880
             NetTcpPort                                 = 1502
             NtlmOnlySupportedClientAtProxy             = $true
@@ -150,12 +162,10 @@ try
             DelegateServiceAdministration              = 'fabrikam\adfsadmins'
             AllowSystemServiceAdministration           = $true
             AllowLocalAdminsServiceAdministration      = $false
-            DeviceUsageWindowInDays                    = 14
+            DeviceUsageWindowInDays                    = 21
             EnableIdPInitiatedSignonPage               = $true
             IgnoreTokenBinding                         = $true
             IdTokenIssuer                              = 'https://sts.fabrikam.com/adfs'
-            PromptLoginFederation                      = 'Disabled'
-            PromptLoginFallbackAuthenticationType      = 'urn:oasis:names:tc:SAML:1.0:am:password2'
         }
 
         $mockGetTargetResourceResult = @{
@@ -219,8 +229,6 @@ try
             EnableIdPInitiatedSignonPage               = $mockResource.EnableIdPInitiatedSignonPage
             IgnoreTokenBinding                         = $mockResource.IgnoreTokenBinding
             IdTokenIssuer                              = $mockResource.IdTokenIssuer
-            PromptLoginFederation                      = $mockResource.PromptLoginFederation
-            PromptLoginFallbackAuthenticationType      = $mockResource.PromptLoginFallbackAuthenticationType
         }
 
         Describe 'MSFT_AdfsProperties\Get-TargetResource' -Tag 'Get' {
@@ -290,12 +298,10 @@ try
                     EnableIdpInitiatedSignonPage               = $mockResource.EnableIdpInitiatedSignonPage
                     IgnoreTokenBinding                         = $mockResource.IgnoreTokenBinding
                     EnableOauthDeviceFlow                      = $mockResource.EnableOauthDeviceFlow
-                    PromptLoginFederation                      = $mockResource.PromptLoginFederation
-                    PromptLoginFallbackAuthenticationType      = $mockResource.PromptLoginFallbackAuthenticationType
                 }
 
                 Mock -CommandName Assert-Module
-                Mock -CommandName "Assert-$($Global:PSModuleName)Service"
+                Mock -CommandName "Assert-$($global:psModuleName)Service"
                 Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
 
                 $result = Get-TargetResource @getTargetResourceParameters
@@ -310,9 +316,9 @@ try
 
             It 'Should call the expected mocks' {
                 Assert-MockCalled -CommandName Assert-Module `
-                    -ParameterFilter { $ModuleName -eq $Global:PSModuleName } `
+                    -ParameterFilter { $ModuleName -eq $global:psModuleName } `
                     -Exactly -Times 1
-                Assert-MockCalled -CommandName "Assert-$($Global:PSModuleName)Service" -Exactly -Times 1
+                Assert-MockCalled -CommandName "Assert-$($global:psModuleName)Service" -Exactly -Times 1
                 Assert-MockCalled -CommandName $ResourceCommand.Get -Exactly -Times 1
             }
 
@@ -388,8 +394,6 @@ try
                     EnableIdPInitiatedSignonPage               = $mockResource.EnableIdPInitiatedSignonPage
                     IgnoreTokenBinding                         = $mockResource.IgnoreTokenBinding
                     IdTokenIssuer                              = $mockResource.IdTokenIssuer
-                    PromptLoginFederation                      = $mockResource.PromptLoginFederation
-                    PromptLoginFallbackAuthenticationType      = $mockResource.PromptLoginFallbackAuthenticationType
                 }
 
                 Mock -CommandName $ResourceCommand.Set
@@ -473,5 +477,5 @@ try
 }
 finally
 {
-    Restore-TestEnvironment -TestEnvironment $TestEnvironment
+    Invoke-TestCleanup
 }

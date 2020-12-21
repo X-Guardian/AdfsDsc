@@ -1,0 +1,14 @@
+[ClassVersion("1.0.0.0"), FriendlyName("AdfsFarmNode")]
+class MSFT_AdfsFarmNode : OMI_BaseResource
+{
+    [Key, Description("Specifies the DNS name of the federation service.")] String FederationServiceName;
+    [Required, Description("Specifies the value of the certificate thumbprint of the certificate that should be used in the SSL binding of the Default Web Site in IIS. This value should match the thumbprint of a valid certificate in the Local Computer certificate store.")] String CertificateThumbprint;
+    [Required, EmbeddedInstance("MSFT_Credential"), Description("Specifies a PSCredential object that must have domain administrator privileges.")] String Credential;
+    [Write, Description("Specifies the Group Managed Service Account under which the Active Directory Federation Services (AD FS) service runs.")] String GroupServiceAccountIdentifier;
+    [Write, Description("This parameter must be used to remove an existing AD FS configuration database and overwrite it with a new database.")] Boolean OverwriteConfiguration;
+    [Write, Description("Specifies the name of the primary in a farm. The cmdlet adds the computer to the farm that has the primary that you specify.")] String PrimaryComputerName;
+    [Write, Description("Specifies the primary computer port. The computer uses the HTTP port that you specify to connect with the primary computer in order to synchronize configuration settings. Specify a value of 80 for this parameter, or specify an alternate value if the HTTP port on the primary computer is not 80. If this parameter is not specified, a default port value of 80 is assumed.")] Sint32 PrimaryComputerPort;
+    [Write, EmbeddedInstance("MSFT_Credential"), Description("Specifies the Active Directory account under which the AD FS service runs. All nodes in the farm must use the same service account.")] String ServiceAccountCredential;
+    [Write, Description("Specifies the SQL Server database that will store the AD FS configuration settings. If not specified, AD FS uses Windows Internal Database to store configuration settings.")] String SQLConnectionString;
+    [Read, Description("The state of the ADFS Farm.")] String Ensure;
+};

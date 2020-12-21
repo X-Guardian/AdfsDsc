@@ -1,34 +1,47 @@
-$Global:DSCModuleName = 'AdfsDsc'
-$Global:PSModuleName = 'ADFS'
-$Global:DscResourceFriendlyName = 'AdfsFarmNode'
-$Global:DSCResourceName = "MSFT_$Global:DscResourceFriendlyName"
+$script:dscModuleName = 'AdfsDsc'
+$global:psModuleName = 'ADFS'
+$global:DscResourceFriendlyName = 'AdfsFarmNode'
+$script:dscResourceName = "MSFT_$global:DscResourceFriendlyName"
 
-$moduleRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $Script:MyInvocation.MyCommand.Path))
-if ( (-not (Test-Path -Path (Join-Path -Path $moduleRoot -ChildPath 'DSCResource.Tests'))) -or `
-    (-not (Test-Path -Path (Join-Path -Path $moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1'))) )
+function Invoke-TestSetup
 {
-    & git @('clone', 'https://github.com/PowerShell/DscResource.Tests.git',
-        (Join-Path -Path $moduleRoot -ChildPath '\DSCResource.Tests\'))
+    try
+    {
+        Import-Module -Name DscResource.Test -Force -ErrorAction 'Stop'
+    }
+    catch [System.IO.FileNotFoundException]
+    {
+        throw 'DscResource.Test module dependency not found. Please run ".\build.ps1 -Tasks build" first.'
+    }
+
+    $script:testEnvironment = Initialize-TestEnvironment `
+        -DSCModuleName $script:dscModuleName `
+        -DSCResourceName $script:dscResourceName `
+        -ResourceType 'Mof' `
+        -TestType 'Unit'
 }
 
-Import-Module (Join-Path -Path $moduleRoot -ChildPath 'DSCResource.Tests\TestHelper.psm1') -Force
+function Invoke-TestCleanup
+{
+    Restore-TestEnvironment -TestEnvironment $script:testEnvironment
+}
 
-$TestEnvironment = Initialize-TestEnvironment `
-    -DSCModuleName $Global:DSCModuleName `
-    -DSCResourceName $Global:DSCResourceName `
-    -TestType Unit
+# Begin Testing
+
+Invoke-TestSetup
 
 try
 {
-    InModuleScope $Global:DSCResourceName {
+    InModuleScope $script:dscResourceName {
+        Set-StrictMode -Version 2.0
+
         # Import Stub Module
-        Import-Module (Join-Path -Path $PSScriptRoot -ChildPath "Stubs\$($Global:PSModuleName)Stub.psm1") -Force
+        Import-Module (Join-Path -Path $PSScriptRoot -ChildPath "Stubs\$($global:psModuleName)Stub.psm1") -Force
 
         # Define Resource Commands
         $ResourceCommand = @{
-            Get       = 'Get-AdfsConfigurationStatus'
-            Install   = 'Add-AdfsFarmNode'
-            Uninstall = 'Remove-AdfsFarmNode'
+            Get     = 'Get-AdfsConfigurationStatus'
+            Install = 'Add-AdfsFarmNode'
         }
 
         $mockUserName = 'CONTOSO\AdfsSmsa'
@@ -154,7 +167,7 @@ try
             Mock -CommandName Assert-GroupServiceAccount -MockWith { $true }
             Mock -CommandName Get-ObjectType -MockWith { $script:syncPropertiesTypeName }
 
-            Context "When the $($Global:DscResourceFriendlyName) Resource is configured" {
+            Context "When the $($global:DscResourceFriendlyName) Resource is configured" {
                 BeforeAll {
                     Mock -CommandName $ResourceCommand.Get -MockWith { 'Configured' }
                 }
@@ -176,7 +189,7 @@ try
 
                     It 'Should call the expected mocks' {
                         Assert-MockCalled -CommandName Assert-Module `
-                            -ParameterFilter { $ModuleName -eq $Global:PSModuleName } `
+                            -ParameterFilter { $ModuleName -eq $global:psModuleName } `
                             -Exactly -Times 1
                         Assert-MockCalled -CommandName Assert-DomainMember -Exactly -Times 1
                         Assert-MockCalled -CommandName Assert-AdfsService -Exactly -Times 1
@@ -320,7 +333,7 @@ try
 
                     It 'Should call the expected mocks' {
                         Assert-MockCalled -CommandName Assert-Module `
-                            -ParameterFilter { $ModuleName -eq $Global:PSModuleName } `
+                            -ParameterFilter { $ModuleName -eq $global:psModuleName } `
                             -Exactly -Times 1
                         Assert-MockCalled -CommandName Assert-DomainMember -Exactly -Times 1
                         Assert-MockCalled -CommandName Assert-AdfsService -Exactly -Times 1
@@ -343,7 +356,7 @@ try
                 }
             }
 
-            Context "When the $($Global:DscResourceFriendlyName) Resource is not configured" {
+            Context "When the $($global:DscResourceFriendlyName) Resource is not configured" {
                 BeforeAll {
                     Mock -CommandName $ResourceCommand.Get -MockWith { 'NotConfigured' }
 
@@ -359,7 +372,7 @@ try
 
                 It 'Should call the expected mocks' {
                     Assert-MockCalled -CommandName Assert-Module `
-                        -ParameterFilter { $ModuleName -eq $Global:PSModuleName } `
+                        -ParameterFilter { $ModuleName -eq $global:psModuleName } `
                         -Exactly -Times 1
                     Assert-MockCalled -CommandName Assert-DomainMember -Exactly -Times 1
                     Assert-MockCalled -CommandName Assert-AdfsService -Exactly -Times 0
@@ -385,12 +398,6 @@ try
                     PrimaryComputerPort           = 443
                 }
 
-                $setTargetResourcePresentParameters = $setTargetResourceParameters.Clone()
-                $setTargetResourcePresentParameters.Ensure = 'Present'
-
-                $setTargetResourceAbsentParameters = $setTargetResourceParameters.Clone()
-                $setTargetResourceAbsentParameters.Ensure = 'Absent'
-
                 $mockAddAdfsFarmNodeSuccessResult = @{
                     Message = 'The configuration completed successfully.'
                     Context = 'DeploymentSucceeded'
@@ -404,7 +411,6 @@ try
                 }
 
                 Mock -CommandName $ResourceCommand.Install -MockWith { $mockAddAdfsFarmNodeSuccessResult }
-                Mock -CommandName $ResourceCommand.Uninstall
             }
 
             Context 'When both credential parameters have been specified' {
@@ -433,123 +439,74 @@ try
                 }
             }
 
-            Context "When the $($Global:DscResourceFriendlyName) Resource should be installed" {
+            Context "When the $($global:DscResourceFriendlyName) Resource is not installed" {
+                BeforeAll {
+                    $mockGetTargetResourceAbsentResult = @{
+                        Ensure = 'Absent'
+                    }
 
-                Context "When the $($Global:DscResourceFriendlyName) Resource is not installed" {
+                    Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
+                }
+
+                It 'Should not throw' {
+                    { Set-TargetResource @setTargetResourceParameters } | Should -Not -Throw
+                }
+
+                It 'Should call the expected mocks' {
+                    Assert-MockCalled -CommandName $ResourceCommand.Install `
+                        -ParameterFilter { `
+                            $CertificateThumbprint -eq $setTargetResourceParameters.CertificateThumbprint } `
+                        -Exactly -Times 1
+                }
+
+                Context "When $($ResourceCommand.Install) throws System.IO.FileNotFoundException" {
                     BeforeAll {
-                        $mockGetTargetResourceAbsentResult = @{
-                            Ensure = 'Absent'
-                        }
-
-                        Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
+                        Mock $ResourceCommand.Install -MockWith { throw New-Object System.IO.FileNotFoundException }
                     }
 
                     It 'Should not throw' {
-                        { Set-TargetResource @setTargetResourcePresentParameters } | Should -Not -Throw
+                        { Set-TargetResource @setTargetResourceParameters } | Should -Not -Throw
                     }
 
                     It 'Should call the expected mocks' {
                         Assert-MockCalled -CommandName $ResourceCommand.Install `
                             -ParameterFilter { `
-                                $CertificateThumbprint -eq $setTargetResourcePresentParameters.CertificateThumbprint } `
+                                $CertificateThumbprint -eq $setTargetResourceParameters.CertificateThumbprint } `
                             -Exactly -Times 1
-                        Assert-MockCalled -CommandName $ResourceCommand.Uninstall -Exactly -Times 0
-                    }
-
-                    Context "When $($ResourceCommand.Install) throws System.IO.FileNotFoundException" {
-                        BeforeAll {
-                            Mock $ResourceCommand.Install -MockWith { throw New-Object System.IO.FileNotFoundException }
-                        }
-
-                        It 'Should not throw' {
-                            { Set-TargetResource @setTargetResourceParameters } | Should -Not -Throw
-                        }
-
-                        It 'Should call the expected mocks' {
-                            Assert-MockCalled -CommandName $ResourceCommand.Install `
-                                -ParameterFilter { `
-                                    $CertificateThumbprint -eq $setTargetResourcePresentParameters.CertificateThumbprint } `
-                                -Exactly -Times 1
-                        }
-                    }
-
-                    Context "When $($ResourceCommand.Install) throws an exception" {
-                        BeforeAll {
-                            Mock $ResourceCommand.Install -MockWith { throw $mockExceptionErrorMessage }
-                        }
-
-                        It 'Should throw the correct error' {
-                            { Set-TargetResource @setTargetResourcePresentParameters } | Should -Throw (
-                                $script:localizedData.InstallationErrorMessage -f
-                                $setTargetResourcePresentParameters.FederationServiceName)
-                        }
-                    }
-
-                    Context "When $($ResourceCommand.Install) returns a result with a status of 'Error'" {
-                        BeforeAll {
-                            Mock $ResourceCommand.Install -MockWith { $mockAddAdfsFarmNodeErrorResult }
-                        }
-
-                        It 'Should throw the correct error' {
-                            { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
-                                $mockAddAdfsFarmNodeErrorResult.Message)
-                        }
                     }
                 }
 
-                Context "When the $($Global:DscResourceFriendlyName) Resource is installed" {
+                Context "When $($ResourceCommand.Install) throws an exception" {
                     BeforeAll {
-                        Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetGsaWidResourcePresentResult }
+                        Mock $ResourceCommand.Install -MockWith { throw $mockExceptionErrorMessage }
                     }
 
-                    It 'Should not throw' {
-                        { Set-TargetResource @setTargetResourcePresentParameters } | Should -Not -Throw
+                    It 'Should throw the correct error' {
+                        { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
+                            $script:localizedData.InstallationErrorMessage -f
+                            $setTargetResourceParameters.FederationServiceName)
+                    }
+                }
+
+                Context "When $($ResourceCommand.Install) returns a result with a status of 'Error'" {
+                    BeforeAll {
+                        Mock $ResourceCommand.Install -MockWith { $mockAddAdfsFarmNodeErrorResult }
+                    }
+
+                    It 'Should throw the correct error' {
+                        { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
+                            $mockAddAdfsFarmNodeErrorResult.Message)
                     }
                 }
             }
 
-            Context "When the $($Global:DscResourceFriendlyName) Resource should not be installed" {
-
-                Context "When the $($Global:DscResourceFriendlyName) Resource is installed" {
-                    BeforeAll {
-                        Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetGsaWidResourcePresentResult }
-                    }
-
-                    It 'Should not throw' {
-                        { Set-TargetResource @setTargetResourceAbsentParameters } | Should -Not -Throw
-                    }
-
-                    It 'Should call the expected mocks' {
-                        Assert-MockCalled -CommandName $ResourceCommand.Uninstall -Exactly -Times 1
-                        Assert-MockCalled -CommandName $ResourceCommand.Install -Exactly -Times 0
-                    }
-
-                    Context "When $($ResourceCommand.Uninstall) throws an exception" {
-                        BeforeAll {
-                            Mock $ResourceCommand.Uninstall -MockWith { throw $mockExceptionErrorMessage }
-                        }
-
-                        It 'Should throw the correct error' {
-                            { Set-TargetResource @setTargetResourceAbsentParameters } | Should -Throw (
-                                $script:localizedData.RemovalErrorMessage -f
-                                $setTargetResourceAbsentParameters.FederationServiceName)
-                        }
-                    }
+            Context "When the $($global:DscResourceFriendlyName) Resource is installed" {
+                BeforeAll {
+                    Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetGsaWidResourcePresentResult }
                 }
 
-                Context "When the $($Global:DscResourceFriendlyName) Resource is not installed" {
-                    BeforeAll {
-                        Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
-                    }
-
-                    It 'Should not throw' {
-                        { Set-TargetResource @setTargetResourceAbsentParameters } | Should -Not -Throw
-                    }
-
-                    It 'Should call the expected mocks' {
-                        Assert-MockCalled -CommandName $ResourceCommand.Uninstall -Exactly -Times 0
-                        Assert-MockCalled -CommandName $ResourceCommand.Install -Exactly -Times 0
-                    }
+                It 'Should not throw' {
+                    { Set-TargetResource @setTargetResourceParameters } | Should -Not -Throw
                 }
             }
         }
@@ -564,76 +521,40 @@ try
                     PrimaryComputerName           = $mockGsaWidResource.PrimaryComputerName
                     PrimaryComputerPort           = $mockGsaWidResource.PrimaryComputerPort
                 }
-
-                $testTargetResourcePresentParameters = $testTargetResourceParameters.Clone()
-                $testTargetResourcePresentParameters.Ensure = 'Present'
-
-                $testTargetResourceAbsentParameters = $testTargetResourceParameters.Clone()
-                $testTargetResourceAbsentParameters.Ensure = 'Absent'
             }
 
-            Context "When the $($Global:DscResourceFriendlyName) Resource is installed" {
+            Context "When the $($global:DscResourceFriendlyName) Resource is installed" {
                 BeforeAll {
                     Mock Get-TargetResource -MockWith { $mockGetTargetGsaWidResourcePresentResult }
                 }
 
-                Context "When the $($Global:DscResourceFriendlyName) Resource should be installed" {
-                    It 'Should return true' {
-                        Test-TargetResource @testTargetResourcePresentParameters | Should -BeTrue
-                    }
-
-                    It 'Should call the expected mocks' {
-                        Assert-MockCalled -CommandName Get-TargetResource `
-                            -ParameterFilter { $FederationServiceName -eq `
-                                $TestTargetResourcePresentParameters.FederationServiceName } `
-                            -Exactly -Times 1
-
-                    }
+                It 'Should return true' {
+                    Test-TargetResource @testTargetResourceParameters | Should -BeTrue
                 }
 
-                Context "When the $($Global:DscResourceFriendlyName) Resource should not be installed" {
-                    It 'Should return false' {
-                        Test-TargetResource @testTargetResourceAbsentParameters | Should -BeFalse
-                    }
+                It 'Should call the expected mocks' {
+                    Assert-MockCalled -CommandName Get-TargetResource `
+                        -ParameterFilter { $FederationServiceName -eq `
+                            $TestTargetResourceParameters.FederationServiceName } `
+                        -Exactly -Times 1
 
-                    It 'Should call the expected mocks' {
-                        Assert-MockCalled -CommandName Get-TargetResource `
-                            -ParameterFilter { $FederationServiceName -eq `
-                                $TestTargetResourceAbsentParameters.FederationServiceName } `
-                            -Exactly -Times 1
-                    }
                 }
             }
 
-            Context "When the $($Global:DscResourceFriendlyName) Resource is not installed" {
+            Context "When the $($global:DscResourceFriendlyName) Resource is not installed" {
                 BeforeAll {
                     Mock Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
                 }
 
-                Context "When the $($Global:DscResourceFriendlyName) Resource should not be installed" {
-                    It 'Should return $false' {
-                        Test-TargetResource @testTargetResourceAbsentParameters | Should -Be $true
-                    }
-
-                    It 'Should call the expected mocks' {
-                        Assert-MockCalled -CommandName Get-TargetResource `
-                            -ParameterFilter { $FederationServiceName -eq `
-                                $testTargetResourceAbsentParameters.FederationServiceName } `
-                            -Exactly -Times 1
-                    }
+                It 'Should return $false' {
+                    Test-TargetResource @testTargetResourceParameters | Should -Be $false
                 }
 
-                Context "When the $($Global:DscResourceFriendlyName) Resource should be installed" {
-                    It 'Should return $false' {
-                        Test-TargetResource @testTargetResourcePresentParameters | Should -Be $false
-                    }
-
-                    It 'Should call the expected mocks' {
-                        Assert-MockCalled -CommandName Get-TargetResource `
-                            -ParameterFilter { $FederationServiceName -eq `
-                                $testTargetResourcePresentParameters.FederationServiceName } `
-                            -Exactly -Times 1
-                    }
+                It 'Should call the expected mocks' {
+                    Assert-MockCalled -CommandName Get-TargetResource `
+                        -ParameterFilter { $FederationServiceName -eq `
+                            $testTargetResourceParameters.FederationServiceName } `
+                        -Exactly -Times 1
                 }
             }
         }
@@ -641,5 +562,5 @@ try
 }
 finally
 {
-    Restore-TestEnvironment -TestEnvironment $TestEnvironment
+    Invoke-TestCleanup
 }
