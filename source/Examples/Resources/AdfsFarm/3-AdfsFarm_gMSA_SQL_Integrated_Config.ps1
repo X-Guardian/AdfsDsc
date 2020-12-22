@@ -20,8 +20,7 @@
 <#
     .DESCRIPTION
         This configuration will create the first node in an Active Directory Federation Services (AD FS) server farm
-        using using a Microsoft SQL Server database on a remote computer named sql01.contoso.com using Windows
-        Authentication.
+        using a Microsoft SQL Server database on a remote computer named sql01.contoso.com using Windows Authentication.
 
         The certificate with the specified thumbprint will be used as the SSL certificate and the service
         communications certificate. Automatically generated, self-signed certificates will be used for the token
@@ -41,6 +40,7 @@ Configuration AdfsFarm_gMSA_SQL_Integrated_Config
         $DomainAdminCredential
     )
 
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
     Import-DscResource -ModuleName AdfsDsc
 
     Node localhost

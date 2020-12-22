@@ -47,6 +47,10 @@
         Specifies the SQL Server database that will store the AD FS configuration settings. If not specified, the AD FS
         installer uses the Windows Internal Database to store configuration settings.
 
+    .PARAMETER AdminConfiguration
+        Write - HashTable
+        Specifies the Admin Configuration
+
     .PARAMETER Ensure
         Read - String
         The state of the ADFS Farm.
@@ -296,7 +300,11 @@ function Set-TargetResource
 
         [Parameter()]
         [System.String]
-        $SQLConnectionString
+        $SQLConnectionString,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $AdminConfiguration
     )
 
     Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f $FederationServiceName)
@@ -334,6 +342,21 @@ function Set-TargetResource
         Write-Debug -Message ($script:localizedData.TargetResourceAbsentDebugMessage -f $FederationServiceName)
 
         Write-Verbose -Message ($script:localizedData.InstallingResourceMessage -f $FederationServiceName)
+
+        if ($PSBoundParameters.ContainsKey('AdminConfiguration'))
+        {
+            # Convert AdminConfiguration Parameter from CimInstance#MSFT_KeyValuePair to HashTable
+            $adminConfigurationHashTable=@{}
+
+            foreach ($KeyPair in $AdminConfiguration)
+            {
+                $adminConfigurationHashTable += @{
+                    $KeyPair.Key = $Keypair.Value
+                }
+            }
+
+            $parameters.AdminConfiguration = $adminConfigurationHashTable
+        }
 
         try
         {
@@ -419,7 +442,11 @@ function Test-TargetResource
 
         [Parameter()]
         [System.String]
-        $SQLConnectionString
+        $SQLConnectionString,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $AdminConfiguration
     )
 
     Write-Verbose -Message ($script:localizedData.TestingResourceMessage -f $FederationServiceName)

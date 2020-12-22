@@ -41,6 +41,10 @@
     Write - String
     Specifies the SQL Server database that will store the AD FS configuration settings. If not specified, the AD FS installer uses the Windows Internal Database to store configuration settings.
 
+.PARAMETER AdminConfiguration
+    Write - HashTable
+    Specifies the Admin Configuration
+
 .PARAMETER Ensure
     Read - String
     The state of the ADFS Farm.
@@ -139,7 +143,7 @@ Configuration AdfsFarm_gMSA-WID_Config
 .EXAMPLE 3
 
 This configuration will create the first node in an Active Directory Federation Services (AD FS) server farm
-using using a Microsoft SQL Server database on a remote computer named SQLHost.
+using a Microsoft SQL Server database on a remote computer named sql01.contoso.com using Windows Authentication.
 
 The certificate with the specified thumbprint will be used as the SSL certificate and the service
 communications certificate. Automatically generated, self-signed certificates will be used for the token
@@ -148,7 +152,7 @@ signing and token decryption certificates.
 The group Managed Service Account specified in the GroupServiceAccountIdentifier parameter will be used for the
 service account.
 
-Configuration AdfsFarm_gMSA-SQL_Config
+Configuration AdfsFarm_gMSA_SQL_Integrated_Config
 {
     Param
     (
@@ -174,10 +178,113 @@ Configuration AdfsFarm_gMSA-SQL_Config
             FederationServiceDisplayName  = 'Contoso ADFS Service'
             CertificateThumbprint         = '8169c52b4ec6e77eb2ae17f028fe5da4e35c0bed'
             GroupServiceAccountIdentifier = 'contoso\adfsgmsa$'
-            SQLConnectionString           = 'Data Source=SQLHost;Integrated Security=True'
+            SQLConnectionString           = 'Data Source=sql01.contoso.com;Integrated Security=True'
             Credential                    = $DomainAdminCredential
         }
     }
 }
 
+.EXAMPLE 4
 
+This configuration will create the first node in an Active Directory Federation Services (AD FS) server farm
+using a Microsoft SQL Server database on a remote computer named sql01.contoso.com using SQL Authentication.
+
+The certificate with the specified thumbprint will be used as the SSL certificate and the service
+communications certificate. Automatically generated, self-signed certificates will be used for the token
+signing and token decryption certificates.
+
+The group Managed Service Account specified in the GroupServiceAccountIdentifier parameter will be used for the
+service account.
+
+Configuration AdfsFarm_gMSA_SQL_Config
+{
+    Param
+    (
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [System.Management.Automation.PSCredential]
+        $DomainAdminCredential,
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [System.Management.Automation.PSCredential]
+        $SqlCredential
+    )
+
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
+    Import-DscResource -ModuleName AdfsDsc
+
+    Node localhost
+    {
+        WindowsFeature InstallAdfs
+        {
+            Name = 'ADFS-Federation'
+        }
+
+        $SqlUserName = $SqlCredential.UserName
+        $SqlPassword = $SqlCredential.GetNetworkCredential().Password
+
+        AdfsFarm Contoso
+        {
+            FederationServiceName         = 'fs.corp.contoso.com'
+            FederationServiceDisplayName  = 'Contoso ADFS Service'
+            CertificateThumbprint         = '8169c52b4ec6e77eb2ae17f028fe5da4e35c0bed'
+            GroupServiceAccountIdentifier = 'contoso\adfsgmsa$'
+            SQLConnectionString           = "Data Source=sql01.contoso.com;User ID=$SqlUserName;Password=$SqlPassword"
+            Credential                    = $DomainAdminCredential
+        }
+    }
+}
+
+.EXAMPLE 5
+
+This configuration will create the first node in an Active Directory Federation Services (AD FS) server farm
+using a Microsoft SQL Server database on a remote computer named sql01.contoso.com using Windows Authentication.
+
+The certificate with the specified thumbprint will be used as the SSL certificate and the service
+communications certificate. Automatically generated, self-signed certificates will be used for the token
+signing and token decryption certificates.
+
+The group Managed Service Account specified in the GroupServiceAccountIdentifier parameter will be used for the
+service account.
+
+The AdminConfiguration parameter will be used to pass the CN of a pre-configured ADFS Active Directory
+configuration object, removing the requirement of needing Domain Admin credentials for the ADFS Farm install.
+See https://docs.microsoft.com/en-us/windows-server/identity/ad-fs/deployment/install-ad-fs-delegated-admin for
+further details.
+
+Configuration AdfsFarm_gMSA_SQL_Integrated_Delegated_Admin_Config
+{
+    Param
+    (
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [System.Management.Automation.PSCredential]
+        $LocalAdminCredential
+    )
+
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
+    Import-DscResource -ModuleName AdfsDsc
+
+    Node localhost
+    {
+        WindowsFeature InstallAdfs
+        {
+            Name = 'ADFS-Federation'
+        }
+
+        AdfsFarm Contoso
+        {
+            FederationServiceName         = 'fs.corp.contoso.com'
+            FederationServiceDisplayName  = 'Contoso ADFS Service'
+            CertificateThumbprint         = '8169c52b4ec6e77eb2ae17f028fe5da4e35c0bed'
+            GroupServiceAccountIdentifier = 'contoso\adfsgmsa$'
+            SQLConnectionString           = 'Data Source=sql01.contoso.com;Integrated Security=True'
+            Credential                    = $LocalAdminCredential
+            AdminConfiguration            = @(
+                @{
+                    DKMContainerDn = 'CN=9530440c-bc84-4fe6-a3f9-8d60162a7bcf,CN=ADFS,CN=Microsoft,CN=Program Data,DC=contoso,DC=com'
+                }
+            )
+        }
+    }
+}

@@ -373,6 +373,39 @@ try
                 }
             }
 
+            Context 'When the AdminConfiguration parameter has been specified' {
+                BeforeAll {
+                    $mockAdminConfiguration = @{
+                        Key   = 'DKMContainerDn'
+                        Value = 'CN=9530440c-bc84-4fe6-a3f9-8d60162a7bcf,CN=ADFS,CN=Microsoft,CN=Program Data,DC=contoso,DC=com'
+                    }
+
+                    $mockAdminConfigurationCimInstance = [CIMInstance[]]@(
+                        New-CimInstance -ClassName MSFT_KeyValuePair `
+                            -Namespace MSFT_KeyValuePair `
+                            -Property $mockAdminConfiguration -ClientOnly
+                    )
+
+                    $setTargetResourceAdminConfigurationParameters = $setTargetResourceParameters.Clone()
+                    $setTargetResourceAdminConfigurationParameters.Add('AdminConfiguration', $mockAdminConfigurationCimInstance)
+
+                    Mock Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
+                }
+
+                It 'Should not throw' {
+                    { Set-TargetResource @setTargetResourceAdminConfigurationParameters } | Should -Not -Throw
+                }
+
+                It 'Should call the expected mocks' {
+                    Assert-MockCalled -CommandName $ResourceCommand.Install `
+                        -ParameterFilter {
+                            $FederationServiceName -eq $setTargetResourceParameters.FederationServiceName -and
+                            $AdminConfiguration.($mockAdminConfiguration.Key) -eq $mockAdminConfiguration.Value
+                         } `
+                        -Exactly -Times 1
+                }
+            }
+
             Context "When the $($global:DscResourceFriendlyName) Resource is not installed" {
                 BeforeAll {
                     $mockGetTargetResourceAbsentResult = @{
