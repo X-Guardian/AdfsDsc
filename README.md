@@ -1,9 +1,9 @@
 # AdfsDsc
 
-[![Build Status](https://dev.azure.com/simonheather99/AdfsDsc/_apis/build/status/dsccommunity.AdfsDsc?branchName=master)](https://dev.azure.com/simonheather99/AdfsDsc/_build/latest?definitionId={definitionId}&branchName=master)
-![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/simonheather99/AdfsDsc/{definitionId}/master)
+[![Build Status](https://dev.azure.com/simonheather99/AdfsDsc/_apis/build/status/X-Guardian.AdfsDsc?branchName=master)](https://dev.azure.com/simonheather99/AdfsDsc/_build/latest?definitionId=3&branchName=master)
+![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/simonheather99/AdfsDsc/3/master)
 [![codecov](https://codecov.io/gh/X-Guardian/AdfsDsc/branch/master/graph/badge.svg)](https://codecov.io/gh/X-Guardian/AdfsDsc)
-[![Azure DevOps tests](https://img.shields.io/azure-devops/tests/X-Guardian/AdfsDsc/{definitionId}/master)](https://dsccommunity.visualstudio.com/AdfsDsc/_test/analytics?definitionId={definitionId}&contextType=build)
+[![Azure DevOps tests](https://img.shields.io/azure-devops/tests/X-Guardian/AdfsDsc/3/master)](https://dsccommunity.visualstudio.com/AdfsDsc/_test/analytics?definitionId=3&contextType=build)
 [![PowerShell Gallery (with prereleases)](https://img.shields.io/powershellgallery/vpre/AdfsDsc?label=AdfsDsc%20Preview)](https://www.powershellgallery.com/packages/AdfsDsc/)
 [![PowerShell Gallery](https://img.shields.io/powershellgallery/v/AdfsDsc?label=AdfsDsc)](https://www.powershellgallery.com/packages/AdfsDsc/)
 
