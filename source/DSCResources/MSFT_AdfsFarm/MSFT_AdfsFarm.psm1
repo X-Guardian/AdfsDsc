@@ -390,32 +390,25 @@ function Set-TargetResource
             $parameters.AdminConfiguration = $adminConfigurationHashTable
         }
 
-        #YVAND
         if ($PSBoundParameters.ContainsKey('CertificateName'))
         {
-            Write-Verbose -Message "YVAND getting certificate $CertificateName"
             $siteCert = Get-ChildItem -Path "cert:\LocalMachine\My\" -DnsName $CertificateName
             $parameters.CertificateThumbprint = $siteCert.Thumbprint
             $parameters.Remove('CertificateName')
-            Write-Verbose -Message "YVAND got certificate $CertificateName with Thumbprint $($siteCert.Thumbprint)"
         }
 
         if ($PSBoundParameters.ContainsKey('SigningCertificateName'))
         {
-            Write-Verbose -Message "YVAND getting certificate $SigningCertificateName"
             $signingCert = Get-ChildItem -Path "cert:\LocalMachine\My\" -DnsName $SigningCertificateName
             $parameters.Add("SigningCertificateThumbprint", $signingCert.Thumbprint)
             $parameters.Remove('SigningCertificateName')
-            Write-Verbose -Message "YVAND got certificate $SigningCertificateName with Thumbprint $($signingCert.Thumbprint)"
         }
 
         if ($PSBoundParameters.ContainsKey('DecryptionCertificateName'))
         {
-            Write-Verbose -Message "YVAND getting certificate $DecryptionCertificateName"
             $decryptionCert = Get-ChildItem -Path "cert:\LocalMachine\My\" -DnsName $DecryptionCertificateName
             $parameters.Add("DecryptionCertificateThumbprint", $decryptionCert.Thumbprint)
             $parameters.Remove('DecryptionCertificateName')
-            Write-Verbose -Message "YVAND got certificate $DecryptionCertificateName with Thumbprint $($decryptionCert.Thumbprint)"
         }
 
         try
