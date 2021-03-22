@@ -12,6 +12,8 @@ ConvertFrom-StringData @'
     InstallationErrorMessage                    = '{0}' installation error. (FRMERR001)
     ResourceDuplicateCredentialErrorMessage     = Only one of the credential parameters 'ServiceAccountCredential' or 'GroupServiceAccountIdentifier' should be specified for '{0}'. (FRMERR002)
     ResourceMissingCredentialErrorMessage       = One of the credential parameters 'ServiceAccountCredential' or 'GroupServiceAccountIdentifier' must be specified for '{0}'. (FRMERR003)
+    ResourceDuplicateServiceCertificateErrorMessage     = Only one of the service certificate parameters 'CertificateThumbprint' or 'CertificateName' should be specified. (FRMERR008)
+    ResourceMissingServiceCertificateErrorMessage       = One of the service certificate parameters 'CertificateThumbprint' or 'CertificateName' must be specified. (FRMERR009)
     GettingAdfsSslCertificateErrorMessage       = Error getting the ADFS SSL Certificate for '{0}'. (FRMERR004)
     GettingAdfsServiceErrorMessage              = Error getting the ADFS service details for '{0}'. (FRMERR005)
     GettingAdfsSecurityTokenServiceErrorMessage = Error getting the ADFS Security Token Service details for '{0}'. (FRMERR006)
