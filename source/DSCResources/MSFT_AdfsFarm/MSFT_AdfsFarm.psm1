@@ -101,13 +101,16 @@ function Get-TargetResource
         [System.String]
         $FederationServiceName,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter()]
         [System.String]
         $CertificateThumbprint,
 
         [Parameter(Mandatory = $true)]
         [System.Management.Automation.PSCredential]
-        $Credential
+        $Credential,
+
+        [System.String]
+        $CertificateName
     )
 
     # Set Verbose and Debug parameters
@@ -156,6 +159,7 @@ function Get-TargetResource
         if ($adfsSslCertificate)
         {
             $certificateThumbprint = $adfsSslCertificate.CertificateHash
+            $certificateName = $adfsSslCertificate.HostName
         }
         else
         {
@@ -207,6 +211,7 @@ function Get-TargetResource
         $returnValue = @{
             FederationServiceName         = $adfsProperties.HostName
             CertificateThumbprint         = $certificateThumbprint
+            CertificateName               = $certificateName
             FederationServiceDisplayName  = $adfsProperties.DisplayName
             GroupServiceAccountIdentifier = $groupServiceAccountIdentifier
             ServiceAccountCredential      = $serviceAccountCredential
@@ -222,6 +227,7 @@ function Get-TargetResource
         $returnValue = @{
             FederationServiceName         = $FederationServiceName
             CertificateThumbprint         = $CertificateThumbprint
+            CertificateName               = $certificateName
             FederationServiceDisplayName  = $null
             GroupServiceAccountIdentifier = $null
             ServiceAccountCredential      = $null
@@ -274,7 +280,7 @@ function Set-TargetResource
         [System.String]
         $FederationServiceName,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter()]
         [System.String]
         $CertificateThumbprint,
 
@@ -304,7 +310,16 @@ function Set-TargetResource
 
         [Parameter()]
         [Microsoft.Management.Infrastructure.CimInstance[]]
-        $AdminConfiguration
+        $AdminConfiguration,
+
+        [System.String]
+        $CertificateName,
+
+        [System.String]
+        $SigningCertificateName,
+
+        [System.String]
+        $DecryptionCertificateName
     )
 
     Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f $FederationServiceName)
@@ -325,14 +340,31 @@ function Set-TargetResource
     if (-not $PSBoundParameters.ContainsKey('ServiceAccountCredential') -and
         -not $PSBoundParameters.ContainsKey('GroupServiceAccountIdentifier'))
     {
-        $errorMessage = $script:localizedData.ResourceMissingCredentialErrorMessage -f $FederationServiceName
+        $errorMessage = $script:localizedData.ResourceMissingCredentialErrorMessage
         New-InvalidArgumentException -Message $errorMessage -ArgumentName 'ServiceAccountCredential'
+    }
+
+    # Check whether both service certificate parameters have been specified
+    if ($PSBoundParameters.ContainsKey('CertificateThumbprint') -and
+        $PSBoundParameters.ContainsKey('CertificateName'))
+    {
+        $errorMessage = $script:localizedData.ResourceDuplicateServiceCertificateErrorMessage
+        New-InvalidArgumentException -Message $errorMessage -ArgumentName 'CertificateThumbprint'
+    }
+
+    # Check whether no service certificate parameters have been specified
+    if (-not $PSBoundParameters.ContainsKey('CertificateThumbprint') -and
+        -not $PSBoundParameters.ContainsKey('CertificateName'))
+    {
+        $errorMessage = $script:localizedData.ResourceMissingCredentialErrorMessage
+        New-InvalidArgumentException -Message $errorMessage -ArgumentName 'CertificateThumbprint'
     }
 
     $GetTargetResourceParms = @{
         FederationServiceName = $FederationServiceName
         CertificateThumbprint = $CertificateThumbprint
         Credential            = $Credential
+        CertificateName       = $CertificateName
     }
     $targetResource = Get-TargetResource @GetTargetResourceParms
 
@@ -356,6 +388,27 @@ function Set-TargetResource
             }
 
             $parameters.AdminConfiguration = $adminConfigurationHashTable
+        }
+
+        if ($PSBoundParameters.ContainsKey('CertificateName'))
+        {
+            $siteCert = Get-ChildItem -Path "cert:\LocalMachine\My\" -DnsName $CertificateName
+            $parameters.CertificateThumbprint = $siteCert.Thumbprint
+            $parameters.Remove('CertificateName')
+        }
+
+        if ($PSBoundParameters.ContainsKey('SigningCertificateName'))
+        {
+            $signingCert = Get-ChildItem -Path "cert:\LocalMachine\My\" -DnsName $SigningCertificateName
+            $parameters.Add("SigningCertificateThumbprint", $signingCert.Thumbprint)
+            $parameters.Remove('SigningCertificateName')
+        }
+
+        if ($PSBoundParameters.ContainsKey('DecryptionCertificateName'))
+        {
+            $decryptionCert = Get-ChildItem -Path "cert:\LocalMachine\My\" -DnsName $DecryptionCertificateName
+            $parameters.Add("DecryptionCertificateThumbprint", $decryptionCert.Thumbprint)
+            $parameters.Remove('DecryptionCertificateName')
         }
 
         try
@@ -416,7 +469,7 @@ function Test-TargetResource
         [System.String]
         $FederationServiceName,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter()]
         [System.String]
         $CertificateThumbprint,
 
@@ -446,7 +499,16 @@ function Test-TargetResource
 
         [Parameter()]
         [Microsoft.Management.Infrastructure.CimInstance[]]
-        $AdminConfiguration
+        $AdminConfiguration,
+
+        [System.String]
+        $CertificateName,
+
+        [System.String]
+        $SigningCertificateName,
+
+        [System.String]
+        $DecryptionCertificateName
     )
 
     Write-Verbose -Message ($script:localizedData.TestingResourceMessage -f $FederationServiceName)
@@ -455,6 +517,7 @@ function Test-TargetResource
         FederationServiceName = $FederationServiceName
         CertificateThumbprint = $CertificateThumbprint
         Credential            = $Credential
+        CertificateName       = $CertificateName
     }
     $targetResource = Get-TargetResource @getTargetResourceParms
 
