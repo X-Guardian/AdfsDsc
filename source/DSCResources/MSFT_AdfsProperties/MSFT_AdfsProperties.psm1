@@ -451,11 +451,15 @@ function Get-TargetResource
     {
         if ($targetResource.PSObject.Properties.Name -contains $resourceProperties[$property] )
         {
-            $returnValue += @{ $property = $targetResource.$($resourceProperties[$property]) }
+            $returnValue += @{
+                $property = $targetResource.$($resourceProperties[$property])
+            }
         }
         else
         {
-            $returnValue += @{ $property = $null }
+            $returnValue += @{
+                $property = $null
+            }
         }
     }
 
