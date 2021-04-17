@@ -3,7 +3,7 @@
 class MSFT_AdfsProperties : OMI_BaseResource
 {
     [Key, Description("Specifies the DNS name of the federation service.")] String FederationServiceName;
-    [Write, Description("Specifies the level of additional information that is displayed on ADFS error pages."), ValueMap{"Private","Detailed","None"}, Values{"Private","Detailed","None"}] String AdditionalErrorPageInfo;
+    [Write, Description("Specifies the level of additional information that is displayed on ADFS error pages. This property is only supported in Windows Server 2019 and above."), ValueMap{"Private","Detailed","None"}, Values{"Private","Detailed","None"}] String AdditionalErrorPageInfo;
     [Write, Description("Specifies an array of authentication contexts, in order of relative strength. Specify each authentication context as a URI.")] String AuthenticationContextOrder[];
     [Write, Description("Specifies an array of identifiers that are acceptable names for the Federation Service when it checks the audience for claims that it receives from another claims provider.")] String AcceptableIdentifiers[];
     [Write, Description("Specifies the connection string to use for the database that maintains the artifacts that the artifact resolution service uses.")] String ArtifactDbConnection;
