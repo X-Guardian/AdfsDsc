@@ -13,7 +13,9 @@
     .PARAMETER AdditionalErrorPageInfo
         Write - String
         Allowed values: Private, Detailed, None
-        Specifies the level of additional information that is displayed on ADFS error pages.
+        Specifies the level of additional information that is displayed on ADFS error pages. This property is only
+        supported in Windows Server 2019 and above.
+
 
     .PARAMETER AuthenticationContextOrder
         Write - String
@@ -380,66 +382,85 @@ function Get-TargetResource
     }
 
     $returnValue = @{
-        FederationServiceName                      = $FederationServiceName
-        AdditionalErrorPageInfo                    = $targetResource.AdditionalErrorPageInfo
-        AuthenticationContextOrder                 = $targetResource.AuthenticationContextOrder
-        AcceptableIdentifiers                      = $targetResource.AcceptableIdentifiers
-        ArtifactDbConnection                       = $targetResource.ArtifactDbConnection
-        AuditLevel                                 = $targetResource.AuditLevel
-        AutoCertificateRollover                    = $targetResource.AutoCertificateRollover
-        CertificateCriticalThreshold               = $targetResource.CertificateCriticalThreshold
-        CertificateDuration                        = $targetResource.CertificateDuration
-        CertificateGenerationThreshold             = $targetResource.CertificateGenerationThreshold
-        CertificatePromotionThreshold              = $targetResource.CertificatePromotionThreshold
-        CertificateRolloverInterval                = $targetResource.CertificateRolloverInterval
-        CertificateThresholdMultiplier             = $targetResource.CertificateThresholdMultiplier
-        EnableOAuthDeviceFlow                      = $targetResource.EnableOAuthDeviceFlow
-        HostName                                   = $targetResource.HostName
-        HttpPort                                   = $targetResource.HttpPort
-        HttpsPort                                  = $targetResource.HttpsPort
-        IntranetUseLocalClaimsProvider             = $targetResource.IntranetUseLocalClaimsProvider
-        TlsClientPort                              = $targetResource.TlsClientPort
-        Identifier                                 = $targetResource.Identifier
-        LogLevel                                   = $targetResource.LogLevel
-        MonitoringInterval                         = $targetResource.MonitoringInterval
-        NetTcpPort                                 = $targetResource.NetTcpPort
-        NtlmOnlySupportedClientAtProxy             = $targetResource.NtlmOnlySupportedClientAtProxy
-        PreventTokenReplays                        = $targetResource.PreventTokenReplays
-        ExtendedProtectionTokenCheck               = $targetResource.ExtendedProtectionTokenCheck
-        ProxyTrustTokenLifetime                    = $targetResource.ProxyTrustTokenLifetime
-        ReplayCacheExpirationInterval              = $targetResource.ReplayCacheExpirationInterval
-        SignedSamlRequestsRequired                 = $targetResource.SignedSamlRequestsRequired
-        SamlMessageDeliveryWindow                  = $targetResource.SamlMessageDeliveryWindow
-        SignSamlAuthnRequests                      = $targetResource.SignSamlAuthnRequests
-        SsoLifetime                                = $targetResource.SsoLifetime
-        PersistentSsoLifetimeMins                  = $targetResource.PersistentSsoLifetimeMins
-        KmsiLifetimeMins                           = $targetResource.KmsiLifetimeMins
-        EnablePersistentSso                        = $targetResource.PersistentSsoEnabled
-        PersistentSsoCutoffTime                    = $targetResource.PersistentSsoCutoffTime
-        EnableKmsi                                 = $targetResource.KmsiEnabled
-        WIASupportedUserAgents                     = $targetResource.WIASupportedUserAgents
-        BrowserSsoSupportedUserAgents              = $targetResource.BrowserSsoSupportedUserAgents
-        BrowserSsoEnabled                          = $targetResource.BrowserSsoEnabled
-        LoopDetectionTimeIntervalInSeconds         = $targetResource.LoopDetectionTimeIntervalInSeconds
-        LoopDetectionMaximumTokensIssuedInInterval = $targetResource.LoopDetectionMaximumTokensIssuedInInterval
-        EnableLoopDetection                        = $targetResource.LoopDetectionEnabled
-        ExtranetLockoutThreshold                   = $targetResource.ExtranetLockoutThreshold
-        ExtranetLockoutThresholdFamiliarLocation   = $targetResource.ExtranetLockoutThresholdFamiliarLocation
-        EnableExtranetLockout                      = $targetResource.ExtranetLockoutEnabled
-        ExtranetLockoutMode                        = $targetResource.ExtranetLockoutMode
-        ExtranetObservationWindow                  = $targetResource.ExtranetObservationWindow
-        ExtranetLockoutRequirePDC                  = $targetResource.ExtranetLockoutRequirePDC
-        SendClientRequestIdAsQueryStringParameter  = $targetResource.SendClientRequestIdAsQueryStringParameter
-        GlobalRelyingPartyClaimsIssuancePolicy     = $targetResource.GlobalRelyingPartyClaimsIssuancePolicy
-        EnableLocalAuthenticationTypes             = $targetResource.LocalAuthenticationTypesEnabled
-        EnableRelayStateForIdpInitiatedSignOn      = $targetResource.RelayStateForIdpInitiatedSignOnEnabled
-        DelegateServiceAdministration              = $targetResource.DelegateServiceAdministration
-        AllowSystemServiceAdministration           = $targetResource.AllowSystemServiceAdministration
-        AllowLocalAdminsServiceAdministration      = $targetResource.AllowLocalAdminsServiceAdministration
-        DeviceUsageWindowInDays                    = $targetResource.DeviceUsageWindowInDays
-        EnableIdPInitiatedSignonPage               = $targetResource.EnableIdPInitiatedSignonPage
-        IgnoreTokenBinding                         = $targetResource.IgnoreTokenBinding
-        IdTokenIssuer                              = $targetResource.IdTokenIssuer
+        FederationServiceName = $FederationServiceName
+    }
+
+    $resourceProperties = @{
+        AdditionalErrorPageInfo                    = 'AdditionalErrorPageInfo'
+        AuthenticationContextOrder                 = 'AuthenticationContextOrder'
+        AcceptableIdentifiers                      = 'AcceptableIdentifiers'
+        ArtifactDbConnection                       = 'ArtifactDbConnection'
+        AuditLevel                                 = 'AuditLevel'
+        AutoCertificateRollover                    = 'AutoCertificateRollover'
+        CertificateCriticalThreshold               = 'CertificateCriticalThreshold'
+        CertificateDuration                        = 'CertificateDuration'
+        CertificateGenerationThreshold             = 'CertificateGenerationThreshold'
+        CertificatePromotionThreshold              = 'CertificatePromotionThreshold'
+        CertificateRolloverInterval                = 'CertificateRolloverInterval'
+        CertificateThresholdMultiplier             = 'CertificateThresholdMultiplier'
+        EnableOAuthDeviceFlow                      = 'EnableOAuthDeviceFlow'
+        HostName                                   = 'HostName'
+        HttpPort                                   = 'HttpPort'
+        HttpsPort                                  = 'HttpsPort'
+        IntranetUseLocalClaimsProvider             = 'IntranetUseLocalClaimsProvider'
+        TlsClientPort                              = 'TlsClientPort'
+        Identifier                                 = 'Identifier'
+        LogLevel                                   = 'LogLevel'
+        MonitoringInterval                         = 'MonitoringInterval'
+        NetTcpPort                                 = 'NetTcpPort'
+        NtlmOnlySupportedClientAtProxy             = 'NtlmOnlySupportedClientAtProxy'
+        PreventTokenReplays                        = 'PreventTokenReplays'
+        ExtendedProtectionTokenCheck               = 'ExtendedProtectionTokenCheck'
+        ProxyTrustTokenLifetime                    = 'ProxyTrustTokenLifetime'
+        ReplayCacheExpirationInterval              = 'ReplayCacheExpirationInterval'
+        SignedSamlRequestsRequired                 = 'SignedSamlRequestsRequired'
+        SamlMessageDeliveryWindow                  = 'SamlMessageDeliveryWindow'
+        SignSamlAuthnRequests                      = 'SignSamlAuthnRequests'
+        SsoLifetime                                = 'SsoLifetime'
+        PersistentSsoLifetimeMins                  = 'PersistentSsoLifetimeMins'
+        KmsiLifetimeMins                           = 'KmsiLifetimeMins'
+        EnablePersistentSso                        = 'PersistentSsoEnabled'
+        PersistentSsoCutoffTime                    = 'PersistentSsoCutoffTime'
+        EnableKmsi                                 = 'KmsiEnabled'
+        WIASupportedUserAgents                     = 'WIASupportedUserAgents'
+        BrowserSsoSupportedUserAgents              = 'BrowserSsoSupportedUserAgents'
+        BrowserSsoEnabled                          = 'BrowserSsoEnabled'
+        LoopDetectionTimeIntervalInSeconds         = 'LoopDetectionTimeIntervalInSeconds'
+        LoopDetectionMaximumTokensIssuedInInterval = 'LoopDetectionMaximumTokensIssuedInInterval'
+        EnableLoopDetection                        = 'LoopDetectionEnabled'
+        ExtranetLockoutThreshold                   = 'ExtranetLockoutThreshold'
+        ExtranetLockoutThresholdFamiliarLocation   = 'ExtranetLockoutThresholdFamiliarLocation'
+        EnableExtranetLockout                      = 'ExtranetLockoutEnabled'
+        ExtranetLockoutMode                        = 'ExtranetLockoutMode'
+        ExtranetObservationWindow                  = 'ExtranetObservationWindow'
+        ExtranetLockoutRequirePDC                  = 'ExtranetLockoutRequirePDC'
+        SendClientRequestIdAsQueryStringParameter  = 'SendClientRequestIdAsQueryStringParameter'
+        GlobalRelyingPartyClaimsIssuancePolicy     = 'GlobalRelyingPartyClaimsIssuancePolicy'
+        EnableLocalAuthenticationTypes             = 'LocalAuthenticationTypesEnabled'
+        EnableRelayStateForIdpInitiatedSignOn      = 'RelayStateForIdpInitiatedSignOnEnabled'
+        DelegateServiceAdministration              = 'DelegateServiceAdministration'
+        AllowSystemServiceAdministration           = 'AllowSystemServiceAdministration'
+        AllowLocalAdminsServiceAdministration      = 'AllowLocalAdminsServiceAdministration'
+        DeviceUsageWindowInDays                    = 'DeviceUsageWindowInDays'
+        EnableIdPInitiatedSignonPage               = 'EnableIdPInitiatedSignonPage'
+        IgnoreTokenBinding                         = 'IgnoreTokenBinding'
+        IdTokenIssuer                              = 'IdTokenIssuer'
+    }
+
+    foreach ($property in $resourceProperties.Keys)
+    {
+        if ($targetResource.PSObject.Properties.Name -contains $resourceProperties[$property] )
+        {
+            $returnValue += @{
+                $property = $targetResource.$($resourceProperties[$property])
+            }
+        }
+        else
+        {
+            $returnValue += @{
+                $property = $null
+            }
+        }
     }
 
     $returnValue
@@ -726,6 +747,17 @@ function Set-TargetResource
         FederationServiceName = $FederationServiceName
     }
     $targetResource = Get-TargetResource @getTargetResourceParms
+
+    $setAdfsPropertiesParameters = (Get-Command -Name 'Set-AdfsProperties').Parameters.Keys
+    foreach ($parameter in $parameters.keys)
+    {
+        if ($setAdfsPropertiesParameters -notcontains $parameter)
+        {
+            $errorMessage = ($script:localizedData.UnsupportedParameterErrorMessage -f
+                (Get-CimInstance -Class Win32_OperatingSystem).Caption)
+            New-InvalidArgumentException -Message $errorMessage -ArgumentName $parameter
+        }
+    }
 
     $propertiesNotInDesiredState = (
         Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters `

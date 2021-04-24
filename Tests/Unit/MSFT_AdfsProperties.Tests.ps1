@@ -302,7 +302,7 @@ try
 
                 Mock -CommandName Assert-Module
                 Mock -CommandName "Assert-$($global:psModuleName)Service"
-                Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
+                Mock -CommandName $ResourceCommand.Get -MockWith { [PSCustomObject]$mockGetResourceCommandResult }
 
                 $result = Get-TargetResource @getTargetResourceParameters
             }
@@ -320,6 +320,22 @@ try
                     -Exactly -Times 1
                 Assert-MockCalled -CommandName "Assert-$($global:psModuleName)Service" -Exactly -Times 1
                 Assert-MockCalled -CommandName $ResourceCommand.Get -Exactly -Times 1
+            }
+
+            Context 'When a Parameter is not supported on this edition of ADFS' {
+                BeforeAll {
+                    $unsupportedParameter = 'AdditionalErrorPageInfo'
+                    $mockGetResourceCommand2016Result = $mockGetResourceCommandResult.Clone()
+                    $mockGetResourceCommand2016Result.Remove($unsupportedParameter)
+
+                    Mock -CommandName $ResourceCommand.Get -MockWith { [PSCustomObject]$mockGetResourceCommand2016Result }
+
+                    $result = Get-TargetResource @getTargetResourceParameters
+                }
+
+                It "Should return the correct $unsupportedParameter property" {
+                    $result.$unsupportedParameter | Should -Be $null
+                }
             }
 
             Context "When $($ResourceCommand.Get) throws an exception" {
@@ -419,6 +435,32 @@ try
                             -Exactly -Times 1
                         Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 1
                     }
+                }
+            }
+
+            Context 'When a Parameter is not supported on this edition of ADFS' {
+                BeforeAll {
+                    $unsupportedParameter = 'AdditionalErrorPageInfo'
+                    $unsupportedParameterValue = 'Private'
+                    $setTargetResourceUnsupportedParameters = $setTargetResourceParameters.Clone()
+                    $setTargetResourceUnsupportedParameters.$unsupportedParameter = $unsupportedParameterValue
+                    $mock2016Resource = $mockResource.Clone()
+                    $mock2016Resource.Remove($unsupportedParameter)
+
+                    $mockGetCommandResult = @{
+                        Parameters = @{
+                            Keys = $mock2016Resource.Keys
+                        }
+                    }
+
+                    Mock -CommandName Get-Command -ParameterFilter { $Name -eq 'Set-AdfsProperties' } `
+                        -MockWith { $mockGetCommandResult }
+                }
+
+                It 'Should throw the correct exception' {
+                    $errorMessage = ($script:localizedData.UnsupportedParameterErrorMessage -f
+                        (Get-CimInstance -Class Win32_OperatingSystem).Caption)
+                    { Set-TargetResource @setTargetResourceUnsupportedParameters } | Should -Throw $errorMessage
                 }
             }
 

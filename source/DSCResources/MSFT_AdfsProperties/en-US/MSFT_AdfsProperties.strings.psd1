@@ -9,4 +9,5 @@ ConvertFrom-StringData @'
 
     GettingResourceErrorMessage      = Error getting '{0}'. (PROERR001)
     SettingResourceErrorMessage      = Error setting '{0}'. (PROERR002)
+    UnsupportedParameterErrorMessage = Parameter not supported on the {0} edition of ADFS. (PROERR003)
 '@

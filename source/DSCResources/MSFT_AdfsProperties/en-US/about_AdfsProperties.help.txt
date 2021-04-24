@@ -12,7 +12,7 @@
 .PARAMETER AdditionalErrorPageInfo
     Write - String
     Allowed values: Private, Detailed, None
-    Specifies the level of additional information that is displayed on ADFS error pages.
+    Specifies the level of additional information that is displayed on ADFS error pages. This property is only supported in Windows Server 2019 and above.
 
 .PARAMETER AuthenticationContextOrder
     Write - String
