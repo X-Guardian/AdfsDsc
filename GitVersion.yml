@@ -1,8 +1,8 @@
 mode: ContinuousDelivery
-next-version: 1.1.0
-major-version-bump-message: '\s?(breaking|major|breaking\schange)'
+next-version: 1.2.0
+major-version-bump-message: '\s?(major)'
 minor-version-bump-message: '(adds?|features?|minor)\b'
-patch-version-bump-message: '\s?(fix|patch)'
+patch-version-bump-message: '\s?(patch)'
 no-bump-message: '\+semver:\s?(none|skip)'
 assembly-informational-format: '{NuGetVersionV2}+Sha.{Sha}.Date.{CommitDate}'
 branches:
