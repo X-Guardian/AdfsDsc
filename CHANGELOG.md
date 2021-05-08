@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed issues with unavailable properties on Windows Server 2016
   ([issue #51](https://github.com/X-Guardian/AdfsDsc/issues/51)).
 
+### Changed
+
+- AdfsDsc
+  - Updated gitversion configuration.
 
 ## [1.1.0] - 2020-12-22
 
