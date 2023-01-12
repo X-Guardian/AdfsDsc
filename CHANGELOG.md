@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - AdfsDsc
   - Updated gitversion configuration.
+  - Updated Azure Pipeline Ubuntu image version
 
 ## [1.1.0] - 2020-12-22
 
