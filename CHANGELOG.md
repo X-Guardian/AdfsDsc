@@ -5,6 +5,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2023-03-19
+
 ### Fixed
 
 - AdfsDsc
@@ -20,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated Azure Pipeline Ubuntu image version
 - AdfsFarm
   - Added parameters `CertificateDnsName`, `SigningCertificateDnsName` and `DecryptionCertificateDnsName`.
+
+## [1.2.0] - Unreleased
 
 ## [1.1.0] - 2020-12-22
 
