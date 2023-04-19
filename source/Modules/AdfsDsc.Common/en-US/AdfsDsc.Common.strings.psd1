@@ -23,7 +23,7 @@ ConvertFrom-StringData @'
     ActiveDirectoryGroupNotFoundError         = Active Directory Group '{0}' not found. (ADFSCOMMON0020)
     ActiveDirectoryGroupNotFoundFromSidError  = No Active Directory Group found with Sid '{0}'. (ADFSCOMMON0021)
     UnknownIssuanceTransformRuleTemplateError = Unknown issuance transform rule template '{0}'. (ADFSCOMMON0022)
-    IssuanceTransformRuleCountDoesNotMatch    = Issuance Transform rule count does not match. Expected '{1}', Actual '{2}'. (ADFSCOMMON0023)
+    IssuanceTransformRuleCountDoesNotMatch    = Issuance Transform rule count does not match. Expected '{0}', Actual '{1}'. (ADFSCOMMON0023)
     IssuanceTransformRuleDoesNotMatch         = Issuance Transform Rule '{0}' does not match. (ADFSCOMMON0024)
     PolicyParameterNotInDesiredState          = Resource not in the desired state, Expected properties {0}, actual {1}. (ADFSCOMMON0025)
 
