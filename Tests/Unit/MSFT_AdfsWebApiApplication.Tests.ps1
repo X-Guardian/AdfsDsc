@@ -124,7 +124,7 @@ try
             AccessControlPolicyParameters        = $mockAccessControlPolicyParameters
             AdditionalAuthenticationRules        = 'rule'
             AllowedAuthenticationClassReferences = @()
-            AllowedClientTypes                   = 'Public'
+            AllowedClientTypes                   = 'Public', 'Confidential'
             AlwaysRequireAuthentication          = $false
             ClaimsProviderName                   = @()
             DelegationAuthorizationRules         = 'rule'
@@ -266,7 +266,9 @@ try
                     AccessControlPolicyParameters        = $mockGroupAccessControlPolicyParameters
                     AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
                     AllowedAuthenticationClassReferences = $mockResource.AllowedAuthenticationClassReferences
-                    AllowedClientTypes                   = $mockResource.AllowedClientTypes
+                    AllowedClientTypes                   = (
+                        [Microsoft.IdentityServer.Protocols.PolicyStore.AllowedClientTypes]::Public -bor
+                        [Microsoft.IdentityServer.Protocols.PolicyStore.AllowedClientTypes]::Confidential)
                     AlwaysRequireAuthentication          = $mockResource.AlwaysRequireAuthentication
                     ClaimsProviderName                   = $mockResource.ClaimsProviderName
                     DelegationAuthorizationRules         = $mockResource.DelegationAuthorizationRules
@@ -349,9 +351,9 @@ try
                 }
 
                 It 'Should throw the correct exception' {
-                    { Get-TargetResource @getTargetResourceParameters } | `
+                    { Get-TargetResource @getTargetResourceParameters } |
                         Should -Throw ($script:localizedData.GettingResourceErrorMessage -f
-                        $getTargetResourceParameters.Name)
+                            $getTargetResourceParameters.Name)
                 }
             }
         }
@@ -428,9 +430,9 @@ try
                             }
 
                             It 'Should throw the correct exception' {
-                                { Set-TargetResource @setTargetResourcePresentAGIChangedParameters } | `
+                                { Set-TargetResource @setTargetResourcePresentAGIChangedParameters } |
                                     Should -Throw ($script:localizedData.RemovingResourceErrorMessage -f
-                                    $setTargetResourcePresentAGIChangedParameters.Name)
+                                        $setTargetResourcePresentAGIChangedParameters.Name)
                             }
                         }
 
@@ -440,9 +442,9 @@ try
                             }
 
                             It 'Should throw the correct exception' {
-                                { Set-TargetResource @setTargetResourcePresentAGIChangedParameters } | `
+                                { Set-TargetResource @setTargetResourcePresentAGIChangedParameters } |
                                     Should -Throw ($script:localizedData.AddingResourceErrorMessage -f
-                                    $setTargetResourcePresentAGIChangedParameters.Name)
+                                        $setTargetResourcePresentAGIChangedParameters.Name)
                             }
                         }
                     }
@@ -484,9 +486,9 @@ try
                             }
 
                             It 'Should throw the correct exception' {
-                                { Set-TargetResource @setTargetResourceParametersChangedProperty } | `
+                                { Set-TargetResource @setTargetResourceParametersChangedProperty } |
                                     Should -Throw ($script:localizedData.SettingResourceErrorMessage -f
-                                    $setTargetResourceParametersChangedProperty.Name)
+                                        $setTargetResourceParametersChangedProperty.Name)
                             }
                         }
                     }
@@ -515,9 +517,9 @@ try
                     }
 
                     It 'Should throw the correct exception' {
-                        { Set-TargetResource @setTargetResourceAbsentParameters } | `
+                        { Set-TargetResource @setTargetResourceAbsentParameters } |
                             Should -Throw ($script:localizedData.RemovingResourceErrorMessage -f
-                            $setTargetResourceAbsentParameters.Name)
+                                $setTargetResourceAbsentParameters.Name)
                     }
                 }
             }
@@ -549,9 +551,9 @@ try
                         }
 
                         It 'Should throw the correct exception' {
-                            { Set-TargetResource @setTargetResourcePresentParameters } | `
+                            { Set-TargetResource @setTargetResourcePresentParameters } |
                                 Should -Throw ($script:localizedData.AddingResourceErrorMessage -f
-                                $setTargetResourcePresentParameters.Name)
+                                    $setTargetResourcePresentParameters.Name)
                         }
                     }
                 }

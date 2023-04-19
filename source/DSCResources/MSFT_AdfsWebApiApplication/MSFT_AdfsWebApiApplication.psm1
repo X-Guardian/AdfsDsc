@@ -197,7 +197,7 @@ function Get-TargetResource
             AccessControlPolicyParameters        = $AccessControlPolicyParameters
             AdditionalAuthenticationRules        = $targetResource.AdditionalAuthenticationRules
             AlwaysRequireAuthentication          = $targetResource.AlwaysRequireAuthentication
-            AllowedClientTypes                   = @($targetResource.AllowedClientTypes)
+            AllowedClientTypes                   = @($targetResource.AllowedClientTypes.ToString().Split(',').Trim(' '))
             AllowedAuthenticationClassReferences = @($targetResource.AllowedAuthenticationClassReferences)
             ClaimsProviderName                   = @($targetResource.ClaimsProviderName)
             DelegationAuthorizationRules         = $targetResource.DelegationAuthorizationRules
