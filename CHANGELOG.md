@@ -5,6 +5,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- AdsfWebApiApplication
+  - Fixed issue when the `AllowedClientTypes` Property had multiple values ([#63](https://github.com/X-Guardian/AdfsDsc/issues/63)])
+
 ## [1.3.0] - 2023-03-19
 
 ### Fixed
