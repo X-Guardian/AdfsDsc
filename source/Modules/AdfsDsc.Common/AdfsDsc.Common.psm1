@@ -1232,6 +1232,8 @@ function Compare-IssuanceTransformRule
 
     if ([System.String]::IsNullOrEmpty($CurrentValue) -or $CurrentValue.Count -ne $DesiredValue.Count)
     {
+        Write-Verbose -Message ($script:LocalizedData.IssuanceTransformRuleCountDoesNotMatch -f
+            $DesiredValue.Count, $CurrentValue.Count)
         $parameterState.InDesiredState = $false
     }
     else
@@ -1248,6 +1250,8 @@ function Compare-IssuanceTransformRule
                     if (Compare-Object -ReferenceObject $CurrentValue[$index] -DifferenceObject $DesiredValue[$index] `
                             -Property $CurrentValue[$index].CimInstanceProperties.Name)
                     {
+                        Write-Verbose -Message ($script:LocalizedData.IssuanceTransformRuleDoesNotMatch -f
+                            $DesiredValue[$index].Name)
                         $parameterState.InDesiredState = $false
                         break
                     }
@@ -1256,6 +1260,8 @@ function Compare-IssuanceTransformRule
                             -DifferenceObject $DesiredValue[$index].LdapMapping `
                             -Property $CurrentValue[$index].LdapMapping.CimInstanceProperties.Name)
                     {
+                        Write-Verbose -Message ($script:LocalizedData.IssuanceTransformRuleDoesNotMatch -f
+                            $DesiredValue[$index].Name)
                         $parameterState.InDesiredState = $false
                         break
                     }
@@ -1269,6 +1275,8 @@ function Compare-IssuanceTransformRule
                     if (Compare-Object -ReferenceObject $CurrentValue[$index] -DifferenceObject $DesiredValue[$index] `
                             -Property $CurrentValue[$index].CimInstanceProperties.Name)
                     {
+                        Write-Verbose -Message ($script:LocalizedData.IssuanceTransformRuleDoesNotMatch -f
+                            $DesiredValue[$index].Name)
                         $parameterState.InDesiredState = $false
                         break
                     }
@@ -1278,11 +1286,13 @@ function Compare-IssuanceTransformRule
                     Write-Debug -Message ($script:LocalizedData.ComparingPropertiesWithNameDebugMessage -f
                         'CustomClaims', $CurrentValue[$index].Name)
 
-                    $CurrentCustomRule = ($CurrentValue[$index].CustomRule -split '\r?\n' | Out-String).Trim()
-                    $DesiredCustomRule = ($DesiredValue[$index].CustomRule -split '\r?\n' | Out-String).Trim()
+                    $CurrentCustomRule = ($CurrentValue[$index].CustomRule -split '\r?\n' -join '').Trim()
+                    $DesiredCustomRule = ($DesiredValue[$index].CustomRule -split '\r?\n' -join '').Trim()
                     if ($CurrentCustomRule -ne $DesiredCustomRule -or
                         $CurrentValue[$index].Name -ne $DesiredValue[$index].Name)
                     {
+                        Write-Verbose -Message ($script:LocalizedData.IssuanceTransformRuleDoesNotMatch -f
+                            $DesiredValue[$index].Name)
                         $parameterState.InDesiredState = $false
                         break
                     }
@@ -1296,6 +1306,8 @@ function Compare-IssuanceTransformRule
             }
             else
             {
+                Write-Verbose -Message ($script:LocalizedData.IssuanceTransformRuleDoesNotMatch -f
+                    $DesiredValue[$index].Name)
                 $parameterState.InDesiredState = $false
                 break
             }
