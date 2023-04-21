@@ -19,7 +19,7 @@
 
 <#
     .DESCRIPTION
-        This configuration will ...
+        This configuration will set the Extranet Lockout properties on the ADFS service.
 #>
 
 Configuration AdfsProperties_Config

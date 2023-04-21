@@ -19,7 +19,7 @@
 
 <#
     .DESCRIPTION
-        This configuration will ...
+        This configuration will set the global authentication policy for the ADFS service.
 #>
 
 Configuration AdfsGlobalAuthenticationPolicy_Config

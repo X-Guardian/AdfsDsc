@@ -19,7 +19,7 @@
 
 <#
     .DESCRIPTION
-        This configuration will the company name of the global web content for the invariant locale. If there is no
+        This configuration will set the company name of the global web content for the invariant locale. If there is no
         logo, the sign-in page displays the company name Contoso.
 #>
 

@@ -94,7 +94,7 @@
 
 .EXAMPLE 1
 
-This configuration will add a Web API application role to an application in Active Directory Federation
+This configuration will add a Web API application to an application group in Active Directory Federation
 Services (AD FS).
 
 Configuration AdfsWebApiApplication_Config
@@ -105,6 +105,12 @@ Configuration AdfsWebApiApplication_Config
 
     Node localhost
     {
+        AdfsApplicationGroup AppGroup1
+        {
+            Name        = 'AppGroup1'
+            Description = "This is the AppGroup1 Description"
+        }
+
         AdfsWebApiApplication WebApiApp1
         {
             Name                                 = 'AppGroup1 - Web API'
@@ -125,8 +131,8 @@ Configuration AdfsWebApiApplication_Config
 
 .EXAMPLE 2
 
-This configuration will add a Web API application role to an application in Active Directory Federation
-Services (AD FS).
+This configuration will add a Web API application with an LDAP Claims Issuance Transform rule to an application group
+in Active Directory Federation Services (AD FS).
 
 Configuration AdfsWebApiApplication_LdapClaims_IssuanceTransformRules_Config
 {
@@ -136,6 +142,12 @@ Configuration AdfsWebApiApplication_LdapClaims_IssuanceTransformRules_Config
 
     Node localhost
     {
+        AdfsApplicationGroup AppGroup1
+        {
+            Name        = 'AppGroup1'
+            Description = "This is the AppGroup1 Description"
+        }
+
         AdfsWebApiApplication WebApiApp1
         {
             Name                          = 'AppGroup1 - Web API'
@@ -176,8 +188,8 @@ Configuration AdfsWebApiApplication_LdapClaims_IssuanceTransformRules_Config
 
 .EXAMPLE 3
 
-This configuration will add a Web API application role to an application in Active Directory Federation
-Services (AD FS).
+This configuration will add a Web API application with an Emit Group Claims Issuance Transform rule to an application
+group in Active Directory Federation Services (AD FS).
 
 Configuration AdfsWebApiApplication_EmitGroupClaims_IssuanceTransformRules_Config
 {
@@ -187,6 +199,12 @@ Configuration AdfsWebApiApplication_EmitGroupClaims_IssuanceTransformRules_Confi
 
     Node localhost
     {
+        AdfsApplicationGroup AppGroup1
+        {
+            Name        = 'AppGroup1'
+            Description = "This is the AppGroup1 Description"
+        }
+
         AdfsWebApiApplication WebApiApp1
         {
             Name                          = 'AppGroup1 - Web API'
@@ -217,8 +235,8 @@ Configuration AdfsWebApiApplication_EmitGroupClaims_IssuanceTransformRules_Confi
 
 .EXAMPLE 4
 
-This configuration will add a Web API application role to an application in Active Directory Federation
-Services (AD FS).
+This configuration will add a Web API application with a Custom Claims Issuance Transform rule to an application group
+in Active Directory Federation Services (AD FS).
 
 Configuration AdfsWebApiApplication_CustomClaims_IssuanceTransformRules_Config
 {
@@ -228,6 +246,12 @@ Configuration AdfsWebApiApplication_CustomClaims_IssuanceTransformRules_Config
 
     Node localhost
     {
+        AdfsApplicationGroup AppGroup1
+        {
+            Name        = 'AppGroup1'
+            Description = "This is the AppGroup1 Description"
+        }
+
         AdfsWebApiApplication WebApiApp1
         {
             Name                          = 'AppGroup1 - Web API'
@@ -247,11 +271,46 @@ Configuration AdfsWebApiApplication_CustomClaims_IssuanceTransformRules_Config
                 {
                     TemplateName = 'CustomClaims'
                     Name         = 'App1 Custom Claim'
-                    CustomRule   = 'TBC'
+                    CustomRule   = 'c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"] => issue(store = "Active Directory", types = ("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"), query = ";givenName;{0}", param = c.Value);'
                 }
             )
         }
     }
 }
 
+.EXAMPLE 5
 
+This configuration will add a Web API application with an access control policy parameters to an application group in
+Active Directory Federation Services (AD FS).
+
+Configuration AdfsWebApiApplication_AccessControlPolicyParameters_Config
+{
+    param()
+
+    Import-DscResource -ModuleName AdfsDsc
+
+    Node localhost
+    {
+        AdfsApplicationGroup AppGroup1
+        {
+            Name        = 'AppGroup1'
+            Description = "This is the AppGroup1 Description"
+        }
+
+        AdfsWebApiApplication WebApiApp1
+        {
+            Name                          = 'AppGroup1 - Web API'
+            ApplicationGroupIdentifier    = 'AppGroup1'
+            Identifier                    = 'e7bfb303-c5f6-4028-a360-b6293d41338c'
+            Description                   = 'App1 Web Api'
+            AccessControlPolicyName       = 'Permit specific group'
+            AccessControlPolicyParameters = MSFT_AdfsAccessControlPolicyParameters
+            {
+                GroupParameter = @(
+                    'CONTOSO\AppGroup1 Users'
+                    'CONTOSO\AppGroup1 Admins'
+                )
+            }
+        }
+    }
+}

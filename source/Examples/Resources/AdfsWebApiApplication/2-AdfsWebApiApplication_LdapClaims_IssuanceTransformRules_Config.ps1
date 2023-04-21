@@ -19,8 +19,8 @@
 
 <#
     .DESCRIPTION
-        This configuration will add a Web API application role to an application in Active Directory Federation
-        Services (AD FS).
+        This configuration will add a Web API application with an LDAP Claims Issuance Transform rule to an application
+        group in Active Directory Federation Services (AD FS).
 #>
 
 Configuration AdfsWebApiApplication_LdapClaims_IssuanceTransformRules_Config
@@ -31,6 +31,12 @@ Configuration AdfsWebApiApplication_LdapClaims_IssuanceTransformRules_Config
 
     Node localhost
     {
+        AdfsApplicationGroup AppGroup1
+        {
+            Name        = 'AppGroup1'
+            Description = "This is the AppGroup1 Description"
+        }
+
         AdfsWebApiApplication WebApiApp1
         {
             Name                          = 'AppGroup1 - Web API'
