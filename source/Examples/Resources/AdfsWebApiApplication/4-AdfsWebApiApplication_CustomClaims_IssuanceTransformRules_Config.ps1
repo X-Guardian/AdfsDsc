@@ -19,8 +19,8 @@
 
 <#
     .DESCRIPTION
-        This configuration will add a Web API application role to an application in Active Directory Federation
-        Services (AD FS).
+        This configuration will add a Web API application with a Custom Claims Issuance Transform rule to an
+        application group in Active Directory Federation Services (AD FS).
 #>
 
 Configuration AdfsWebApiApplication_CustomClaims_IssuanceTransformRules_Config
@@ -31,6 +31,12 @@ Configuration AdfsWebApiApplication_CustomClaims_IssuanceTransformRules_Config
 
     Node localhost
     {
+        AdfsApplicationGroup AppGroup1
+        {
+            Name        = 'AppGroup1'
+            Description = "This is the AppGroup1 Description"
+        }
+
         AdfsWebApiApplication WebApiApp1
         {
             Name                          = 'AppGroup1 - Web API'
@@ -50,7 +56,7 @@ Configuration AdfsWebApiApplication_CustomClaims_IssuanceTransformRules_Config
                 {
                     TemplateName = 'CustomClaims'
                     Name         = 'App1 Custom Claim'
-                    CustomRule   = 'TBC'
+                    CustomRule   = 'c:[Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/windowsaccountname", Issuer == "AD AUTHORITY"] => issue(store = "Active Directory", types = ("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"), query = ";givenName;{0}", param = c.Value);'
                 }
             )
         }
