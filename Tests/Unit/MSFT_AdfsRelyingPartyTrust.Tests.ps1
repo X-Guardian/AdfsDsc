@@ -386,7 +386,9 @@ try
                     AdditionalAuthenticationRules        = $mockResource.AdditionalAuthenticationRules
                     AdditionalWSFedEndpoint              = $mockResource.AdditionalWSFedEndpoint
                     AllowedAuthenticationClassReferences = $mockResource.AllowedAuthenticationClassReferences
-                    AllowedClientTypes                   = $mockResource.AllowedClientTypes
+                    AllowedClientTypes                   = (
+                        [Microsoft.IdentityServer.Protocols.PolicyStore.AllowedClientTypes]::Public -bor
+                        [Microsoft.IdentityServer.Protocols.PolicyStore.AllowedClientTypes]::Confidential)
                     AlwaysRequireAuthentication          = $mockResource.AlwaysRequireAuthentication
                     AutoUpdateEnabled                    = $mockResource.AutoUpdateEnabled
                     ClaimsAccepted                       = $mockClaimAccepted

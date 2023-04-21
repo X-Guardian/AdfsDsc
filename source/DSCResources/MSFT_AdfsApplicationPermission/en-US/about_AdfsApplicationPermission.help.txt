@@ -32,7 +32,7 @@
 
 .EXAMPLE 1
 
-This configuration will grant application permission in Active Directory Federation Services (AD FS).
+This configuration will grant an application permission in Active Directory Federation Services (AD FS).
 
 Configuration AdfsApplicationPermission_Config
 {
@@ -42,8 +42,8 @@ Configuration AdfsApplicationPermission_Config
     {
         AdfsApplicationPermission AppPermission1
         {
-            ClientRoleIdentifier = 'e7bfb303-c5f6-4028-a360-b6293d41338c'
-            ServerRoleIdentifier = 'e7bfb303-c5f6-4028-a360-b6293d41338c'
+            ClientRoleIdentifier = '168f3ee4-63fc-4723-a61a-6473f6cb515c'
+            ServerRoleIdentifier = 'http://schemas.microsoft.com/ws/2009/12/identityserver/selfscope'
             Description          = "This is the AppPermission1 Description"
             ScopeNames           = 'openid'
         }
