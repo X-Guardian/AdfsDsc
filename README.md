@@ -1,9 +1,9 @@
 # AdfsDsc
 
-[![Build Status](https://dev.azure.com/simonheather99/AdfsDsc/_apis/build/status/X-Guardian.AdfsDsc?branchName=master)](https://dev.azure.com/simonheather99/AdfsDsc/_build/latest?definitionId=3&branchName=master)
-![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/simonheather99/AdfsDsc/3/master)
-[![codecov](https://codecov.io/gh/X-Guardian/AdfsDsc/branch/master/graph/badge.svg)](https://codecov.io/gh/X-Guardian/AdfsDsc)
-[![Azure DevOps tests](https://img.shields.io/azure-devops/tests/simonheather99/AdfsDsc/3/master)](https://dsccommunity.visualstudio.com/AdfsDsc/_test/analytics?definitionId=3&contextType=build)
+[![Build Status](https://dev.azure.com/simonheather99/AdfsDsc/_apis/build/status/X-Guardian.AdfsDsc?branchName=main)](https://dev.azure.com/simonheather99/AdfsDsc/_build/latest?definitionId=3&branchName=main)
+![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/simonheather99/AdfsDsc/3/main)
+[![codecov](https://codecov.io/gh/X-Guardian/AdfsDsc/branch/main/graph/badge.svg)](https://codecov.io/gh/X-Guardian/AdfsDsc)
+[![Azure DevOps tests](https://img.shields.io/azure-devops/tests/simonheather99/AdfsDsc/3/main)](https://dsccommunity.visualstudio.com/AdfsDsc/_test/analytics?definitionId=3&contextType=build)
 [![PowerShell Gallery (with prereleases)](https://img.shields.io/powershellgallery/vpre/AdfsDsc?label=AdfsDsc%20Preview)](https://www.powershellgallery.com/packages/AdfsDsc/)
 [![PowerShell Gallery](https://img.shields.io/powershellgallery/v/AdfsDsc?label=AdfsDsc)](https://www.powershellgallery.com/packages/AdfsDsc/)
 
@@ -18,7 +18,7 @@ This project has adopted this [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Releases
 
-For each merge to the branch `master` a preview release will be deployed to [PowerShell Gallery](https://www.powershellgallery.com/).
+For each merge to the branch `main` a preview release will be deployed to [PowerShell Gallery](https://www.powershellgallery.com/).
 Periodically a release version tag will be pushed which will deploy a full release to [PowerShell Gallery](https://www.powershellgallery.com/).
 
 ## Documentation and Examples
