@@ -484,8 +484,8 @@ function Test-DscPropertyState
     elseif ($Values.DesiredValue.GetType().IsArray -or $Values.CurrentValue.GetType().IsArray)
     {
         $compareObjectParameters = @{
-            ReferenceObject  = $Values.CurrentValue
-            DifferenceObject = $Values.DesiredValue
+            ReferenceObject  = $Values.CurrentValue | Sort-Object
+            DifferenceObject = $Values.DesiredValue | Sort-Object
         }
 
         $arrayCompare = Compare-Object @compareObjectParameters -SyncWindow 0
