@@ -51,7 +51,7 @@ try
             ClientRoleIdentifier = 'NativeApp1'
             ServerRoleIdentifier = 'https://nativeapp1.contoso.com'
             Description          = "This is the AppPermission1 Description"
-            ScopeNames           = 'openid'
+            ScopeNames           = 'openid', 'profile'
             Ensure               = 'Present'
         }
 
@@ -65,7 +65,7 @@ try
 
         $mockChangedResource = @{
             Description = "This is the new AppPermission1 Description"
-            ScopeNames  = 'openid, profile'
+            ScopeNames  = 'openid'
         }
 
         $mockGetTargetResourceResult = @{
@@ -343,7 +343,7 @@ try
                     ClientRoleIdentifier = $mockResource.ClientRoleIdentifier
                     ServerRoleIdentifier = $mockResource.ServerRoleIdentifier
                     Description          = $mockResource.Description
-                    ScopeNames           = $mockResource.ScopeNames
+                    ScopeNames           = $mockResource.ScopeNames | Sort-Object -Descending
                 }
 
                 $testTargetResourcePresentParameters = $testTargetResourceParameters.Clone()

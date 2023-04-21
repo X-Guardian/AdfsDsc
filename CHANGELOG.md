@@ -7,8 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- AdfsDsc
-  - Fixed issue comparing arrays if elements were in a different order ([#67](https://github.com/X-Guardian/AdfsDsc/issues/67)]).
+- AdfsApplicationPermission
+  - Fixed issue comparing multiple ScopeNames ([#67](https://github.com/X-Guardian/AdfsDsc/issues/67)]).
 - AdsfRelyingPartyTrust
   - Fixed issue when the `AllowedClientTypes` Property had multiple values.
 

@@ -336,6 +336,10 @@ function Compare-ResourcePropertyState
     .PARAMETER IgnoreProperties
         An array of property names, from the keys provided in DesiredValues, that
         will be ignored.
+
+    .PARAMETER UnorderedArrayProperties
+        An array of propert names, from the keys provided in Desired Values, that
+        will be treated as unordered arrays.
     #>
 
     [CmdletBinding()]
@@ -356,7 +360,11 @@ function Compare-ResourcePropertyState
 
         [Parameter()]
         [System.String[]]
-        $IgnoreProperties
+        $IgnoreProperties,
+
+        [Parameter()]
+        [System.String[]]
+        $UnorderedArrayProperties
     )
 
     if ($PSBoundParameters.ContainsKey('Properties'))
@@ -413,11 +421,20 @@ function Compare-ResourcePropertyState
             Actual        = $CurrentValues.$parameterName
         }
 
+        if ($UnorderedArrayProperties -contains $parameterName)
+        {
+            $UnorderedArrayProperty = $true
+        }
+        else
+        {
+            $UnorderedArrayProperty = $false
+        }
+
         # Check if the parameter is in compliance.
         $isPropertyInDesiredState = Test-DscPropertyState -Values @{
             CurrentValue = $CurrentValues.$parameterName
             DesiredValue = $DesiredValues.$parameterName
-        }
+        } -UnorderedArrayProperty $UnorderedArrayProperty
 
         if ($isPropertyInDesiredState)
         {
@@ -450,6 +467,9 @@ function Test-DscPropertyState
         This is set to a hash table with the current value (the CurrentValue key)
         and desired value (the DesiredValue key).
 
+    .PARAMETER UnorderedArrayProperty
+        Specifies that the property is an unordered array.
+
     .EXAMPLE
         Test-DscPropertyState -Values @{
             CurrentValue = 'John'
@@ -468,7 +488,11 @@ function Test-DscPropertyState
     (
         [Parameter(Mandatory = $true)]
         [System.Collections.Hashtable]
-        $Values
+        $Values,
+
+        [Parameter()]
+        [System.Boolean]
+        $UnorderedArrayProperty
     )
 
     if ([System.String]::IsNullOrEmpty($Values.CurrentValue) -and [System.String]::IsNullOrEmpty($Values.DesiredValue))
@@ -483,9 +507,19 @@ function Test-DscPropertyState
     }
     elseif ($Values.DesiredValue.GetType().IsArray -or $Values.CurrentValue.GetType().IsArray)
     {
-        $compareObjectParameters = @{
-            ReferenceObject  = $Values.CurrentValue | Sort-Object
-            DifferenceObject = $Values.DesiredValue | Sort-Object
+        if ($UnorderedArrayProperty)
+        {
+            $compareObjectParameters = @{
+                ReferenceObject  = $Values.CurrentValue | Sort-Object
+                DifferenceObject = $Values.DesiredValue | Sort-Object
+            }
+        }
+        else
+        {
+            $compareObjectParameters = @{
+                ReferenceObject  = $Values.CurrentValue
+                DifferenceObject = $Values.DesiredValue
+            }
         }
 
         $arrayCompare = Compare-Object @compareObjectParameters -SyncWindow 0
