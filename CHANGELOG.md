@@ -5,6 +5,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- AdsfRelyingPartyTrust
+  - Fixed issue when the `AllowedClientTypes` Property had multiple values.
+
 ## [1.3.1] - 2023-04-19
 
 ### Fixed

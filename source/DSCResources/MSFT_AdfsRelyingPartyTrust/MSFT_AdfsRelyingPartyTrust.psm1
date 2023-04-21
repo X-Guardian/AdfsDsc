@@ -299,7 +299,7 @@ function Get-TargetResource
             AdditionalAuthenticationRules        = $targetResource.AdditionalAuthenticationRules
             AdditionalWSFedEndpoint              = @($targetResource.AdditionalWSFedEndpoint)
             AllowedAuthenticationClassReferences = $targetResource.AllowedAuthenticationClassReferences
-            AllowedClientTypes                   = @($targetResource.AllowedClientTypes)
+            AllowedClientTypes                   = @($targetResource.AllowedClientTypes.ToString().Split(',').Trim(' '))
             AlwaysRequireAuthentication          = $targetResource.AlwaysRequireAuthentication
             AutoUpdateEnabled                    = $targetResource.AutoUpdateEnabled
             ClaimAccepted                        = $claimAcceptedDescriptions
