@@ -55,12 +55,12 @@ stages:
     dependsOn: Build
     jobs:
       - job: Test_HQRM
-        displayName: 'HQRM2'
+        displayName: 'HQRM'
         pool:
           vmImage: 'windows-2019'
         timeoutInMinutes: 0
         steps:
-          - task: DownloadBuildArtifacts@0
+          - task: DownloadBuildArtifacts@1
             displayName: 'Download Build Artifact'
             inputs:
               buildType: 'current'
@@ -95,7 +95,7 @@ stages:
               echo "##vso[task.setvariable variable=RepositoryName;isOutput=true]$repositoryName"
             name: dscBuildVariable
             displayName: 'Set Environment Variables'
-          - task: DownloadBuildArtifacts@0
+          - task: DownloadBuildArtifacts@1
             displayName: 'Download Build Artifact'
             inputs:
               buildType: 'current'
@@ -144,14 +144,14 @@ stages:
               echo "##vso[task.setvariable variable=RepositoryName;isOutput=true]$repositoryName"
             name: dscBuildVariable
             displayName: 'Set Environment Variables'
-          - task: DownloadBuildArtifacts@0
+          - task: DownloadBuildArtifacts@1
             displayName: 'Download Build Artifact'
             inputs:
               buildType: 'current'
               downloadType: 'single'
               artifactName: $(buildArtifactName)
               downloadPath: '$(Build.SourcesDirectory)'
-          - task: DownloadBuildArtifacts@0
+          - task: DownloadBuildArtifacts@1
             displayName: 'Download Test Artifact'
             inputs:
               buildType: 'current'
@@ -188,7 +188,7 @@ stages:
         pool:
           vmImage: 'ubuntu-latest'
         steps:
-          - task: DownloadBuildArtifacts@0
+          - task: DownloadBuildArtifacts@1
             displayName: 'Download Build Artifact'
             inputs:
               buildType: 'current'
