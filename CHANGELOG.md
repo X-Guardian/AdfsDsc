@@ -5,6 +5,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- AdfsServerApplication
+  - Added basic support for AdfsServerApplicaitons (WIA only, not client certificates/secrets)
+
 ### Changed
 
 - Update Azure DevOps DownloadBuildArtifacts to v1.

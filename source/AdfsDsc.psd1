@@ -78,7 +78,7 @@ DscResourcesToExport = 'AdfsApplicationGroup', 'AdfsApplicationPermission',
                'AdfsFarm', 'AdfsFarmNode', 'AdfsGlobalAuthenticationPolicy',
                'AdfsGlobalWebContent', 'AdfsNativeClientApplication',
                'AdfsOrganization', 'AdfsProperties', 'AdfsRelyingPartyTrust',
-               'AdfsSslCertificate', 'AdfsWebApiApplication'
+               'AdfsSslCertificate', 'AdfsWebApiApplication', 'AdfsServerApplication'
 
 # List of all modules packaged with this module
 # ModuleList = @()
