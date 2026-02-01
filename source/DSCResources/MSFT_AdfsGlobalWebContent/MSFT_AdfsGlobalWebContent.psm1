@@ -171,31 +171,62 @@ function Get-TargetResource
         New-InvalidOperationException -Message $errorMessage -Error $_
     }
 
-    $returnValue = @{
-        FederationServiceName                              = $FederationServiceName
-        Locale                                             = $Locale
-        CompanyName                                        = $targetResource.CompanyName
-        HelpDeskLink                                       = $targetResource.HelpDeskLink
-        HelpDeskLinkText                                   = $targetResource.HelpDeskLinkText
-        HomeLink                                           = $targetResource.HomeLink
-        HomeLinkText                                       = $targetResource.HomeLinkText
-        HomeRealmDiscoveryOtherOrganizationDescriptionText = $targetResource.HomeRealmDiscoveryOtherOrganizationDescriptionText
-        HomeRealmDiscoveryPageDescriptionText              = $targetResource.HomeRealmDiscoveryPageDescriptionText
-        OrganizationalNameDescriptionText                  = $targetResource.OrganizationalNameDescriptionText
-        PrivacyLink                                        = $targetResource.PrivacyLink
-        PrivacyLinkText                                    = $targetResource.PrivacyLinkText
-        CertificatePageDescriptionText                     = $targetResource.CertificatePageDescriptionText
-        SignInPageDescriptionText                          = $targetResource.SignInPageDescriptionText
-        SignOutPageDescriptionText                         = $targetResource.SignOutPageDescriptionText
-        ErrorPageDescriptionText                           = $targetResource.ErrorPageDescriptionText
-        ErrorPageGenericErrorMessage                       = $targetResource.ErrorPageGenericErrorMessage
-        ErrorPageAuthorizationErrorMessage                 = $targetResource.ErrorPageAuthorizationErrorMessage
-        ErrorPageDeviceAuthenticationErrorMessage          = $targetResource.ErrorPageDeviceAuthenticationErrorMessage
-        ErrorPageSupportEmail                              = $targetResource.ErrorPageSupportEmail
-        UpdatePasswordPageDescriptionText                  = $targetResource.UpdatePasswordPageDescriptionText
-        SignInPageAdditionalAuthenticationDescriptionText  = $targetResource.SignInPageAdditionalAuthenticationDescriptionText
+    if ($null -ne $targetResource)
+    { 
+        $returnValue = @{
+            FederationServiceName                              = $FederationServiceName
+            Locale                                             = $Locale
+            CompanyName                                        = $targetResource.CompanyName
+            HelpDeskLink                                       = $targetResource.HelpDeskLink
+            HelpDeskLinkText                                   = $targetResource.HelpDeskLinkText
+            HomeLink                                           = $targetResource.HomeLink
+            HomeLinkText                                       = $targetResource.HomeLinkText
+            HomeRealmDiscoveryOtherOrganizationDescriptionText = $targetResource.HomeRealmDiscoveryOtherOrganizationDescriptionText
+            HomeRealmDiscoveryPageDescriptionText              = $targetResource.HomeRealmDiscoveryPageDescriptionText
+            OrganizationalNameDescriptionText                  = $targetResource.OrganizationalNameDescriptionText
+            PrivacyLink                                        = $targetResource.PrivacyLink
+            PrivacyLinkText                                    = $targetResource.PrivacyLinkText
+            CertificatePageDescriptionText                     = $targetResource.CertificatePageDescriptionText
+            SignInPageDescriptionText                          = $targetResource.SignInPageDescriptionText
+            SignOutPageDescriptionText                         = $targetResource.SignOutPageDescriptionText
+            ErrorPageDescriptionText                           = $targetResource.ErrorPageDescriptionText
+            ErrorPageGenericErrorMessage                       = $targetResource.ErrorPageGenericErrorMessage
+            ErrorPageAuthorizationErrorMessage                 = $targetResource.ErrorPageAuthorizationErrorMessage
+            ErrorPageDeviceAuthenticationErrorMessage          = $targetResource.ErrorPageDeviceAuthenticationErrorMessage
+            ErrorPageSupportEmail                              = $targetResource.ErrorPageSupportEmail
+            UpdatePasswordPageDescriptionText                  = $targetResource.UpdatePasswordPageDescriptionText
+            SignInPageAdditionalAuthenticationDescriptionText  = $targetResource.SignInPageAdditionalAuthenticationDescriptionText
+            Ensure                                             = 'Present'
+        }
     }
-
+    else
+    {
+        $returnValue = @{
+            FederationServiceName                              = $FederationServiceName
+            Locale                                             = $Locale
+            CompanyName                                        = $null
+            HelpDeskLink                                       = $null
+            HelpDeskLinkText                                   = $null
+            HomeLink                                           = $null
+            HomeLinkText                                       = $null
+            HomeRealmDiscoveryOtherOrganizationDescriptionText = $null
+            HomeRealmDiscoveryPageDescriptionText              = $null
+            OrganizationalNameDescriptionText                  = $null
+            PrivacyLink                                        = $null
+            PrivacyLinkText                                    = $null
+            CertificatePageDescriptionText                     = $null
+            SignInPageDescriptionText                          = $null
+            SignOutPageDescriptionText                         = $null
+            ErrorPageDescriptionText                           = $null
+            ErrorPageGenericErrorMessage                       = $null
+            ErrorPageAuthorizationErrorMessage                 = $null
+            ErrorPageDeviceAuthenticationErrorMessage          = $null
+            ErrorPageSupportEmail                              = $null
+            UpdatePasswordPageDescriptionText                  = $null
+            SignInPageAdditionalAuthenticationDescriptionText  = $null
+            Ensure                                             = 'Absent'
+        }
+    }
     $returnValue
 }
 
@@ -305,7 +336,12 @@ function Set-TargetResource
 
         [Parameter()]
         [System.String]
-        $SignInPageAdditionalAuthenticationDescriptionText
+        $SignInPageAdditionalAuthenticationDescriptionText,
+
+        [Parameter()]
+        [ValidateSet("Present","Absent")]
+        [System.String]
+        $Ensure
     )
 
     # Set Verbose and Debug parameters
@@ -319,6 +355,12 @@ function Set-TargetResource
     $parameters.Remove('FederationServiceName')
     $parameters.Remove('Locale')
     $parameters.Remove('Verbose')
+    $parameters.Remove('Ensure')
+
+    # Case Ensure is not declared
+    if([System.String]::IsNullOrEmpty($Ensure)){
+        $Ensure = "Present"
+    }
 
     $getTargetResourceParms = @{
         FederationServiceName = $FederationServiceName
@@ -326,24 +368,38 @@ function Set-TargetResource
     }
     $targetResource = Get-TargetResource @getTargetResourceParms
 
-    $propertiesNotInDesiredState = (
-        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters `
-            @commonParms | Where-Object -Property InDesiredState -eq $false)
-
-    $SetParameters = @{ }
-    foreach ($property in $propertiesNotInDesiredState)
+    if ($targetResource.Ensure -eq "Present" -and $Ensure -eq "Present")
     {
-        Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f
-            $FederationServiceName, $Locale, $property.ParameterName, ($property.Expected -join ', '))
+        $propertiesNotInDesiredState = (
+            Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters `
+                @commonParms | Where-Object -Property InDesiredState -eq $false)
+    
+        $SetParameters = @{ }
+        foreach ($property in $propertiesNotInDesiredState)
+        {
+            Write-Verbose -Message ($script:localizedData.SettingResourceMessage -f
+                $FederationServiceName, $Locale, $property.ParameterName, ($property.Expected -join ', '))
 
-        $setParameters.add($property.ParameterName, $property.Expected)
+            $setParameters.add($property.ParameterName, $property.Expected)
+        }
+
+        if ($setParameters.Count -gt 0)
+        {
+            try
+            {
+                Set-AdfsGlobalWebContent -Locale $Locale @setParameters
+            }
+            catch
+            {
+                $errorMessage = $script:localizedData.SettingResourceErrorMessage -f $FederationServiceName, $Locale
+                New-InvalidOperationException -Message $errorMessage -Error $_
+            }
+        }
     }
-
-    if ($setParameters.Count -gt 0)
-    {
+    elseif ($targetResource.Ensure -eq "Absent" -and $Ensure -eq "Present"){
         try
         {
-            Set-AdfsGlobalWebContent -Locale $Locale @setParameters
+            Set-AdfsGlobalWebContent -Locale $Locale @parameters
         }
         catch
         {
@@ -459,7 +515,12 @@ function Test-TargetResource
 
         [Parameter()]
         [System.String]
-        $SignInPageAdditionalAuthenticationDescriptionText
+        $SignInPageAdditionalAuthenticationDescriptionText,
+
+        [Parameter()]
+        [ValidateSet("Present","Absent")]
+        [System.String]
+        $Ensure
     )
 
     # Set Verbose and Debug parameters
@@ -468,7 +529,16 @@ function Test-TargetResource
         Debug   = $DebugPreference
     }
 
+    # Remove any parameters not used in Splats
+    [HashTable]$parameters = $PSBoundParameters
+    $parameters.Remove('Ensure')
+
     Write-Verbose -Message ($script:localizedData.TestingResourceMessage -f $FederationServiceName, $Locale)
+
+    # Case Ensure is not declared
+    if([System.String]::IsNullOrEmpty($Ensure)){
+        $Ensure = "Present"
+    }
 
     $getTargetResourceParms = @{
         FederationServiceName = $FederationServiceName
@@ -476,9 +546,20 @@ function Test-TargetResource
     }
     $targetResource = Get-TargetResource @getTargetResourceParms
 
-    $propertiesNotInDesiredState = (
-        Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $PSBoundParameters `
-            @commonParms | Where-Object -Property InDesiredState -eq $false)
+    if ($targetResource.Ensure -eq "Present" -and $Ensure -eq "Present")
+    {
+        $propertiesNotInDesiredState = (
+            Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters `
+                @commonParms | Where-Object -Property InDesiredState -eq $false)
+    }
+    elseif($targetResource.Ensure -eq "Absent" -and $Ensure -eq "Present")
+    {
+        $propertiesNotInDesiredState = $true
+    }
+    elseif($targetResource.Ensure -eq "Present" -and $Ensure -eq "Absent")
+    {
+        $propertiesNotInDesiredState = $true
+    }
 
     if ($propertiesNotInDesiredState)
     {
