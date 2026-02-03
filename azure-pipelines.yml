@@ -57,8 +57,8 @@ stages:
       - job: Test_HQRM
         displayName: 'HQRM'
         pool:
-          vmImage: 'windows-2019'
-        timeoutInMinutes: 0
+          vmImage: 'windows-latest'
+        timeoutInMinutes: '0'
         steps:
           - task: DownloadBuildArtifacts@1
             displayName: 'Download Build Artifact'
@@ -85,8 +85,8 @@ stages:
       - job: Test_Unit
         displayName: 'Unit'
         pool:
-          vmImage: 'windows-2019'
-        timeoutInMinutes: 0
+          vmImage: 'windows-latest'
+        timeoutInMinutes: '0'
         steps:
           - powershell: |
               $repositoryOwner,$repositoryName = $env:BUILD_REPOSITORY_NAME -split '/'
