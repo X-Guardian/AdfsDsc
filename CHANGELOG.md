@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AdfsGlobalWebContent
   - Fixed issue when there is no AdfsGlobalWebContent created before execution ([#77](https://github.com/X-Guardian/AdfsDsc/issues/77)).
 
+### Changed
+
+- Pin GitVersion.tool to version 5.*
+
 ## [1.4.0] - 2023-10-24
 
 ### Added
