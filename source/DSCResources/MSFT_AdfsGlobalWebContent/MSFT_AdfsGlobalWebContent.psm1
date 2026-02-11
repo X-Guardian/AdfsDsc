@@ -227,6 +227,7 @@ function Get-TargetResource
             Ensure                                             = 'Absent'
         }
     }
+    
     $returnValue
 }
 
@@ -358,7 +359,8 @@ function Set-TargetResource
     $parameters.Remove('Ensure')
 
     # Case Ensure is not declared
-    if([System.String]::IsNullOrEmpty($Ensure)){
+    if ([System.String]::IsNullOrEmpty($Ensure))
+    {
         $Ensure = "Present"
     }
 
@@ -536,7 +538,8 @@ function Test-TargetResource
     Write-Verbose -Message ($script:localizedData.TestingResourceMessage -f $FederationServiceName, $Locale)
 
     # Case Ensure is not declared
-    if([System.String]::IsNullOrEmpty($Ensure)){
+    if ([System.String]::IsNullOrEmpty($Ensure))
+    {
         $Ensure = "Present"
     }
 
@@ -544,36 +547,35 @@ function Test-TargetResource
         FederationServiceName = $FederationServiceName
         Locale                = $Locale
     }
+
     $targetResource = Get-TargetResource @getTargetResourceParms
 
     if ($targetResource.Ensure -eq "Present" -and $Ensure -eq "Present")
     {
         $propertiesNotInDesiredState = (
             Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters `
-                @commonParms | Where-Object -Property InDesiredState -eq $false)
+                @commonParms | Where-Object -Property InDesiredState -eq $false
+        )
     }
-    elseif($targetResource.Ensure -eq "Absent" -and $Ensure -eq "Present")
+    elseif ($targetResource.Ensure -eq "Absent" -and $Ensure -eq "Present")
     {
         $propertiesNotInDesiredState = $true
     }
-    elseif($targetResource.Ensure -eq "Present" -and $Ensure -eq "Absent")
+    elseif ($targetResource.Ensure -eq "Present" -and $Ensure -eq "Absent")
     {
         $propertiesNotInDesiredState = $true
     }
 
+    # Resource is not in desired state
     if ($propertiesNotInDesiredState)
     {
-        # Resource is not in desired state
         Write-Verbose -Message ($script:localizedData.ResourceNotInDesiredStateMessage -f
             $FederationServiceName, $Locale)
-
         $inDesiredState = $false
     }
-    else
+    else # Resource is in desired state
     {
-        # Resource is in desired state
         Write-Verbose -Message ($script:localizedData.ResourceInDesiredStateMessage -f $FederationServiceName, $Locale)
-
         $inDesiredState = $true
     }
 
