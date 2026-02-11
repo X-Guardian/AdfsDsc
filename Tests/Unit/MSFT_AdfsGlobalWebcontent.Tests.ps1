@@ -66,6 +66,13 @@ try
             ErrorPageSupportEmail                              = 'support@contoso.com'
             UpdatePasswordPageDescriptionText                  = 'Contoso Update Password'
             SignInPageAdditionalAuthenticationDescriptionText  = 'Contoso Additional Sign In'
+            Ensure                                             = 'Present'
+        }
+
+        $mockAbsentResource = @{
+            FederationServiceName                              = 'sts.contoso.com'
+            Locale                                             = 'en-US'
+            Ensure                                             = 'Absent'
         }
 
         $mockChangedResource = @{
@@ -116,6 +123,12 @@ try
             SignInPageAdditionalAuthenticationDescriptionText  = $mockResource.SignInPageAdditionalAuthenticationDescriptionText
         }
 
+        $mockGetTargetResourcePresentResult = $mockGetTargetResourceResult.Clone()
+        $mockGetTargetResourcePresentResult.Ensure = 'Present'
+
+        $mockGetTargetResourceAbsentResult = $mockGetTargetResourceResult.Clone()
+        $mockGetTargetResourceAbsentResult.Ensure = 'Absent'
+
         Describe 'MSFT_AdfsGlobalWebContent\Get-TargetResource' -Tag 'Get' {
             BeforeAll {
                 $getTargetResourceParameters = @{
@@ -149,23 +162,52 @@ try
                 Mock -CommandName Assert-Module
                 Mock -CommandName "Assert-$($global:psModuleName)Service"
                 Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
-
-                $result = Get-TargetResource @getTargetResourceParameters
             }
 
-            foreach ($property in $mockResource.Keys)
-            {
-                It "Should return the correct $property property" {
-                    $result.$property | Should -Be $mockResource.$property
+            Context 'When the Resource is Present' {
+                BeforeAll {
+                    Mock -CommandName $ResourceCommand.Get -MockWith { $mockGetResourceCommandResult }
+
+                    $result = Get-TargetResource @getTargetResourceParameters
+                }
+
+                foreach ($property in $mockResource.Keys)
+                {
+                    It "Should return the correct $property property" {
+                        $result.$property | Should -Be $mockResource.$property
+                    }
+                }
+
+                It 'Should call the expected mocks' {
+                    Assert-MockCalled -CommandName Assert-Module `
+                        -ParameterFilter { $ModuleName -eq $global:psModuleName } `
+                        -Exactly -Times 1
+                    Assert-MockCalled -CommandName "Assert-$($global:psModuleName)Service" -Exactly -Times 1
+                    Assert-MockCalled -CommandName $ResourceCommand.Get -Exactly -Times 1
                 }
             }
 
-            It 'Should call the expected mocks' {
-                Assert-MockCalled -CommandName Assert-Module `
-                    -ParameterFilter { $ModuleName -eq $global:psModuleName } `
-                    -Exactly -Times 1
-                Assert-MockCalled -CommandName "Assert-$($global:psModuleName)Service" -Exactly -Times 1
-                Assert-MockCalled -CommandName $ResourceCommand.Get -Exactly -Times 1
+            Context 'When the Resource is Absent' {
+                BeforeAll {
+                    Mock -CommandName $ResourceCommand.Get
+
+                    $result = Get-TargetResource @getTargetResourceParameters
+                }
+
+                foreach ($property in $mockAbsentResource.Keys)
+                {
+                    It "Should return the correct $property property" {
+                        $result.$property | Should -Be $mockAbsentResource.$property
+                    }
+                }
+
+                It 'Should call the expected mocks' {
+                    Assert-MockCalled -CommandName Assert-Module `
+                        -ParameterFilter { $ModuleName -eq $global:psModuleName } `
+                        -Exactly -Times 1
+                    Assert-MockCalled -CommandName "Assert-$($global:psModuleName)Service" -Exactly -Times 1
+                    Assert-MockCalled -CommandName $ResourceCommand.Get -Exactly -Times 1
+                }
             }
 
             Context "When $($ResourceCommand.Get) throws an exception" {
@@ -208,23 +250,82 @@ try
                     SignInPageAdditionalAuthenticationDescriptionText  = $mockChangedResource.SignInPageAdditionalAuthenticationDescriptionText
                 }
 
+                $setTargetResourcePresentParameters = $setTargetResourceParameters.Clone()
+                $setTargetResourcePresentParameters.Ensure = 'Present'
+
+                $setTargetResourceAbsentParameters = $setTargetResourceParameters.Clone()
+                $setTargetResourceAbsentParameters.Ensure = 'Absent'
+
                 Mock -CommandName $ResourceCommand.Set
                 Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceResult }
             }
 
-            foreach ($property in $mockChangedResource.Keys)
-            {
-                Context "When $property has changed" {
-                    BeforeAll {
-                        $setTargetResourceParametersChangedProperty = $setTargetResourceParameters.Clone()
-                        $setTargetResourceParametersChangedProperty.$property = $mockChangedResource.$property
+            Context 'When the Resource is Present' {
+                BeforeAll {
+                    Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourcePresentResult }
+                }
+
+                Context 'When the Resource should be Present' {
+                    foreach ($property in $mockChangedResource.Keys)
+                    {
+                        Context "When $property has changed" {
+                            BeforeAll {
+                                $setTargetResourceParametersChangedProperty = $setTargetResourceParameters.Clone()
+                                $setTargetResourceParametersChangedProperty.$property = $mockChangedResource.$property
+                            }
+
+                            It 'Should not throw' {
+                                { Set-TargetResource @setTargetResourceParametersChangedProperty } | Should -Not -Throw
+                            }
+
+                            It 'Should call the correct mocks' {
+                                Assert-MockCalled -CommandName Get-TargetResource `
+                                    -ParameterFilter { `
+                                        $FederationServiceName -eq $setTargetResourceParametersChangedProperty.FederationServiceName } `
+                                    -Exactly -Times 1
+                                Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 1
+                            }
+                        }
                     }
 
+                    Context "When $($ResourceCommand.Set) throws an exception" {
+                        BeforeAll {
+                            Mock -CommandName $ResourceCommand.Set -MockWith { Throw 'Error' }
+                        }
+
+                        It 'Should throw the correct exception' {
+                            { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
+                                $script:localizedData.SettingResourceErrorMessage -f
+                                $setTargetResourceParameters.FederationServiceName, $setTargetResourceParameters.Locale )
+                        }
+                    }
+                }
+
+                Context 'When the Resource should be Absent' {
                     It 'Should not throw' {
-                        { Set-TargetResource @setTargetResourceParametersChangedProperty } | Should -Not -Throw
+                        { Set-TargetResource @setTargetResourceAbsentParameters } | Should -Not -Throw
                     }
 
-                    It 'Should call the correct mocks' {
+                    It 'Should call the expected mocks' {
+                        Assert-MockCalled -CommandName Get-TargetResource `
+                            -ParameterFilter { $Name -eq $setTargetResourceAbsentParameters.Name } `
+                            -Exactly -Times 1
+                        Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 0
+                    }
+                }
+            }
+
+            Context 'When the Resource is Absent' {
+                BeforeAll {
+                    Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
+                }
+
+                Context 'When the Resource should be Present' {
+                    It 'Should not throw' {
+                        { Set-TargetResource @setTargetResourcePresentParameters } | Should -Not -Throw
+                    }
+
+                    It 'Should call the expected mocks' {
                         Assert-MockCalled -CommandName Get-TargetResource `
                             -ParameterFilter { `
                                 $FederationServiceName -eq $setTargetResourceParametersChangedProperty.FederationServiceName } `
@@ -232,21 +333,22 @@ try
                         Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 1
                     }
                 }
-            }
 
-            Context "When $($ResourceCommand.Set) throws an exception" {
-                BeforeAll {
-                    Mock -CommandName $ResourceCommand.Set -MockWith { Throw 'Error' }
-                }
+                Context 'When the Resource should be Absent' {
+                    It 'Should not throw' {
+                        { Set-TargetResource @setTargetResourceAbsentParameters } | Should -Not -Throw
+                    }
 
-                It 'Should throw the correct exception' {
-                    { Set-TargetResource @setTargetResourceParameters } | Should -Throw (
-                        $script:localizedData.SettingResourceErrorMessage -f
-                        $setTargetResourceParameters.FederationServiceName, $setTargetResourceParameters.Locale )
+                    It 'Should call the expected mocks' {
+                        Assert-MockCalled -CommandName Get-TargetResource `
+                            -ParameterFilter { `
+                                $FederationServiceName -eq $setTargetResourceParametersChangedProperty.FederationServiceName } `
+                            -Exactly -Times 1
+                        Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 0
+                    }
                 }
             }
         }
-
         Describe 'MSFT_AdfsGlobalWebContent\Test-TargetResource' -Tag 'Test' {
             BeforeAll {
                 $testTargetResourceParameters = @{
@@ -273,36 +375,90 @@ try
                     UpdatePasswordPageDescriptionText                  = $mockResource.UpdatePasswordPageDescriptionText
                     SignInPageAdditionalAuthenticationDescriptionText  = $mockResource.SignInPageAdditionalAuthenticationDescriptionText
                 }
+            
+                $testTargetResourcePresentParameters = $testTargetResourceParameters.Clone()
+                $testTargetResourcePresentParameters.Ensure = 'Present'
 
-                Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceResult }
+                $testTargetResourceAbsentParameters = $testTargetResourceParameters.Clone()
+                $testTargetResourceAbsentParameters.Ensure = 'Absent'
             }
 
-            It 'Should not throw' {
-                { Test-TargetResource @testTargetResourceParameters } | Should -Not -Throw
-            }
+            Context 'When the Resource is Present' {
+                BeforeAll {
+                    Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceResult }
+                }
 
-            It 'Should call the expected mocks' {
-                Assert-MockCalled -CommandName Get-TargetResource `
-                    -ParameterFilter { $FederationServiceName -eq $testTargetResourceParameters.FederationServiceName } `
-                    -Exactly -Times 1
-            }
+                Context 'When the Resource should be Present' {
+                    It 'Should not throw' {
+                        { Test-TargetResource @testTargetResourceParameters } | Should -Not -Throw
+                    }
 
-            Context 'When all the resource properties are in the desired state' {
-                It 'Should return $true' {
-                    Test-TargetResource @testTargetResourceParameters | Should -Be $true
+                    It 'Should call the expected mocks' {
+                        Assert-MockCalled -CommandName Get-TargetResource `
+                            -ParameterFilter { $FederationServiceName -eq $testTargetResourceParameters.FederationServiceName } `
+                            -Exactly -Times 1
+                    }
+
+                    Context 'When all the resource properties are in the desired state' {
+                        It 'Should return $true' {
+                            Test-TargetResource @testTargetResourceParameters | Should -Be $true
+                        }
+                    }
+
+                    foreach ($property in $mockChangedResource.Keys)
+                    {
+                        Context "When the $property resource property is not in the desired state" {
+                            BeforeAll {
+                                $testTargetResourceNotInDesiredStateParameters = $testTargetResourceParameters.Clone()
+                                $testTargetResourceNotInDesiredStateParameters.$property = $mockChangedResource.$property
+                            }
+
+                            It 'Should return $false' {
+                                Test-TargetResource @testTargetResourceNotInDesiredStateParameters | Should -Be $false
+                            }
+                        }
+                    }
+                }
+
+                Context 'When the Resource should be Absent' {
+                It 'Should return the desired result' {
+                    Test-TargetResource @testTargetResourceAbsentParameters | Should -Be $false
+                }
+
+                It 'Should call the expected mocks' {
+                    Assert-MockCalled -CommandName Get-TargetResource `
+                            -ParameterFilter { $FederationServiceName -eq $testTargetResourceParameters.FederationServiceName } `
+                            -Exactly -Times 1
+                }
                 }
             }
 
-            foreach ($property in $mockChangedResource.Keys)
-            {
-                Context "When the $property resource property is not in the desired state" {
-                    BeforeAll {
-                        $testTargetResourceNotInDesiredStateParameters = $testTargetResourceParameters.Clone()
-                        $testTargetResourceNotInDesiredStateParameters.$property = $mockChangedResource.$property
+            Context 'When the Resource is Absent' {
+                BeforeAll {
+                    Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceAbsentResult }
+                }
+
+                Context 'When the Resource should be Present' {
+                    It 'Should return the desired result' {
+                        Test-TargetResource @testTargetResourcePresentParameters | Should -Be $false
                     }
 
-                    It 'Should return $false' {
-                        Test-TargetResource @testTargetResourceNotInDesiredStateParameters | Should -Be $false
+                    It 'Should call the expected mocks' {
+                        Assert-MockCalled -CommandName Get-TargetResource `
+                            -ParameterFilter { $FederationServiceName -eq $testTargetResourceParameters.FederationServiceName } `
+                            -Exactly -Times 1
+                    }
+                }
+
+                Context 'When the Resource should be Absent' {
+                    It 'Should return the desired result' {
+                        Test-TargetResource @testTargetResourceAbsentParameters | Should -Be $true
+                    }
+
+                    It 'Should call the expected mocks' {
+                        Assert-MockCalled -CommandName Get-TargetResource `
+                            -ParameterFilter { $FederationServiceName -eq $testTargetResourceParameters.FederationServiceName } `
+                            -Exactly -Times 1
                     }
                 }
             }
