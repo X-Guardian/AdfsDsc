@@ -23,4 +23,5 @@ class MSFT_AdfsGlobalWebContent : OMI_BaseResource
     [Write, Description("Specifies the support email address on the error page.")] String ErrorPageSupportEmail;
     [Write, Description("Specifies the description to display in the update password page when users change their passwords.")] String UpdatePasswordPageDescriptionText;
     [Write, Description("Specifies the description to display when an application prompts a user for additional authentication. The sign-in page can also display a description that is provided by the additional authentication provider.")] String SignInPageAdditionalAuthenticationDescriptionText;
+    [Write, ValueMap{"Present","Absent"}, Values{"Present","Absent"}] String Ensure;
 };

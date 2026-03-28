@@ -93,6 +93,10 @@
     Write - String
     Specifies the description to display when an application prompts a user for additional authentication. The sign-in page can also display a description that is provided by the additional authentication provider.
 
+.PARAMETER Ensure
+    Read - String
+    The state of the AdfsGlobalWebContent.
+
 .EXAMPLE 1
 
 This configuration will set the company name of the global web content for the invariant locale. If there is no
