@@ -565,6 +565,11 @@ function Test-TargetResource
     {
         $propertiesNotInDesiredState = $true
     }
+    else
+    {
+        # Both are Absent - resource is in desired state
+        $propertiesNotInDesiredState = $false
+    }
 
     # Resource is not in desired state
     if ($propertiesNotInDesiredState)

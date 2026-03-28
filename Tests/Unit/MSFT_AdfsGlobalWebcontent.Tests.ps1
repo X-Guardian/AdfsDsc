@@ -328,7 +328,7 @@ try
                     It 'Should call the expected mocks' {
                         Assert-MockCalled -CommandName Get-TargetResource `
                             -ParameterFilter { `
-                                $FederationServiceName -eq $setTargetResourceParametersChangedProperty.FederationServiceName } `
+                                $FederationServiceName -eq $setTargetResourcePresentParameters.FederationServiceName } `
                             -Exactly -Times 1
                         Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 1
                     }
@@ -342,7 +342,7 @@ try
                     It 'Should call the expected mocks' {
                         Assert-MockCalled -CommandName Get-TargetResource `
                             -ParameterFilter { `
-                                $FederationServiceName -eq $setTargetResourceParametersChangedProperty.FederationServiceName } `
+                                $FederationServiceName -eq $setTargetResourceAbsentParameters.FederationServiceName } `
                             -Exactly -Times 1
                         Assert-MockCalled -CommandName $ResourceCommand.Set -Exactly -Times 0
                     }
@@ -385,7 +385,7 @@ try
 
             Context 'When the Resource is Present' {
                 BeforeAll {
-                    Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourceResult }
+                    Mock -CommandName Get-TargetResource -MockWith { $mockGetTargetResourcePresentResult }
                 }
 
                 Context 'When the Resource should be Present' {
