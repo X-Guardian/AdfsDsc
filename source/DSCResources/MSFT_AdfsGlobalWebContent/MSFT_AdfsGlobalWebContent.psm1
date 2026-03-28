@@ -172,7 +172,7 @@ function Get-TargetResource
     }
 
     if ($null -ne $targetResource)
-    { 
+    {
         $returnValue = @{
             FederationServiceName                              = $FederationServiceName
             Locale                                             = $Locale
@@ -227,7 +227,7 @@ function Get-TargetResource
             Ensure                                             = 'Absent'
         }
     }
-    
+
     $returnValue
 }
 
@@ -375,7 +375,7 @@ function Set-TargetResource
         $propertiesNotInDesiredState = (
             Compare-ResourcePropertyState -CurrentValues $targetResource -DesiredValues $parameters `
                 @commonParms | Where-Object -Property InDesiredState -eq $false)
-    
+
         $SetParameters = @{ }
         foreach ($property in $propertiesNotInDesiredState)
         {

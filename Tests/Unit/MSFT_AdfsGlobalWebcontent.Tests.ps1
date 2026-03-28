@@ -375,7 +375,7 @@ try
                     UpdatePasswordPageDescriptionText                  = $mockResource.UpdatePasswordPageDescriptionText
                     SignInPageAdditionalAuthenticationDescriptionText  = $mockResource.SignInPageAdditionalAuthenticationDescriptionText
                 }
-            
+
                 $testTargetResourcePresentParameters = $testTargetResourceParameters.Clone()
                 $testTargetResourcePresentParameters.Ensure = 'Present'
 
